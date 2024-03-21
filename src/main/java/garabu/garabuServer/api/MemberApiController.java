@@ -8,6 +8,9 @@ import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,12 +23,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MemberApiController {
     private final MemberService memberService;
+    private final PasswordEncoder passwordEncoder;
+
+    @PostMapping("/api/v2/login")
+    public String userLogin(){
+        return "user";
+    }
 
     @GetMapping("/api/v2/members")
     public Result memberV2(){
         List<Member> findMembers = memberService.findMembers();
         List<MemberDto> collect = findMembers.stream()
-                .map(m -> new MemberDto(m.getName(), m.getEmail(), m.getPwd() ))
+                .map(m -> new MemberDto(m.getUsername(), m.getEmail(), m.getPassword() ))
                 .collect(Collectors.toList());
 
         return new Result(collect);
@@ -39,9 +48,9 @@ public class MemberApiController {
     @Data
     @AllArgsConstructor
     static class MemberDto {
-        private String name;
+        private String username;
         private String email;
-        private String pwd;
+        private String password;
 
     }
 
@@ -49,9 +58,9 @@ public class MemberApiController {
     public CreateMemberResponse saveMemberV2(@RequestBody @Valid
                                              CreateMemberRequest request) {
         Member member = new Member();
-        member.setName(request.getName());
+        member.setUsername(request.getUsername());
         member.setEmail(request.getEmail());
-        member.setPwd(request.getPwd());
+        member.setPassword(passwordEncoder.encode(request.getPassword()));
         Long id = memberService.join(member);
         return new CreateMemberResponse(id);
     }
@@ -60,8 +69,8 @@ public class MemberApiController {
     static class CreateMemberRequest {
         @Email
         private String email;
-        private String name;
-        private String pwd;
+        private String username;
+        private String password;
 
     }
     @Data

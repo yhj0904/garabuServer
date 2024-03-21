@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class LedgerApiController {
     private final LedgerService ledgerService;
 
-    @PostMapping("/api/v2/members")
+    @PostMapping("/api/v2/ledger")
     public CreateLedgerResponse saveMemberV2(@RequestBody @Valid
                                                  CreateLedgerRequest request) {
         Ledger ledger = new Ledger();

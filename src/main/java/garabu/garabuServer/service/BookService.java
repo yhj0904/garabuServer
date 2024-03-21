@@ -18,7 +18,6 @@ public class BookService {
     private final MemberRepository memberRepository;
 
     public Long registBook(Book book) {
-
         bookRepository.save(book);
         return book.getId();
     }

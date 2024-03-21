@@ -17,10 +17,10 @@ public class Member {
     @Column(name = "member_id")
     private Long id;            // 회원 식별자 Id
 
-    private String name;        // 닉네임
+    private String username;        // 닉네임
     @Email
     private String email;       // 이메일
-    private String pwd;         // 비번
+    private String password;         // 비번
 
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
