@@ -11,8 +11,8 @@ public class PaymentMethod {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
-    private Long id;
+    private Long id;        //결제수단 식별자
 
-    private String methodName;
+    private String paymentName;  //현금 계좌이체 카드
 
 }

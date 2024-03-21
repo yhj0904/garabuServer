@@ -11,15 +11,15 @@ import static jakarta.persistence.FetchType.LAZY;
 public class UserBook {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id;    //공동작업 ID
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "user_id")
-    private Member member;
+    @JoinColumn(name = "member_id")
+    private Member member;  //  작업자 ID
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "book_id")
-    private Book book;
+    private Book book;      // 가게부 ID
 
     private UserRole userRole; // 예를 들어, "OWNER", "MEMBER" 등의 역할 구분
 }

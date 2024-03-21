@@ -11,10 +11,10 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
-    private Long id;
+    private Long id;            // 카테고리 Id
 
-    private String categoryName;
+    private String categoryName;       // 카테고리 이름
 
     @Enumerated(EnumType.STRING)
-    private AmountType amountType;
+    private AmountType amountType;      // 분류 유형 수입 지출 이체
 }

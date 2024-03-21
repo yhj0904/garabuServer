@@ -2,5 +2,5 @@ package garabu.garabuServer.domain;
 
 public enum AmountType {
 
-    TRANSFER,EXPENDITURE,INCOME
+    INCOME, EXPENSE, TRANSFER;
 }

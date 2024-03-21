@@ -15,12 +15,12 @@ public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
-    private Long id;
+    private Long id;            // 회원 식별자 Id
 
-    private String name;
+    private String name;        // 닉네임
     @Email
-    private String email;
-    private String pwd;
+    private String email;       // 이메일
+    private String pwd;         // 비번
 
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
