@@ -25,10 +25,6 @@ public class MemberApiController {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
 
-    @PostMapping("/api/v2/login")
-    public String userLogin(){
-        return "user";
-    }
 
     @GetMapping("/api/v2/members")
     public Result memberV2(){
@@ -54,7 +50,7 @@ public class MemberApiController {
 
     }
 
-    @PostMapping("/api/v2/members")
+    @PostMapping("/join")
     public CreateMemberResponse saveMemberV2(@RequestBody @Valid
                                              CreateMemberRequest request) {
         Member member = new Member();

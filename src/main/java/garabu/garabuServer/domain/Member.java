@@ -28,11 +28,6 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
 
-    public List<String> getRoleList() {
-        if(this.roles.length() > 0){
-            return Arrays.asList(this.roles.split(","));
-        }
-        return new ArrayList<>();
-    }
+
 
 }
