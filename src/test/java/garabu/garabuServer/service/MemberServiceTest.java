@@ -27,13 +27,14 @@ public class MemberServiceTest {
 
      //given
      Member member = new Member();
-     member.setUsername("test");
+     member.setUsername("test2");
 
      //when
         Long savedId = memberService.join(member);
      //then
 
         assertEquals(member, memberRepository.findOne(savedId));
+
      }
 
     @Test(expected = IllegalStateException.class)
