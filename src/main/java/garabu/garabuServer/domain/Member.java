@@ -22,12 +22,11 @@ public class Member {
     @Email
     private String email;       // 이메일
     private String password;         // 비번
-    private String roles;
+    private String role;
 
 
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
-
 
 
 }

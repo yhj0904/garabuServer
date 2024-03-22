@@ -1,9 +1,15 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.MemberJPARepository;
 import garabu.garabuServer.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +18,7 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class MemberService {
+public class MemberService{
 
     private final MemberRepository memberRepository;
 
@@ -54,5 +60,4 @@ public class MemberService {
         Member member = memberRepository.findOne(id);
         member.setUsername(name);
     }
-
 }

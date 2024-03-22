@@ -35,6 +35,8 @@ public class MemberApiController {
 
         return new Result(collect);
     }
+
+
     @Data
     @AllArgsConstructor
     static class Result<T> {
@@ -76,6 +78,5 @@ public class MemberApiController {
             this.id = id;
         }
     }
-
 }
 
