@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity
@@ -21,7 +22,17 @@ public class Member {
     @Email
     private String email;       // 이메일
     private String password;         // 비번
+    private String roles;
+
 
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
+
+    public List<String> getRoleList() {
+        if(this.roles.length() > 0){
+            return Arrays.asList(this.roles.split(","));
+        }
+        return new ArrayList<>();
+    }
+
 }

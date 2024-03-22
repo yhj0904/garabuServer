@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface MemberJPARepository extends JpaRepository<Member, Long> {
     List<Member> findByEmail(String name);
-
+    Member findByUsername(String username);
 }
