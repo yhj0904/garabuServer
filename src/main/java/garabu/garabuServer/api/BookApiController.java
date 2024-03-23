@@ -2,6 +2,7 @@ package garabu.garabuServer.api;
 
 
 import garabu.garabuServer.domain.Book;
+import garabu.garabuServer.domain.BookType;
 import garabu.garabuServer.service.BookService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -19,23 +20,22 @@ public class BookApiController {
     @PostMapping("/api/v2/book")
     public CreateBookResponse saveBookV2(@RequestBody @Valid
                                          CreateBookRequest request) {
-        Book book = new Book();
-        book.setBookName(request.getBookName());
-        Long id = bookService.registBook(book);
-        return new CreateBookResponse(id);
+
+        Book book = bookService.createBook(request.getMemberId(), request.getBookName(), request.getBookType());
+        return new CreateBookResponse(book.getId());
     }
-
-
 
     @Data
     static class CreateBookRequest {
-        private String BookName;
-
+        private Long memberId; // 가계부를 생성하는 사용자의 ID
+        private String bookName; // 가계부 이름
+        private BookType bookType; // 가계부 유형 (PERSONAL, COUPLE, GROUP)
     }
 
     @Data
     static class CreateBookResponse {
-        private Long id;
+        private Long id; // 생성된 가계부의 ID
+
         public CreateBookResponse(Long id) {
             this.id = id;
         }

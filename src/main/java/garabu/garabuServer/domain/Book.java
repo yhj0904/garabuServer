@@ -18,10 +18,13 @@ public class Book {
     private Long id;                // 가계부 식별자
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;      // 소유한 사용자의 식별자 Id
+    @JoinColumn(name = "owner_id")
+    private Member owner;      // 소유한 사용자의 식별자 Id
 
     private String BookName;   // 가계부 이름 ex)개인 가계부, 커플 가계부
+
+    @Enumerated(EnumType.STRING)
+    private BookType bookType; // 가계부 유형
 
     @OneToMany(mappedBy = "book")
     private List<UserBook> userBooks = new ArrayList<>();
