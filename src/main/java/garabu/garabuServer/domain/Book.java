@@ -23,9 +23,6 @@ public class Book {
 
     private String BookName;   // 가계부 이름 ex)개인 가계부, 커플 가계부
 
-    @Enumerated(EnumType.STRING)
-    private BookType bookType; // 가계부 유형
-
     @OneToMany(mappedBy = "book")
     private List<UserBook> userBooks = new ArrayList<>();
 

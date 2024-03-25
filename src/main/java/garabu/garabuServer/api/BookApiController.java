@@ -2,10 +2,8 @@ package garabu.garabuServer.api;
 
 
 import garabu.garabuServer.domain.Book;
-import garabu.garabuServer.domain.BookType;
 import garabu.garabuServer.service.BookService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +19,7 @@ public class BookApiController {
     public CreateBookResponse saveBookV2(@RequestBody @Valid
                                          CreateBookRequest request) {
 
-        Book book = bookService.createBook(request.getMemberId(), request.getBookName(), request.getBookType());
+        Book book = bookService.createBook(request.getMemberId(), request.getBookName());
         return new CreateBookResponse(book.getId());
     }
 
@@ -29,7 +27,6 @@ public class BookApiController {
     static class CreateBookRequest {
         private Long memberId; // 가계부를 생성하는 사용자의 ID
         private String bookName; // 가계부 이름
-        private BookType bookType; // 가계부 유형 (PERSONAL, COUPLE, GROUP)
     }
 
     @Data

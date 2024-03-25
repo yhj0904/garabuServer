@@ -1,5 +1,7 @@
 package garabu.garabuServer.api;
 
+import garabu.garabuServer.domain.AmountType;
+import garabu.garabuServer.domain.Category;
 import garabu.garabuServer.domain.Ledger;
 import garabu.garabuServer.service.LedgerService;
 import jakarta.validation.Valid;
@@ -26,6 +28,8 @@ public class LedgerApiController {
         ledger.setAmount(request.getAmount());
         ledger.setDescription(request.getDescription());
         ledger.setMemo(request.getMemo());
+        Category category = new Category();
+        category.setAmountType(request.getAmountType());
         Long id = ledgerService.registLedger(ledger);
 
         return new CreateLedgerResponse(id);
@@ -37,6 +41,7 @@ public class LedgerApiController {
         private BigDecimal amount;
         private String description;
         private String memo;
+        private AmountType amountType;
     }
     @Data
     static class CreateLedgerResponse {
