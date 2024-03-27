@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -34,7 +35,7 @@ public class Ledger {
     private PaymentMethod paymentMethod;    //결제수단의 ID
 
 
-    private LocalDateTime date;  // 날짜
+    private LocalDate date;  // 날짜
     private BigDecimal amount;  // 금액
     private String description; //상세내용
     private String memo;            // 메모

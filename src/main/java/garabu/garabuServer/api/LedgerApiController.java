@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @RestController
@@ -36,8 +37,7 @@ public class LedgerApiController {
     }
     @Data
     static class CreateLedgerRequest {
-        @Email
-        private LocalDateTime date;
+        private LocalDate date;
         private BigDecimal amount;
         private String description;
         private String memo;
