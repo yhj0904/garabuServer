@@ -10,5 +10,5 @@ public class GarabuServerApplication {
 		SpringApplication.run(GarabuServerApplication.class, args);
 	}
 
-}
+}	
 

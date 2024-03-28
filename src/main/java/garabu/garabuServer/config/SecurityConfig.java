@@ -61,9 +61,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
+      /*  http
                 .authorizeHttpRequests((auth) -> auth
-                        .anyRequest().permitAll());
+                        .anyRequest().permitAll());*/
 
         http
                 .csrf((auth) -> auth.disable());
@@ -87,11 +87,11 @@ public class SecurityConfig {
         http
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
 
-       /* http
+        http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/reissue").permitAll()
                         .requestMatchers("/login", "/", "/join").permitAll()
-                        .anyRequest().authenticated());*/
+                        .anyRequest().authenticated());
 
         //JWTFilter 등록
         http
