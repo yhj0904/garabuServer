@@ -27,6 +27,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public CustomSuccessHandler(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
         this.refreshRepository = refreshRepository;
         this.jwtUtil = jwtUtil;
+        setDefaultTargetUrl("/book");
     }
 
     @Override
@@ -52,6 +53,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.setHeader("access", access);
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
+        response.sendRedirect("http://localhost:3000/book");
 
     }
     private void addRefreshEntity(String username, String refresh, Long expiredMs) {
