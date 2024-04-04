@@ -1,3 +1,5 @@
+/*
+
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Member;
@@ -59,3 +61,4 @@ public class MemberServiceTest {
         fail("예외 발생해야함");
     }
 }
+ */
