@@ -19,6 +19,7 @@ public class Member {
     private Long id;            // 회원 식별자 Id
 
     private String username;        // 닉네임
+    private String name;
     @Email
     private String email;       // 이메일
     private String password;         // 비번
