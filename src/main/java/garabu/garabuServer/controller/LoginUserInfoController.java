@@ -5,6 +5,7 @@ import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.dto.LoginUserDTO;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.MemberJPARepository;
+import garabu.garabuServer.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,25 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LoginUserInfoController {
 
-    private final MemberJPARepository memberJPARepository;
+    private final MemberService memberService;
 
     @GetMapping("/user/me")
-    public LoginUserDTO currentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String currentUsername = authentication.getName();
-
-        Member member = memberJPARepository.findByUsername(currentUsername);
-
-        LoginUserDTO userDto = new LoginUserDTO();
-        userDto.setUsername(member.getName());
-        userDto.setEmail(member.getEmail());
-        // 실제 Member 엔티티에 이메일이 있다고 가정
-        // userDto의 다른 필드를 필요에 따라 설정
-
-        return userDto;
-
+    public LoginUserDTO currentUser() {
+        return memberService.getCurrentLoginUserDTO();
+    }
 
         //현재 로그인 한 유저 정보 빼와야함. 근데 리프레쉬 토큰에 있는 유저로 검색이됨.
-    }
 }

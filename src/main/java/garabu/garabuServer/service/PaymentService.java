@@ -1,5 +1,6 @@
 package garabu.garabuServer.service;
 
+import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.PaymentMethod;
 import garabu.garabuServer.repository.PaymentJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,14 @@ public class PaymentService {
 
         paymentJpaRepository.save(payment);
         return payment.getId();
+    }
+
+    public PaymentMethod findById(Long id) {
+        return paymentJpaRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+    }
+
+    public PaymentMethod findByName(String name) {
+        return paymentJpaRepository.findByName(name);
     }
 
 }

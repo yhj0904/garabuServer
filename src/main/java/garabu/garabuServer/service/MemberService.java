@@ -1,10 +1,13 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.dto.LoginUserDTO;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.MemberJPARepository;
 import garabu.garabuServer.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -31,6 +34,25 @@ public class MemberService{
         memberRepository.save(member);
         return member.getId();
     }
+
+    public LoginUserDTO getCurrentLoginUserDTO() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Member member = memberJPARepository.findByUsername(currentUsername);
+
+        if (member == null) {
+            // Handle the case where the member is not found, possibly throw an exception
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        LoginUserDTO userDto = new LoginUserDTO();
+        userDto.setUsername(member.getName());
+        userDto.setEmail(member.getEmail());
+        // Set other fields of userDto as necessary
+
+        return userDto;
+    }
+
     private void validateDuplicateEmail(Member member) {
         List<Member> findEmail = memberJPARepository.findByEmail(member.getEmail());
 
@@ -59,5 +81,10 @@ public class MemberService{
     public void update(Long id, String name) {
         Member member = memberRepository.findOne(id);
         member.setUsername(name);
+    }
+
+    public Member findMemberByUsername(String username) {
+        return memberJPARepository.findByUsername(username);
+
     }
 }

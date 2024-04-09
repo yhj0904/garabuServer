@@ -12,8 +12,11 @@ public class LedgerService {
     private final LedgerJpaRepository ledgerJpaRepository;
 
     public Long registLedger (Ledger ledger){
+
         ledgerJpaRepository.save(ledger);
 
         return ledger.getId();
     }
+
+
 }

@@ -1,5 +1,6 @@
 package garabu.garabuServer.service;
 
+import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Category;
 import garabu.garabuServer.repository.CategoryJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,14 @@ public class CategoryService {
 
         categoryJpaRepository.save(category);
         return category.getId();
+    }
+
+    public Category findById(Long id) {
+        return categoryJpaRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+    }
+
+    public Category findByName(String name) {
+        return categoryJpaRepository.findByName(name);
     }
 
 }

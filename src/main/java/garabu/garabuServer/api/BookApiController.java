@@ -16,16 +16,14 @@ public class BookApiController {
     private final BookService bookService;
 
     @PostMapping("/api/v2/book")
-    public CreateBookResponse saveBookV2(@RequestBody @Valid
-                                         CreateBookRequest request) {
-
-        Book book = bookService.createBook(request.getMemberId(), request.getBookName());
+    public CreateBookResponse saveBookV2(@RequestBody @Valid CreateBookRequest request) {
+        // BookService 내에서 현재 로그인한 사용자를 기반으로 새로운 Book을 생성
+        Book book = bookService.createBook(request.getBookName());
         return new CreateBookResponse(book.getId());
     }
 
     @Data
     static class CreateBookRequest {
-        private Long memberId; // 가계부를 생성하는 사용자의 ID
         private String bookName; // 가계부 이름
     }
 
