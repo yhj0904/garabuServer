@@ -16,14 +16,14 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MemberJPARepository memberRepository;
 
-    public Book createBook(String bookName) {
+    public Book createBook(String title) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
         Member owner = memberRepository.findByUsername(currentUserName);
 
         Book book = new Book();
         book.setOwner(owner);
-        book.setBookName(bookName);
+        book.setTitle(title);
 
         bookRepository.save(book);
         return book;
@@ -33,8 +33,8 @@ public class BookService {
         return bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
-    public Book findByName(String name) {
-        return bookRepository.findByName(name);
+    public Book findByTitle(String title) {
+        return bookRepository.findByTitle(title);
     }
     //book. 가계부를 커플, 개인, 모임용으로 나누기 위해.
     //사용자 입력

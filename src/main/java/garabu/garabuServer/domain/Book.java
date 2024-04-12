@@ -21,7 +21,7 @@ public class Book {
     @JoinColumn(name = "owner_id")
     private Member owner;      // 소유한 사용자의 식별자 Id
 
-    private String BookName;   // 가계부 이름 ex)개인 가계부, 커플 가계부
+    private String title;   // 가계부 이름 ex)개인 가계부, 커플 가계부
 
     @OneToMany(mappedBy = "book")
     private List<UserBook> userBooks = new ArrayList<>();

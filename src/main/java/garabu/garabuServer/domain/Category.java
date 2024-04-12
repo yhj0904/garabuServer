@@ -13,7 +13,7 @@ public class Category {
     @Column(name = "category_id")
     private Long id;            // 카테고리 Id
 
-    private String categoryName;       // 카테고리 이름
+    private String category;       // 카테고리 이름
 
     @Enumerated(EnumType.STRING)
     private AmountType amountType;      // 분류 유형 수입 지출 이체

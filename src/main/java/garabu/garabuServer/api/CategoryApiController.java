@@ -21,7 +21,7 @@ public class CategoryApiController {
     public CreateCategoryResponse categoryV2(@RequestBody @Valid
                                                  CreateCategoryRequest request){
         Category category = new Category();
-        category.setCategoryName(request.getCategoryName());
+        category.setCategory(request.getCategory());
         category.setAmountType(request.getAmountType());
         Long id = categoryService.rigistCategory(category);
         return new CreateCategoryResponse(id);
@@ -30,7 +30,7 @@ public class CategoryApiController {
     @Data
     static class CreateCategoryRequest {
         @Email
-        private String categoryName;
+        private String category;
         private AmountType amountType;
 
     }

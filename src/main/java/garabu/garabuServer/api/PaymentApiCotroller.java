@@ -22,7 +22,7 @@ public class PaymentApiCotroller {
     public CreatePaymentResponse paymentV2(@RequestBody @Valid
                                            CreatePaymentRequest request){
         PaymentMethod payment = new PaymentMethod();
-        payment.setPaymentName(request.getPaymentName());
+        payment.setPayment(request.getPayment());
         Long id = paymentService.registPayment(payment);
         return new CreatePaymentResponse(id);
 
@@ -31,7 +31,7 @@ public class PaymentApiCotroller {
     @Data
     static class CreatePaymentRequest {
         @Email
-        private String paymentName;
+        private String payment;
 
     }
     @Data

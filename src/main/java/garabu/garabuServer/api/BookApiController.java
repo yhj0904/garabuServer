@@ -18,13 +18,13 @@ public class BookApiController {
     @PostMapping("/api/v2/book")
     public CreateBookResponse saveBookV2(@RequestBody @Valid CreateBookRequest request) {
         // BookService 내에서 현재 로그인한 사용자를 기반으로 새로운 Book을 생성
-        Book book = bookService.createBook(request.getBookName());
+        Book book = bookService.createBook(request.getTitle());
         return new CreateBookResponse(book.getId());
     }
 
     @Data
     static class CreateBookRequest {
-        private String bookName; // 가계부 이름
+        private String title; // 가계부 이름
     }
 
     @Data

@@ -21,8 +21,8 @@ public class PaymentService {
         return paymentJpaRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
-    public PaymentMethod findByName(String name) {
-        return paymentJpaRepository.findByName(name);
+    public PaymentMethod findByPayment(String name) {
+        return paymentJpaRepository.findByPayment(name);
     }
 
 }

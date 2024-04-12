@@ -13,6 +13,6 @@ public class PaymentMethod {
     @Column(name = "payment_id")
     private Long id;        //결제수단 식별자
 
-    private String paymentName;  //현금 계좌이체 카드
+    private String payment;  //현금 계좌이체 카드
 
 }

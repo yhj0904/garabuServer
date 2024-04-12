@@ -22,8 +22,8 @@ public class CategoryService {
         return categoryJpaRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
-    public Category findByName(String name) {
-        return categoryJpaRepository.findByName(name);
+    public Category findByCategory(String category) {
+        return categoryJpaRepository.findByCategory(category);
     }
 
 }

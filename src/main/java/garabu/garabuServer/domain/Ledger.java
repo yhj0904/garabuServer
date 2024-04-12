@@ -19,22 +19,22 @@ public class Ledger {
     private Long id;        //기록의 고유 식별자
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "member_name")
+    @JoinColumn(name = "member_id")
     private Member member;  //가계부 기록자의 고유 식별자
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "book_name")
+    @JoinColumn(name = "title_id")
     private Book book;      // 가계부의 고유 식별자
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "category_name")
+    @JoinColumn(name = "category_id")
     private Category category; // 카테고리 고유 식별자
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "payment_name")
+    @JoinColumn(name = "payment_id")
     private PaymentMethod paymentMethod;    //결제수단의 ID
 
-
+    //add for user
     private LocalDate date;  // 날짜
     private BigDecimal amount;  // 금액
     private String description; //상세내용

@@ -1,11 +1,9 @@
 package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.*;
-import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.LedgerJpaRepository;
 import garabu.garabuServer.service.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -16,11 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor
 public class LedgerApiController {
+
     private final LedgerJpaRepository ledgerJpaRepository;
     private final BookService bookService; // 가정: Book 정보를 가져오는 서비스
     private final CategoryService categoryService; // 가정: Category 정보를 가져오는 서비스
@@ -41,17 +39,15 @@ public class LedgerApiController {
         Member currentMember = memberService.findMemberByUsername(authentication.getName());
         ledger.setMember(currentMember);
 
-        Book book = bookService.findById(request.getBookId());
+        Book book = bookService.findByTitle(request.getTitle());
         ledger.setBook(book);
 
-        PaymentMethod paymentMethod = paymentService.findById(request.getPaymentId());
+        PaymentMethod paymentMethod = paymentService.findByPayment(request.getPayment());
         ledger.setPaymentMethod(paymentMethod);
-
-
 
         Category category = new Category();
         category.setAmountType(request.getAmountType());
-        ledger.setCategory(categoryService.findById(request.getCategoryId()));
+        ledger.setCategory(categoryService.findByCategory(request.getCategory()));
         Long id = ledgerService.registLedger(ledger);
 
         return new CreateLedgerResponse(id);
@@ -63,9 +59,9 @@ public class LedgerApiController {
         private String description;
         private String memo;
         private AmountType amountType;
-        private Long bookId; // Assuming IDs are passed
-        private Long paymentId;
-        private Long categoryId;
+        private String title; // Assuming IDs are passed
+        private String payment;
+        private String category;
     }
     @Data
     static class CreateLedgerResponse {
