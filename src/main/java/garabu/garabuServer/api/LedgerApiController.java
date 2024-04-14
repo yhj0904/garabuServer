@@ -60,23 +60,8 @@ public class LedgerApiController {
     }
 
     @PostMapping("/api/v2/ledger/list")
-    public List<LedgerDTO> loadLedger(@RequestBody @Valid
-                                          CreateLedgerRequest request) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Member currentMember = memberService.findMemberByUsername(authentication.getName());
-
-        List<Ledger> ledgers = ledgerService.findAllLedgersByMember(currentMember);
-        return ledgers.stream()
-                .map(ledger -> new LedgerDTO(
-                        ledger.getDate(),
-                        ledger.getAmount(),
-                        ledger.getDescription(),
-                        ledger.getMemo(),
-                        ledger.getCategory().getCategory(),
-                        ledger.getBook().getTitle(),
-                        ledger.getPaymentMethod().getPayment()))
-                .collect(Collectors.toList());
+    public List<Ledger> getAllLedgers() {
+        return ledgerService.findAllLedgers();
     }
 
     @Data

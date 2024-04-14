@@ -21,9 +21,11 @@ public class LedgerService {
         return ledger.getId();
     }
 
-    public List<Ledger> findAllLedgersByMember(Member member) {
+        public List<Ledger> findAllLedgersByMember(Member member) {
         return ledgerJpaRepository.findByMember(member);
     }
 
-    
+        public List<Ledger> findAllLedgers() {
+         return ledgerJpaRepository.findAll();
+    }
 }
