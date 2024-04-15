@@ -35,6 +35,7 @@ public class Ledger {
     private PaymentMethod paymentMethod;    //결제수단의 ID
 
     //add for user
+    private String user; // 자금 사용자
     private LocalDate date;  // 날짜
     private BigDecimal amount;  // 금액
     private String description; //상세내용
