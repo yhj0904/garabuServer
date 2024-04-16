@@ -22,17 +22,13 @@ public class CategoryApiController {
                                                  CreateCategoryRequest request){
         Category category = new Category();
         category.setCategory(request.getCategory());
-        category.setAmountType(request.getAmountType());
         Long id = categoryService.rigistCategory(category);
         return new CreateCategoryResponse(id);
     }
 
     @Data
     static class CreateCategoryRequest {
-        @Email
         private String category;
-        private AmountType amountType;
-
     }
     @Data
     static class CreateCategoryResponse {

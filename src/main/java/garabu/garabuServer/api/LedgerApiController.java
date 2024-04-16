@@ -40,6 +40,7 @@ public class LedgerApiController {
         ledger.setAmount(request.getAmount());
         ledger.setDescription(request.getDescription());
         ledger.setMemo(request.getMemo());
+        ledger.setAmountType(request.getAmountType());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Member currentMember = memberService.findMemberByUsername(authentication.getName());
@@ -51,8 +52,6 @@ public class LedgerApiController {
         PaymentMethod paymentMethod = paymentService.findByPayment(request.getPayment());
         ledger.setPaymentMethod(paymentMethod);
 
-        Category category = new Category();
-        category.setAmountType(request.getAmountType());
         ledger.setCategory(categoryService.findByCategory(request.getCategory()));
         Long id = ledgerService.registLedger(ledger);
 
@@ -73,7 +72,7 @@ public class LedgerApiController {
     @Data
     static class CreateLedgerRequest {
         private LocalDate date;
-        private BigDecimal amount;
+        private Integer amount;
         private String description;
         private String memo;
         private AmountType amountType;

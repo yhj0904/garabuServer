@@ -15,6 +15,4 @@ public class Category {
 
     private String category;       // 카테고리 이름
 
-    @Enumerated(EnumType.STRING)
-    private AmountType amountType;      // 분류 유형 수입 지출 이체
 }

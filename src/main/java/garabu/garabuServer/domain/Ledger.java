@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import static jakarta.persistence.FetchType.LAZY;
 
@@ -34,10 +33,13 @@ public class Ledger {
     @JoinColumn(name = "payment_id")
     private PaymentMethod paymentMethod;    //결제수단의 ID
 
+    @Enumerated(EnumType.STRING)
+    private AmountType amountType;      // 분류 유형 수입 지출 이체
+
     //add for user
     private String user; // 자금 사용자
     private LocalDate date;  // 날짜
-    private BigDecimal amount;  // 금액
+    private Integer amount;  // 금액
     private String description; //상세내용
     private String memo;            // 메모
 
