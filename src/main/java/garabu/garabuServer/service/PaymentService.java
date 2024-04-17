@@ -1,10 +1,13 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Book;
+import garabu.garabuServer.domain.Category;
 import garabu.garabuServer.domain.PaymentMethod;
 import garabu.garabuServer.repository.PaymentJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +18,9 @@ public class PaymentService {
 
         paymentJpaRepository.save(payment);
         return payment.getId();
+    }
+    public List<PaymentMethod> findAllPayment() {
+        return paymentJpaRepository.findAll();
     }
 
     public PaymentMethod findById(Long id) {
