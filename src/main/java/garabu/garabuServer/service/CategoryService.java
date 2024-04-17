@@ -6,6 +6,8 @@ import garabu.garabuServer.repository.CategoryJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -16,6 +18,10 @@ public class CategoryService {
 
         categoryJpaRepository.save(category);
         return category.getId();
+    }
+
+    public List<Category> findAllCategories() {
+        return categoryJpaRepository.findAll();
     }
 
     public Category findById(Long id) {
