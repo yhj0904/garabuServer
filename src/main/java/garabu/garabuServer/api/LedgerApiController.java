@@ -23,14 +23,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LedgerApiController {
 
-    private final LedgerJpaRepository ledgerJpaRepository;
     private final BookService bookService; // 가정: Book 정보를 가져오는 서비스
     private final CategoryService categoryService; // 가정: Category 정보를 가져오는 서비스
     private final PaymentService paymentService;
     private final LedgerService ledgerService;
     private final MemberService memberService;
-
-
 
     @PostMapping("/api/v2/ledger")
     public CreateLedgerResponse saveMemberV2(@RequestBody @Valid
@@ -61,6 +58,17 @@ public class LedgerApiController {
     @PostMapping("/api/v2/ledger/list")
     public List<Ledger> getAllLedgers() {
         return ledgerService.findAllLedgers();
+    }
+
+
+
+    @Data
+    static class loadingBaseLedgerData{
+        private String username;
+        private Category category;
+        private PaymentMethod payment;
+        private Book book;
+
     }
 
     @Data
