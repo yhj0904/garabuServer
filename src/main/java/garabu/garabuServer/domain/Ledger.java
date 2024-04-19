@@ -37,7 +37,7 @@ public class Ledger {
     private AmountType amountType;      // 분류 유형 수입 지출 이체
 
     //add for user
-    private String user; // 자금 사용자
+    private String spender; // 자금 사용자
     private LocalDate date;  // 날짜
     private Integer amount;  // 금액
     private String description; //상세내용

@@ -32,12 +32,14 @@ public class LedgerApiController {
     @PostMapping("/api/v2/ledger")
     public CreateLedgerResponse saveMemberV2(@RequestBody @Valid
                                                  CreateLedgerRequest request) {
+
         Ledger ledger = new Ledger();
         ledger.setDate(request.getDate());
         ledger.setAmount(request.getAmount());
         ledger.setDescription(request.getDescription());
         ledger.setMemo(request.getMemo());
         ledger.setAmountType(request.getAmountType());
+
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Member currentMember = memberService.findMemberByUsername(authentication.getName());
@@ -68,7 +70,6 @@ public class LedgerApiController {
         private Category category;
         private PaymentMethod payment;
         private Book book;
-
     }
 
     @Data
