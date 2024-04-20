@@ -49,3 +49,6 @@ to
 Ledger API 폼맞추기
 do
 사용자 book 불러오기. reissue. Ledger API 폼맞추기
+
+240420
+가계부 이름 같으면 안ㄷ댐(중복검사)
