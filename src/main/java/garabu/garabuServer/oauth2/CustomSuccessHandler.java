@@ -27,7 +27,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public CustomSuccessHandler(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
         this.refreshRepository = refreshRepository;
         this.jwtUtil = jwtUtil;
-        setDefaultTargetUrl("/book");
+        setDefaultTargetUrl("/");
     }
 
     @Override
