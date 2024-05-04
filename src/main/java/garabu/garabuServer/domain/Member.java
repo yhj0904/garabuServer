@@ -8,6 +8,7 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter @Setter
@@ -17,6 +18,9 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id;            // 회원 식별자 Id
+
+    @Column(updatable = false, unique = true)
+    private UUID uuid = UUID.randomUUID();  // 회원의 UUID
 
     private String username;        // 닉네임
     private String name;

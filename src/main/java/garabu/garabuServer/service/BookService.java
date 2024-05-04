@@ -2,11 +2,13 @@ package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.BookRepository;
 import garabu.garabuServer.repository.MemberJPARepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,10 +33,18 @@ public class BookService {
         return book;
     }
 
+    private String getEmail(){
+        Authentication loggedInUser = SecurityContextHolder.getContext().getAuthentication();
+        return loggedInUser.getName();
+    }
+
     public List<Book> findLoggedInUserBooks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserName = authentication.getName();
-        Member owner = memberRepository.findByUsername(currentUserName);
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String email = userDetails.getEmail();
+
+        Member owner2 =memberRepository.findByUsername(email);
+        Member owner = memberRepository.findOneByEmail(email);
         return bookRepository.findByOwner(owner);
     }
 
