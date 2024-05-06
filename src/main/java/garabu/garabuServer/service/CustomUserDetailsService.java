@@ -19,14 +19,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         //DB에서 조회
-        Member member = memberJPARepository.findByUsername(username);
+        Member member = memberJPARepository.findOneByEmail(email);
 
         if (member == null) {
             // 사용자를 찾을 수 없을 때 UsernameNotFoundException 던지기
-            throw new UsernameNotFoundException("User not found with username: " + username);
+            throw new UsernameNotFoundException("User not found with username: " + email);
         }
 
         // UserDetails에 담아서 반환하면 AuthenticationManager가 검증함

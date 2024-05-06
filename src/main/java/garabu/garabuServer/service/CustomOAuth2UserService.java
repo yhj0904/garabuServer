@@ -48,7 +48,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Member existData = existingMembers.isEmpty() ? null : existingMembers.get(0);*/
 
         String username = oAuth2Response.getEmail();  // 사용자의 이메일을 username으로 사용
-        Member existData = memberJPARepository.findByUsername(username);
+        Member existData = memberJPARepository.findOneByEmail(username);
 
         if (existData == null) {
 
@@ -63,6 +63,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             UserDTO userDTO = new UserDTO();
             userDTO.setUsername(username);
             userDTO.setName(oAuth2Response.getName());
+            userDTO.setEmail(oAuth2Response.getEmail());
             userDTO.setRole("ROLE_USER");
 
             return new CustomOAuth2User(userDTO);

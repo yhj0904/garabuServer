@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,10 +42,25 @@ public class BookService {
     public List<Book> findLoggedInUserBooks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String name = userDetails.getUsername();
         String email = userDetails.getEmail();
 
-        Member owner2 =memberRepository.findByUsername(email);
-        Member owner = memberRepository.findOneByEmail(email);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println(name);
+        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        Member owner = memberRepository.findByUsername(name);
         return bookRepository.findByOwner(owner);
     }
 
