@@ -42,27 +42,17 @@ public class BookService {
     public List<Book> findLoggedInUserBooks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String name = userDetails.getUsername();
         String email = userDetails.getEmail();
 
-        System.out.println(name);
-        System.out.println(name);
-        System.out.println(name);
-        System.out.println(name);
-        System.out.println(name);
-        System.out.println(name);
-        System.out.println(name);
-        System.out.println(name);
+        System.out.println(authentication);
+        System.out.println(userDetails                                         );
         System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
         System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        Member owner = memberRepository.findByUsername(name);
+
+        Member owner = memberRepository.findOneByEmail(email);
         return bookRepository.findByOwner(owner);
     }
+
 
     public Book findById(Long id) {
         return bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));

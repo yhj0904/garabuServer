@@ -9,6 +9,5 @@ public class GarabuServerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GarabuServerApplication.class, args);
 	}
-
-}	
+}
 
