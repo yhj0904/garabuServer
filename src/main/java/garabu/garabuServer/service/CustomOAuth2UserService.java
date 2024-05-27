@@ -71,7 +71,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         else {
 
             existData.setEmail(oAuth2Response.getEmail());
-            existData.setUsername(oAuth2Response.getName());
+            existData.setUsername(username);
 
             memberJPARepository.save(existData);
 
