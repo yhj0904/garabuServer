@@ -1,6 +1,7 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.dto.CustomOAuth2User;
 import garabu.garabuServer.dto.LoginUserDTO;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.MemberJPARepository;
@@ -37,6 +38,36 @@ public class MemberService{
 
     public LoginUserDTO getCurrentLoginUserDTO() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomOAuth2User customOAuth2User = (CustomOAuth2User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = customOAuth2User.getName();
+        String username1 = customOAuth2User.getUsername();
+        String email = customOAuth2User.getEmail();
+
+        System.out.println(username);
+        System.out.println(username);
+        System.out.println(username);
+        System.out.println(username);
+        System.out.println(username);
+        System.out.println(username);
+        System.out.println(username);
+        System.out.println(username1);
+        System.out.println(username1);
+        System.out.println(username1);
+        System.out.println(username1);
+        System.out.println(username1);
+        System.out.println(username1);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+        System.out.println(email);
+
+
         String currentUsername = authentication.getName();
         Member member = memberJPARepository.findByUsername(currentUsername);
 
