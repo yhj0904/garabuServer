@@ -41,14 +41,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             return null;
         }
-      /*  String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
+        String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
         String email = oAuth2Response.getEmail();
 
         List<Member> existingMembers = memberJPARepository.findByEmail(email);
-        Member existData = existingMembers.isEmpty() ? null : existingMembers.get(0);*/
+        Member existData = existingMembers.isEmpty() ? null : existingMembers.get(0);
 
-        String username = oAuth2Response.getEmail();  // 사용자의 이메일을 username으로 사용
-        Member existData = memberJPARepository.findOneByEmail(username);
+        /*String username = oAuth2Response.getEmail();  // 사용자의 이메일을 username으로 사용
+        Member existData = memberJPARepository.findOneByEmail(username);*/
 
         if (existData == null) {
 
