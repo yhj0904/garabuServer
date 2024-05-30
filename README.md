@@ -62,3 +62,12 @@ do
 240502
 
 가만히 있어도 계속 서버에 요청날림.. 
+
+240527
+do : 이름으로 접근 하지않고 oAuth providerId로 구분 성공.
+
+240530
+to : mypage username providerId로 인식. 이거 수정하기.
+공동작업 마무리.
+
+
