@@ -44,28 +44,10 @@ public class BookService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = userDetails.getEmail();
         String username = userDetails.getUsername();
-
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(authentication);
-        System.out.println(userDetails                                         );
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        System.out.println(email);
-
-        Member owner = memberRepository.findByUsername(username);
-        return bookRepository.findByOwner(owner);
+        String name = userDetails.getName();
+        Member ownerName = memberRepository.findByName(name);
+        List<Member> owner = memberRepository.findByEmail(email);
+        return bookRepository.findByOwner((Member) owner);
     }
 
 

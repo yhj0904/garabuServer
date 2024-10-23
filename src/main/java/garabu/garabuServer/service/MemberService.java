@@ -42,32 +42,6 @@ public class MemberService{
         String username = customOAuth2User.getName();
         String username1 = customOAuth2User.getUsername();
         String email = customOAuth2User.getEmail();
-
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username);
-        System.out.println(username1);
-        System.out.println(username1);
-        System.out.println(username1);
-        System.out.println(username1);
-        System.out.println(username1);
-        System.out.println(username1);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-        System.out.println(email);
-
-
         String currentUsername = authentication.getName();
         Member member = memberJPARepository.findByUsername(currentUsername);
 
