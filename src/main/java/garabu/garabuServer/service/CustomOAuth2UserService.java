@@ -47,6 +47,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         List<Member> existingMembers = memberJPARepository.findByEmail(email);
         Member existData = existingMembers.isEmpty() ? null : existingMembers.get(0);
 
+        //providerID PK
+
         /*String username = oAuth2Response.getEmail();  // 사용자의 이메일을 username으로 사용
         Member existData = memberJPARepository.findOneByEmail(username);*/
 

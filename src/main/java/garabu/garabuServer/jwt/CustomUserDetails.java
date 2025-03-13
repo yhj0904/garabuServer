@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.UUID;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -55,10 +54,6 @@ public class CustomUserDetails implements UserDetails {
     public String getEmail() {
 
         return member.getEmail();
-    }
-
-    public UUID getUuid() {
-        return member.getUuid();
     }
 
     @Override
