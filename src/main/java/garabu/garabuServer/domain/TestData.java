@@ -22,7 +22,7 @@ public class TestData {
 
     private String member;  //가계부 기록자의 고유 식별자
 
-    private String user; // 자금 사용자
+    private String moneyUser; // 자금 사용자
 
     private String category; // 카테고리 고유 식별자
 

@@ -53,8 +53,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             throw new RuntimeException(e);
         }
 
-        System.out.println(loginDTO.getUsername());
-
         String username = loginDTO.getUsername();
         String password = loginDTO.getPassword();
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
