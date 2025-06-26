@@ -1,0 +1,193 @@
+/* css/styles.css */
+
+/* ==== Reset & 기본 폰트 설정 ==== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Apple SD Gothic Neo', sans-serif;
+  background-color: #f8f8f8;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* ==== 공통 컨테이너 & 레이아웃 ==== */
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: 40px auto;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* 페이지 제목 */
+.page-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.page-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* 내용 섹션 */
+.page-body {
+  padding: 24px;
+}
+
+/* 버튼 기본 스타일 */
+button, .btn {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+  background-color: #007aff;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+button:hover, .btn:hover {
+  background-color: #005fcc;
+}
+
+/* 텍스트 입력 필드 스타일 */
+input[type="text"],
+input[type="password"],
+textarea,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #007aff;
+}
+
+/* 테이블 기본 스타일 */
+.table-wrapper {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+th, td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+th {
+  background-color: #f0f0f0;
+  font-weight: 600;
+}
+tr:hover {
+  background-color: #fafafa;
+}
+
+/* 링크 스타일 */
+a {
+  color: #007aff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* 팝업처럼 가운데 정렬되는 폼 (login 등) */
+.form-center {
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.form-center input {
+  margin-bottom: 20px;
+}
+.form-center button {
+  margin-top: 8px;
+}
+
+/* 오류 메시지 스타일 */
+.error-msg {
+  color: #d32f2f;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+/* 페이지 간 네비게이션(헤더) - 간단하게 홈 아이콘과 제목만 유지 */
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
+.navbar .nav-back {
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+.navbar .nav-back a {
+  color: #007aff;
+}
+.navbar h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.modal {
+  display: none; /* 기본적으로 숨김 */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5); /* 반투명 배경 */
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 300px;
+  border-radius: 10px;
+}
+
+.close {
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 반응형: 화면 너비가 좁으면 패딩 및 폰트 사이즈 조정 */
+@media (max-width: 480px) {
+  .container {
+    margin: 20px 12px;
+  }
+  .page-header h1 {
+    font-size: 1rem;
+  }
+  th, td {
+    padding: 8px 6px;
+  }
+  button, .btn {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+}
