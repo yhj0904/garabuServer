@@ -24,7 +24,7 @@ public class Member {
     private String email;       // 이메일
     private String password;         // 비번
     private String role;
-
+    private String providerId;
 
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
