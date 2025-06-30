@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -43,9 +44,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
         String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
         String email = oAuth2Response.getEmail();
+        String providerId = oAuth2Response.getProviderId();
 
-        List<Member> existingMembers = memberJPARepository.findByEmail(email);
-        Member existData = existingMembers.isEmpty() ? null : existingMembers.get(0);
+        Optional<Member> optionalMember = memberJPARepository.findByProviderIdAndEmail(providerId, email);
+        Member existData = optionalMember.orElse(null);
 
         //providerID PK
 
@@ -59,6 +61,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             userEntity.setEmail(oAuth2Response.getEmail());
             userEntity.setName(oAuth2Response.getName());
             userEntity.setRole("ROLE_USER");
+            userEntity.setProviderId(providerId);
 
             memberJPARepository.save(userEntity);
 
@@ -67,6 +70,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             userDTO.setName(oAuth2Response.getName());
             userDTO.setEmail(oAuth2Response.getEmail());
             userDTO.setRole("ROLE_USER");
+            userDTO.setProviderId(providerId);
 
             return new CustomOAuth2User(userDTO);
         }
@@ -82,6 +86,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             userDTO.setEmail(oAuth2Response.getEmail());
             userDTO.setName(oAuth2Response.getName());
             userDTO.setRole(existData.getRole());
+            userDTO.setProviderId(providerId);
 
             return new CustomOAuth2User(userDTO);
         }
