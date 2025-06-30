@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/push")
 @RequiredArgsConstructor
-public class FcmController {
+public class NotiController {
 
     private final FcmSendService fcmSendService;
 
