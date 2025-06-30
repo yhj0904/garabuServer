@@ -51,6 +51,8 @@ src/main/resources/firebase/firebase-service-account.json
 *.swp
 *.tmp
 
+src/main/resources/application.yml
+
 application-local.yml
 application-dev.yml
 application-prod.yml
