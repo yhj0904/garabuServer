@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
  * 푸시 메시지 발송 과정 중 단계별 실행 로그를 기록
  */
 @Entity
-@Table(name = "T_PUSH_SEND_STACK")
 @Getter
 @Setter
 @NoArgsConstructor

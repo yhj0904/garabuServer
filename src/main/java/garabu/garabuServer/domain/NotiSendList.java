@@ -8,7 +8,6 @@ import lombok.*;
  * 개별 사용자에게 발송된 푸시 메시지 상태를 저장
  */
 @Entity
-@Table(name = "T_PUSH_SEND_LIST")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -68,7 +67,6 @@ public class NotiSendList {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "APP_ID", referencedColumnName = "APP_ID", insertable = false, updatable = false),
             @JoinColumn(name = "NOTICE_NO", referencedColumnName = "NOTICE_NO", insertable = false, updatable = false)
     })
     private NotiSend pushSend;

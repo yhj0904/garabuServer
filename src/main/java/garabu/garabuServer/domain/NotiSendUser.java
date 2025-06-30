@@ -9,7 +9,6 @@ import lombok.*;
  * 사용자별 푸시 발송 결과(성공 여부, 실패 메시지 등)를 저장
  */
 @Entity
-@Table(name = "T_PUSH_SEND_USER")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -57,7 +56,6 @@ public class NotiSendUser {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "APP_ID", referencedColumnName = "APP_ID", insertable = false, updatable = false),
             @JoinColumn(name = "NOTICE_NO", referencedColumnName = "NOTICE_NO", insertable = false, updatable = false)
     })
     private NotiSend pushSend;

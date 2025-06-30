@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
  * 푸시 발송 마스터 테이블
  */
 @Entity
-@Table(name = "NOTI_SEND_M")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,11 +29,6 @@ public class NotiSend {
      */
     @Column(name = "APP_ID")
     private String appId;
-
-    // 연관관계 매핑 추가 (LAZY)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "APP_ID", referencedColumnName = "APP_ID", insertable = false, updatable = false)
-    private NotiApp app;
 
     /**
      * 푸시 제목

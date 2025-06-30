@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
  * 사용자별 디바이스 ID와 FCM 토큰을 저장
  */
 @Entity
-@Table(name = "T_PUSH_APP_USER_TOKEN")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -64,8 +63,7 @@ public class NotiAppUserToken {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumns(value = {
-            @JoinColumn(name = "APP_ID",  referencedColumnName = "APP_ID",  insertable = false, updatable = false),
-            @JoinColumn(name = "USER_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
+            @JoinColumn(name = "USER_ID", referencedColumnName = "email", insertable = false, updatable = false)
     }, foreignKey = @ForeignKey(name = "fk_push_token_app_user"))
     private Member appUser;
 

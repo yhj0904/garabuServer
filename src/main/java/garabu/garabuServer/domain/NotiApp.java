@@ -12,7 +12,6 @@ import lombok.*;
  * 앱별 FCM 설정, 사용 여부 등을 관리
  */
 @Entity
-@Table(name = "NOTI_APP_M")
 @Getter
 @Setter
 @NoArgsConstructor

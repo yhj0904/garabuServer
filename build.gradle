@@ -40,6 +40,8 @@ dependencies {
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 	implementation 'com.google.firebase:firebase-admin:9.4.3'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'mysql:mysql-connector-java'
+	implementation 'com.github.mwiede:jsch:0.2.16'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -48,8 +50,8 @@ dependencies {
 	testImplementation("org.junit.vintage:junit-vintage-engine") {
 		exclude group: "org.hamcrest", module: "hamcrest-core"
 	}
-	//runtimeOnly 'com.mysql:mysql-connector-j'
-	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	//runtimeOnly 'com.h2database:h2'
 }
 
 

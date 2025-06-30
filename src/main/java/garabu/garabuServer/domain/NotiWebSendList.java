@@ -8,7 +8,6 @@ import lombok.*;
  * 사용자별 발송 결과, 토큰, 실패 메시지 등을 저장
  */
 @Entity
-@Table(name = "T_PUSH_WEB_SEND_LIST")
 @Getter
 @Setter
 @NoArgsConstructor

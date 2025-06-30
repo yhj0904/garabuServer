@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
  * 사용자별 디바이스 ID와 FCM 토큰을 저장
  */
 @Entity
-@Table(name = "FCM_USER_TOKEN")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -65,7 +64,7 @@ public class FcmUserToken {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumns(value = {
-            @JoinColumn(name = "USER_ID", referencedColumnName = "username", insertable = false, updatable = false)
+            @JoinColumn(name = "USER_ID", referencedColumnName = "email", insertable = false, updatable = false)
     }, foreignKey = @ForeignKey(name = "fk_fcm_token_user"))
     private Member member;
 

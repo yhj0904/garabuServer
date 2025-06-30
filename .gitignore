@@ -51,4 +51,14 @@ src/main/resources/firebase/firebase-service-account.json
 *.swp
 *.tmp
 
-application.yml
+application-local.yml
+application-dev.yml
+application-prod.yml
+
+.DS_Store
+
+src/main/resources/keys/
+!src/main/resources/keys/README.md  # 폴더 유지용
+
+logs/
+*.log
