@@ -4,6 +4,7 @@ import garabu.garabuServer.domain.FcmUserToken;
 import garabu.garabuServer.dto.FcmTokenDeleteDTO;
 import garabu.garabuServer.dto.FcmTokenRegisterDTO;
 import garabu.garabuServer.repository.FcmTokenRepository;
+import garabu.garabuServer.service.FcmTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,11 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class FcmTokenServiceImpl {
+public class FcmTokenServiceImpl implements FcmTokenService {
     private final FcmTokenRepository tokenRepository;
 
     @Transactional
+    @Override
     public void registerOrUpdate(FcmTokenRegisterDTO dto) {
 
         FcmUserToken token = tokenRepository

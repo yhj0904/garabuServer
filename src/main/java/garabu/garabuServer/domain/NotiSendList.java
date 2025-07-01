@@ -65,10 +65,4 @@ public class NotiSendList {
     @Column(name = "SEND_DT")
     private String sendDt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "NOTICE_NO", referencedColumnName = "NOTICE_NO", insertable = false, updatable = false)
-    })
-    private NotiSend pushSend;
-
 }

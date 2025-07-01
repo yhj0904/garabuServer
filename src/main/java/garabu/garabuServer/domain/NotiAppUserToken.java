@@ -61,10 +61,4 @@ public class NotiAppUserToken {
     @Column(name = "USE_AT")
     private String useAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumns(value = {
-            @JoinColumn(name = "USER_ID", referencedColumnName = "email", insertable = false, updatable = false)
-    }, foreignKey = @ForeignKey(name = "fk_push_token_app_user"))
-    private Member appUser;
-
 }

@@ -54,9 +54,4 @@ public class NotiSendUser {
     @Column(name = "FAIL_MSG")
     private String failMsg;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "NOTICE_NO", referencedColumnName = "NOTICE_NO", insertable = false, updatable = false)
-    })
-    private NotiSend pushSend;
 }

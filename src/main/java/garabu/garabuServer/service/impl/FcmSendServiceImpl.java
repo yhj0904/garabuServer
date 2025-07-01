@@ -3,6 +3,7 @@ package garabu.garabuServer.service.impl;
 import garabu.garabuServer.domain.*;
 import garabu.garabuServer.dto.FcmSendRequestDTO;
 import garabu.garabuServer.repository.*;
+import garabu.garabuServer.service.FcmSendService;
 import garabu.garabuServer.service.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class FcmSendServiceImpl {
+public class FcmSendServiceImpl implements FcmSendService {
 
     private final NotiAppRepository notiAppRepository;
     private final NotiSendRepository notiSendRepository;
@@ -31,6 +32,7 @@ public class FcmSendServiceImpl {
     /**
      * 푸시 발송 전체 처리
      */
+    @Override
     public void sendPush(FcmSendRequestDTO request) {
         NotiApp app = getAppSetting(request);                    // 1. 앱 설정 조회
         NotiSend pushSend = registerPushMaster(request);         // 2. 발송 마스터 등록

@@ -62,10 +62,4 @@ public class FcmUserToken {
     @Column(name = "USE_AT")
     private String useAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumns(value = {
-            @JoinColumn(name = "USER_ID", referencedColumnName = "email", insertable = false, updatable = false)
-    }, foreignKey = @ForeignKey(name = "fk_fcm_token_user"))
-    private Member member;
-
 }
