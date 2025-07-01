@@ -39,6 +39,7 @@ ElasticSearch
 
 # Garabu
 
+Server
 1. swgger 코멘트 입력
 2. Redis refresh token 넣기.
 3. firebase 알림 설정
@@ -53,4 +54,15 @@ ElasticSearch
 12. docker-compose 작성
 13. rabbitMQ or kafka
 14. slack, jira
-15. 
+---------
+client(web, app 공통)
+1. Sentry(error)
+2. Web Vitals, FP (performance)
+3. netlify….?
+--------
+Web
+1. GA(google Analytics) 연동
+2. CI/CD
+-------
+App
+1. FA(firebase Analytics) 연동
