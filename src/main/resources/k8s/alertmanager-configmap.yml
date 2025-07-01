@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+data:
+  alertmanager.yml: |
+    # 위에서 작성한 alertmanager-config.yml 내용
+    global:
+      resolve_timeout: 1m
+    route:
+      receiver: 'slack'
+    receivers:
+      - name: 'slack'
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/{웹훅_URL}'
+            channel: '#alerts'
+            text: '{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}'

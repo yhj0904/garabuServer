@@ -1,0 +1,12 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: 'slack'
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/{웹훅_URL}'
+        channel: '#alerts'
+        text: '{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}'
