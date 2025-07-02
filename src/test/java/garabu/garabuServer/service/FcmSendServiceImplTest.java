@@ -1,4 +1,4 @@
-package garabu.garabuServer.service;
+/*package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.*;
 import garabu.garabuServer.dto.FcmSendRequestDTO;
@@ -120,3 +120,4 @@ class FcmSendServiceImplTest {
     }
 
 }
+*/

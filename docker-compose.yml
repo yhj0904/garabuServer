@@ -1,0 +1,94 @@
+networks:
+  elk_monitoring:
+    driver: bridge
+
+services:
+  elasticsearch:
+    image: elastic/elasticsearch:9.0.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports: ["9200:9200"]
+    networks: [elk_monitoring]
+
+  logstash:
+    image: elastic/logstash:9.0.3
+    container_name: logstash
+    ports: ["5001:5000"]               # ① 호스트 5001 ↔ 컨테이너 5000
+    volumes:
+      # ② 경로 오타 수정(logstash.conf 를 확실히 바인딩)
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    networks: [elk_monitoring]
+    depends_on:
+      elasticsearch:
+        condition: service_started     # ES 먼저 떠야 Logstash가 연결
+    healthcheck:                       # ③ 5000 리스너 확인
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/5000"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+
+  kibana:
+    image: elastic/kibana:9.0.3
+    container_name: kibana
+    ports: ["5601:5601"]
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_started
+    networks: [elk_monitoring]
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports: ["6379:6379"]
+    networks: [elk_monitoring]
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports: ["9090:9090"]
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks: [elk_monitoring]
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports: ["3000:3000"]
+    depends_on:
+      prometheus:
+        condition: service_started
+    networks: [elk_monitoring]
+
+  spring-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: garabuserver:latest
+    container_name: spring-app
+    ports: ["8080:8080"]
+    networks: [elk_monitoring]
+    depends_on:
+      logstash:
+        condition: service_healthy     # ④ Logstash 5000 포트 열릴 때까지 대기
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+      kibana:
+        condition: service_started
+    environment:
+      # ⑤ Logback에서 ${LOGSTASH_HOST}/${LOGSTASH_PORT} 변수를 참조하면
+      #    로컬·도커 모두 동일 설정으로 운용 가능
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5000
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    ports: ["9100:9100"]
+    networks: [elk_monitoring]

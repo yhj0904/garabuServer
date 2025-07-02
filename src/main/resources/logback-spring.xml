@@ -1,10 +1,57 @@
 <configuration>
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>localhost:5000</destination> <!-- Logstash input 포트 -->
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+
+    <!-- ① 환경변수 기반 호스트·포트 -->
+    <!--    - 도커 내부: 기본값 logstash:5000 -->
+    <!--    - 로컬 IDE:  export LOGSTASH_HOST=localhost LOGSTASH_PORT=5001 -->
+    <appender name="LOGSTASH"
+              class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${LOGSTASH_HOST:-logstash}:${LOGSTASH_PORT:-5000}</destination>
+
+        <!-- ② 버퍼‧복구를 위한 소켓 옵션 (권장) -->
+        <reconnectionDelay>30000</reconnectionDelay> <!-- 30초마다 재시도 -->
+        <writeTimeout>10s</writeTimeout>              <!-- 송신 지연 시 타임아웃 -->
+
+        <!-- ③ Encoder: JSON Lines + LF(개행) 필수 -->
+        <encoder
+                class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>Asia/Seoul</timeZone>
+                </timestamp>
+
+                <!-- 로깅 필드 커스터마이즈 -->
+                <pattern>
+                    <!-- 마지막 %n 을 꼭 붙여야 Logstash가 한 이벤트로 인식 -->
+                    <pattern>
+                        {
+                        "level":"%level",
+                        "thread":"%thread",
+                        "logger":"%logger",
+                        "message":"%message",
+                        "trace":"%ex{full}"
+                        }%n
+                    </pattern>
+                </pattern>
+
+                <!-- MDC‧스레드 ID 등을 추가하려면 주석 해제
+                <mdc />
+                -->
+            </providers>
+        </encoder>
     </appender>
 
-    <root level="INFO">
+    <!-- ④ 비동기 처리로 애플리케이션 성능 보호 (선택) -->
+    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="LOGSTASH"/>
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- ⑤ 루트 로그 레벨 및 콘솔 병행 출력(옵션) -->
+    <root level="INFO">
+        <appender-ref ref="ASYNC_LOGSTASH"/>
+        <!-- <appender-ref ref="CONSOLE" /> -->
     </root>
+
 </configuration>
