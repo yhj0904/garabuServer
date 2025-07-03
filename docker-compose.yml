@@ -2,6 +2,12 @@ networks:
   elk_monitoring:
     driver: bridge
 
+volumes:
+  elasticsearch_data:
+    driver: local
+  app_logs:
+    driver: local
+
 services:
   elasticsearch:
     image: elastic/elasticsearch:9.0.3
@@ -10,59 +16,130 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
-    ports: ["9200:9200"]
-    networks: [elk_monitoring]
+      - cluster.name=elk-cluster
+      - node.name=elasticsearch-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - elk_monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   logstash:
     image: elastic/logstash:9.0.3
     container_name: logstash
-    ports: ["5001:5000"]               # ① 호스트 5001 ↔ 컨테이너 5000
+    ports:
+      - "5001:5000"  # TCP input
+      - "5044:5044"  # Beats input
     volumes:
-      # ② 경로 오타 수정(logstash.conf 를 확실히 바인딩)
+      # Logstash 설정 파일
       - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-    networks: [elk_monitoring]
+      # 애플리케이션 로그 디렉토리 마운트 (파일 기반 수집)
+      - app_logs:/usr/share/logstash/logs:ro
+      # Logstash 패턴 파일 (선택사항)
+      - ./logstash/patterns:/usr/share/logstash/patterns
+    environment:
+      - LS_JAVA_OPTS=-Xmx512m -Xms512m
+      - LOGSTASH_INTERNAL_PASSWORD=logstash_system
+    networks:
+      - elk_monitoring
     depends_on:
       elasticsearch:
-        condition: service_started     # ES 먼저 떠야 Logstash가 연결
-    healthcheck:                       # ③ 5000 리스너 확인
+        condition: service_healthy
+    healthcheck:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/5000"]
-      interval: 10s
-      timeout: 3s
-      retries: 12
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
 
   kibana:
     image: elastic/kibana:9.0.3
     container_name: kibana
-    ports: ["5601:5601"]
+    ports:
+      - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - KIBANA_SYSTEM_PASSWORD=kibana_system
+      - SERVER_NAME=kibana
+      - SERVER_HOST=0.0.0.0
     depends_on:
       elasticsearch:
-        condition: service_started
-    networks: [elk_monitoring]
+        condition: service_healthy
+    networks:
+      - elk_monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:latest
     container_name: redis
-    ports: ["6379:6379"]
-    networks: [elk_monitoring]
+    ports:
+      - "6379:6379"
+    networks:
+      - elk_monitoring
+    command: redis-server --appendonly yes
+    volumes:
+      - ./redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
     container_name: prometheus
-    ports: ["9090:9090"]
+    ports:
+      - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks: [elk_monitoring]
+      - ./prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - elk_monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     container_name: grafana
-    ports: ["3000:3000"]
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       prometheus:
-        condition: service_started
-    networks: [elk_monitoring]
+        condition: service_healthy
+    networks:
+      - elk_monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   spring-app:
     build:
@@ -70,25 +147,95 @@ services:
       dockerfile: Dockerfile
     image: garabuserver:latest
     container_name: spring-app
-    ports: ["8080:8080"]
-    networks: [elk_monitoring]
+    ports:
+      - "8080:8080"
+    networks:
+      - elk_monitoring
     depends_on:
       logstash:
-        condition: service_healthy     # ④ Logstash 5000 포트 열릴 때까지 대기
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       elasticsearch:
-        condition: service_started
-      kibana:
-        condition: service_started
+        condition: service_healthy
     environment:
-      # ⑤ Logback에서 ${LOGSTASH_HOST}/${LOGSTASH_PORT} 변수를 참조하면
-      #    로컬·도커 모두 동일 설정으로 운용 가능
+      # Spring Boot 프로파일 설정
+      - SPRING_PROFILES_ACTIVE=docker
+      # 로그 설정
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_G_G=DEBUG
+      # Logstash 연동 설정 (TCP appender 사용시)
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5000
+      # 로그 파일 경로 (logback-spring.xml의 LOG_PATH와 일치)
+      - LOG_PATH=/app/logs
+      # Redis 연결
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Elasticsearch 연결 (필요시)
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+      # EC2 SSH 터널 설정
+      - EC2_REMOTE_JUMP_HOST=54.208.24.49
+      - EC2_SSH_PORT=22
+      - EC2_USER=ec2-user
+      - EC2_PRIVATE_KEY_PATH=/opt/keys/AWSGarabu.pem
+      - EC2_DATABASE_ENDPOINT=rdsgarabu.ccd6gqgqm5kj.us-east-1.rds.amazonaws.com
+      - EC2_DATABASE_PORT=3306
+    volumes:
+      # 애플리케이션 로그를 공유 볼륨에 저장
+      - app_logs:/app/logs
+      # 설정 파일 마운트 (필요시)
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
 
   node-exporter:
-    image: prom/node-exporter
+    image: prom/node-exporter:latest
     container_name: node-exporter
-    ports: ["9100:9100"]
-    networks: [elk_monitoring]
+    ports:
+      - "9100:9100"
+    networks:
+      - elk_monitoring
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9100/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Filebeat 추가 (파일 기반 로그 수집을 위한 선택사항)
+  filebeat:
+    image: elastic/filebeat:9.0.3
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - app_logs:/usr/share/filebeat/logs:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - ELASTICSEARCH_HOST=elasticsearch:9200
+      - LOGSTASH_HOST=logstash:5044
+    networks:
+      - elk_monitoring
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    command: filebeat -e -strict.perms=false

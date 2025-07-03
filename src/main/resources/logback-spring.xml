@@ -1,57 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Spring Boot 기본 설정 포함 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- ① 환경변수 기반 호스트·포트 -->
-    <!--    - 도커 내부: 기본값 logstash:5000 -->
-    <!--    - 로컬 IDE:  export LOGSTASH_HOST=localhost LOGSTASH_PORT=5001 -->
-    <appender name="LOGSTASH"
-              class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${LOGSTASH_HOST:-logstash}:${LOGSTASH_PORT:-5000}</destination>
+    <!-- 프로퍼티 정의 -->
+    <springProfile name="!prod">
+        <property name="LOG_PATH" value="./logs"/>
+        <property name="LOG_LEVEL_ROOT" value="INFO"/>
+        <property name="LOG_LEVEL_APP" value="DEBUG"/>
+    </springProfile>
 
-        <!-- ② 버퍼‧복구를 위한 소켓 옵션 (권장) -->
-        <reconnectionDelay>30000</reconnectionDelay> <!-- 30초마다 재시도 -->
-        <writeTimeout>10s</writeTimeout>              <!-- 송신 지연 시 타임아웃 -->
+    <springProfile name="docker">
+        <property name="LOG_PATH" value="/app/logs"/>
+        <property name="LOG_LEVEL_ROOT" value="INFO"/>
+        <property name="LOG_LEVEL_APP" value="DEBUG"/>
+    </springProfile>
 
-        <!-- ③ Encoder: JSON Lines + LF(개행) 필수 -->
-        <encoder
-                class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-            <providers>
-                <timestamp>
-                    <timeZone>Asia/Seoul</timeZone>
-                </timestamp>
+    <springProfile name="prod">
+        <property name="LOG_PATH" value="/var/log/app"/>
+        <property name="LOG_LEVEL_ROOT" value="WARN"/>
+        <property name="LOG_LEVEL_APP" value="INFO"/>
+    </springProfile>
 
-                <!-- 로깅 필드 커스터마이즈 -->
-                <pattern>
-                    <!-- 마지막 %n 을 꼭 붙여야 Logstash가 한 이벤트로 인식 -->
-                    <pattern>
-                        {
-                        "level":"%level",
-                        "thread":"%thread",
-                        "logger":"%logger",
-                        "message":"%message",
-                        "trace":"%ex{full}"
-                        }%n
-                    </pattern>
-                </pattern>
-
-                <!-- MDC‧스레드 ID 등을 추가하려면 주석 해제
-                <mdc />
-                -->
-            </providers>
+    <!-- 콘솔 출력 설정 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{36}) : %msg%n</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- ④ 비동기 처리로 애플리케이션 성능 보호 (선택) -->
-    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="LOGSTASH"/>
-        <queueSize>8192</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <neverBlock>true</neverBlock>
+    <!-- 파일 출력 설정 - 일반 로그 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/application.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} : %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
     </appender>
 
-    <!-- ⑤ 루트 로그 레벨 및 콘솔 병행 출력(옵션) -->
-    <root level="INFO">
-        <appender-ref ref="ASYNC_LOGSTASH"/>
-        <!-- <appender-ref ref="CONSOLE" /> -->
+    <!-- 에러 전용 파일 출력 설정 -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/error.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} : %msg%n%ex</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- SQL 로그 설정 (MyBatis/JPA 사용 시) -->
+    <logger name="org.apache.ibatis" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Spring Framework 로그 레벨 설정 -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web" level="DEBUG"/>
+    <logger name="org.springframework.security" level="DEBUG"/>
+
+    <!-- 외부 라이브러리 로그 레벨 설정 -->
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="org.eclipse.jetty" level="INFO"/>
+
+    <!-- 애플리케이션 패키지 로그 설정 -->
+    <logger name="g.g" level="${LOG_LEVEL_APP}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </logger>
+
+    <!-- 프로파일별 설정 -->
+    <springProfile name="local,dev">
+        <logger name="jdbc.sqlonly" level="DEBUG"/>
+        <logger name="jdbc.sqltiming" level="INFO"/>
+        <logger name="jdbc.audit" level="WARN"/>
+        <logger name="jdbc.resultset" level="WARN"/>
+        <logger name="jdbc.resultsettable" level="DEBUG"/>
+        <logger name="jdbc.connection" level="WARN"/>
+    </springProfile>
+
+    <!-- 루트 로거 설정 -->
+    <root level="${LOG_LEVEL_ROOT}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
     </root>
 
 </configuration>
