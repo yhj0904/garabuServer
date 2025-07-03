@@ -71,8 +71,10 @@ prometheus-data/
 prometheus.yml.bak
 *.tsdb
 *.prom
+prometheus/
 
 # Grafana
+grafana/
 grafana-data/
 grafana.db
 grafana.ini
@@ -84,6 +86,7 @@ grafana-dashboards/*.json
 alertmanager-data/
 alertmanager.yml
 alertmanager.yml.bak
+alertmanager/
 
 # Node Exporter
 node_exporter.log

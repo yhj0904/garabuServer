@@ -56,3 +56,6 @@ src/main/resources/keys/
 grafana-data/
 prometheus-data/
 alertmanager-data/
+grafana/
+prometheus/
+alertmanager/
