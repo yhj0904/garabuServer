@@ -19,7 +19,12 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle 빌드
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test --stacktrace
+
+      - name: 빌드 아티팩트(JAR) 존재 여부 확인
+        run : |
+          echo "build/libs 디렉토리:"
+          ls -al build/libs || echo "❌ JAR 파일 없음"
 
       - name: Docker 로그인
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
