@@ -1,6 +1,60 @@
-.gradle
+# Git
 .git
-out
-Dockerfile
-*.iml
+.gitignore
+
+# IDE 설정 파일
 .idea
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode
+
+# Build output
+.gradle
+out/
+build/
+bin/
+target/
+
+# OS 및 임시 파일
+*.DS_Store
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Docker 관련
+docker-compose.override.yml
+.dockerignore
+
+# IntelliJ 캐시
+*.class
+
+# 인증 및 민감 정보
+*.pem
+*.key
+*.crt
+*.env
+*.jks
+*.p12
+*.der
+
+# Firebase 키
+src/main/resources/firebase/firebase-service-account.json
+
+# Spring 설정 파일 (이미 `.gitignore`에 있다면 .dockerignore에도 포함)
+src/main/resources/application.yml
+application-local.yml
+application-dev.yml
+application-prod.yml
+application.yml
+
+# Local key 폴더 (보통 mount하는 경우만 제외)
+src/main/resources/keys/
+
+# Grafana/Prometheus etc (볼륨 또는 테스트용)
+grafana-data/
+prometheus-data/
+alertmanager-data/

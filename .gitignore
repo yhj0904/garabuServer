@@ -65,3 +65,30 @@ src/main/resources/keys/
 
 logs/
 *.log
+
+# Prometheus
+prometheus-data/
+prometheus.yml.bak
+*.tsdb
+*.prom
+
+# Grafana
+grafana-data/
+grafana.db
+grafana.ini
+grafana-provisioning/
+grafana-dashboards/
+grafana-dashboards/*.json
+
+# Alertmanager
+alertmanager-data/
+alertmanager.yml
+alertmanager.yml.bak
+
+# Node Exporter
+node_exporter.log
+
+# 기타 모니터링 툴
+*.rdb
+*.data
+*.snapshot
