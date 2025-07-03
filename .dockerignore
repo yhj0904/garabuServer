@@ -12,11 +12,9 @@
 .vscode
 
 # Build output
-.gradle
-out/
-build/
-bin/
-target/
+build/*
+!build/libs/
+!build/libs/*.jar
 
 # OS 및 임시 파일
 *.DS_Store
@@ -44,17 +42,17 @@ docker-compose.override.yml
 # Firebase 키
 src/main/resources/firebase/firebase-service-account.json
 
-# Spring 설정 파일 (이미 `.gitignore`에 있다면 .dockerignore에도 포함)
-src/main/resources/application.yml
+# Spring 설정 파일
+#src/main/resources/application.yml
 application-local.yml
 application-dev.yml
 application-prod.yml
-application.yml
+#application.yml
 
-# Local key 폴더 (보통 mount하는 경우만 제외)
+# Local key 폴더
 src/main/resources/keys/
 
-# Grafana/Prometheus etc (볼륨 또는 테스트용)
+# Grafana/Prometheus etc
 grafana-data/
 prometheus-data/
 alertmanager-data/
