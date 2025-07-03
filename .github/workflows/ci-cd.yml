@@ -26,7 +26,9 @@ jobs:
 
       - name: Docker 이미지 빌드 및 푸시
         run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/spring-app:$GITHUB_SHA ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }} .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/spring-app:${{ github.sha }}
           docker push ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
 
       - name: EC2 SSH 접속 후 배포
