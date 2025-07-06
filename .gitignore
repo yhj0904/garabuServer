@@ -67,13 +67,14 @@ logs/
 *.log
 
 # Prometheus
-prometheus-data/
+/prometheus/data/
 prometheus.yml.bak
 *.tsdb
 *.prom
-prometheus/
+!prometheus/prometheus.yml
 
 # Grafana
+/grafana
 grafana/
 grafana-data/
 grafana.db
@@ -90,6 +91,9 @@ alertmanager/
 
 # Node Exporter
 node_exporter.log
+
+#Redis
+/redis-data
 
 # 기타 모니터링 툴
 *.rdb
