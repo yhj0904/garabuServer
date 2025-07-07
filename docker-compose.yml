@@ -2,10 +2,16 @@ networks:
   elk_monitoring:
     driver: bridge
 
+secrets:
+  slack_webhook:
+    file: ./secrets/slack-webhook.txt
+
 volumes:
   elasticsearch_data:
     driver: local
   app_logs:
+    driver: local
+  alert_data:
     driver: local
 
 services:
@@ -141,6 +147,31 @@ services:
       timeout: 10s
       retries: 3
 
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alert_data:/alertmanager
+    secrets:
+      - source: slack_webhook
+        target: slack-webhook
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    networks: [ elk_monitoring ]
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/ready" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
   spring-app:
     build:
       context: .
@@ -187,6 +218,7 @@ services:
       - app_logs:/app/logs
       # 설정 파일 마운트
       - ./config:/app/config
+      - /Users/yoonhyungjoo/Documents/keys/AWSgarabu.pem:/opt/keys/AWSGarabu.pem
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s

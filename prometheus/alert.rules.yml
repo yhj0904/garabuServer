@@ -1,0 +1,22 @@
+groups:
+  - name: node-alerts
+    rules:
+      - alert: HighNodeCpu
+        expr: 100 - (avg by(instance)(irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "노드 CPU 사용률 80% 초과"
+          description: "{{ $labels.instance }} CPU 사용률이 {{ $value | printf \"%.0f\" }}% 입니다."
+
+  - name: request-alert
+    rules:
+      - alert: HighHttpRequestRate
+        expr: rate(http_server_requests_seconds_count[1m]) > 5
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 HTTP 요청 수"
+          description: "1분 동안 평균 요청 수가 5를 초과했습니다."

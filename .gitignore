@@ -84,6 +84,7 @@ grafana-dashboards/
 grafana-dashboards/*.json
 
 # Alertmanager
+secrets/
 alertmanager-data/
 alertmanager.yml
 alertmanager.yml.bak
