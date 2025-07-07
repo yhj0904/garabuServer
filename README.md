@@ -1,7 +1,7 @@
 # 가라부 (Garabu) 서버 💰
 
-> **스마트 가계부 관리 백엔드 API 서버**  
-> 다중 사용자 지원, 실시간 알림, 고급 모니터링 기능을 갖춘 현대적이고 확장 가능한 Spring Boot 3 가계부 관리 애플리케이션
+> **가계부 관리 백엔드 API 서버**  
+> 다중 사용자 지원, 실시간 알림, 모니터링 기능을 갖춘 가계부 관리 애플리케이션
 
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?style=flat-square&logo=springboot)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java)
@@ -12,99 +12,98 @@
 
 ## 📋 목차
 
-- [프로젝트 개요](#-프로젝트-개요)
-- [주요 기능](#-주요-기능)
-- [기술 스택](#-기술-스택)
-- [시스템 아키텍처](#-시스템-아키텍처)
-- [API 문서](#-api-문서)
-- [설치 및 설정](#-설치-및-설정)
-- [모니터링 및 배포](#-모니터링-및-배포)
-- [성능 최적화](#-성능-최적화)
-- [보안 구현](#-보안-구현)
-- [향후 개선 계획](#-향후-개선-계획)
-- [개선사항 분석](#-개선사항-분석)
+- [프로젝트 개요](*#-**프로젝트**-**개요*)
+- [주요 기능](*#-**주요**-**기능*)
+- [기술 스택](*#-**기술**-**스택*)
+- [시스템 아키텍처](*#-**시스템**-**아키텍처*)
+- [API 문서](*#-api-**문서*)
+- [설치 및 설정](*#-**설치**-**및**-**설정*)
+- [모니터링 및 배포](*#-**모니터링**-**및**-**배포*)
+- [성능 최적화](*#-**성능**-**최적화*)
+- [보안 구현](*#-**보안**-**구현*)
+- [향후 개선 계획](*#-**향후**-**개선**-**계획*)
+- [개선사항 분석](*#-**개선사항**-**분석*)
 
 ## 🎯 프로젝트 개요
 
-**가라부(Garabu)**는 Spring Boot 3.4.5와 Java 21로 구축된 정교한 가계부 관리 백엔드 API 서버입니다. 이 시스템은 **다중 사용자 협업 지원**, **실시간 푸시 알림**, **엔터프라이즈급 모니터링**을 제공하는 포괄적인 예산 추적 기능을 제공합니다.
-가라부 서버는 Spring Boot 3으로 개발된 가계부 관리 백엔드입니다. OAuth2 소셜 로그인을 통해 사용자 인증을 처리하고 JWT(액세스/리프레시) 토큰으로 보호된 API를 제공합니다. Redis, MySQL, Firebase, ELK 스택, Prometheus/Grafana 등 다양한 도구를 연동하여 실사용 환경을 고려해 설계되었습니다.
-
+**가라부(Garabu)**는 Spring Boot 3으로 구축된 가계부 관리 백엔드 API 서버입니다. 이 시스템은 **다중 사용자 협업 지원**, **실시간 푸시 알림**, **다중 가계부** 기능으로 포괄적인 예산 추적 기능을 제공합니다.
+소셜 로그인을 통해 사용자 인증을 처리하고 다양한 도구를 연동하여 실사용 환경을 고려해 설계되었습니다.
 
 ### 이 프로젝트의 특별한 점
 
 - **다중 사용자 협업**: 고급 UserBook 엔티티 시스템으로 공유 가계부 관리 지원
-- **엔터프라이즈 보안**: OAuth2 + JWT 인증과 역할 기반 접근 제어
-- **실시간 알림**: Firebase FCM 통합으로 즉시 예산 알림
-- **프로덕션 준비 모니터링**: 완전한 ELK 스택 + Prometheus + Grafana 구현
-- **클라우드 네이티브 아키텍처**: Docker 컨테이너화와 AWS 자동 배포
+- **보안**: OAuth2 + JWT 인증과 역할 기반 접근 제어
+- **실시간 분석 알림**: Firebase FCM 통합으로 즉시 예산등 분석 내용 알림
+- **프로덕션 준비 모니터링**:  ELK 스택 + Prometheus + Grafana으로 서버 성능 및 개선사항 파악
 
 ## ✨ 주요 기능
 
 ### 핵심 가계부 관리
-- **완전한 CRUD 작업**으로 예산, 기록, 카테고리, 결제 수단 관리
+- 간단한 UI로 예산, 기록, 카테고리, 결제 수단 관리
 - **공유 가계부**와 세분화된 권한 관리
-- **스마트 분류**와 커스터마이징 가능한 카테고리 계층
+- **스마트 분류**와 커스터마이징 가능한 모든 카테고리
 - **다중 통화 지원**으로 국제적인 예산 추적
 
-### 고급 사용자 경험
+### 사용자 경험
 - **OAuth2 소셜 로그인** (Google, Naver)과 원활한 온보딩
 - **푸시 알림**으로 예산 알림 및 협업 업데이트
 - **실시간 동기화**로 여러 기기와 사용자 간 동기화
 - **고급 필터링**과 검색 기능
+- **가계부 관리 API**:  가계부, 가계 기록, 카테고리, 결제수단 등을 제공
+- **공동 가계부**: 여러 사용자가 하나의 가계부를 realtime 공유할 수 있습니다.
 
-### 엔터프라이즈급 인프라
+### 인프라
 - **포괄적 모니터링**을 위한 ELK 스택과 Prometheus 메트릭
 - **자동화된 CI/CD**를 통한 GitHub Actions와 AWS 배포
 - **고성능 캐싱**으로 Redis를 사용한 최적의 응답 시간
 - **보안 데이터베이스 접근**을 위한 SSH 터널링을 통한 AWS RDS 연결
-
-- **OAuth2 로그인**: Google, Naver 등 외부 제공자를 이용하여 로그인합니다.
-- **JWT 인증**: `LoginFilter`와 `CustomLogoutFilter`를 통해 토큰을 발급/폐기하며 `ReissueController`로 재발급을 지원합니다【F:src/main/java/garabu/garabuServer/controller/ReissueController.java†L1-L67】.
-- **가계부 관리 API**: `BookApiController`, `LedgerApiController` 등에서 가계부, 가계 기록, 카테고리, 결제수단 등을 CRUD 합니다【F:src/main/java/garabu/garabuServer/api/BookApiController.java†L1-L35】【F:src/main/java/garabu/garabuServer/api/LedgerApiController.java†L1-L68】.
-- **공동 가계부**: `UserBook` 엔티티로 여러 사용자가 하나의 가계부를 공유할 수 있습니다【F:src/main/java/garabu/garabuServer/domain/UserBook.java†L1-L23】.
-- **푸시 알림**: `FcmSendServiceImpl`을 통해 FCM으로 푸시 메시지를 발송합니다【F:src/main/java/garabu/garabuServer/service/impl/FcmSendServiceImpl.java†L1-L74】.
-- **모니터링/로그 수집**: Docker Compose로 Prometheus, Grafana, Elasticsearch, Logstash, Filebeat 구성을 제공합니다【F:docker-compose.yml†L1-L139】.
+- 업무 프로세스 연동으로 **Slack**과 **Jira**를 연동해 자동 배포 및 로그 기반 알림을 전송합니다
+- **모니터링/로그 수집** 모니터링 및 로그 수집으로 **Slack** 에 알림을 전송합니다.
 
 
 ## 🛠 기술 스택
 
 ### 백엔드 프레임워크
-- **Java 21** - Virtual Threads 지원하는 최신 LTS
-- **Spring Boot 3.4.5** - 향상된 관찰 가능성을 가진 최신 프레임워크
-- **Spring Security** - OAuth2 & JWT 인증
-- **Spring Data JPA** - Hibernate를 사용한 데이터베이스 추상화
-- **MyBatis** - 복잡한 쿼리를 위한 SQL 매핑 프레임워크
-- **QueryDSL** - 타입 안전한 쿼리 생성
+- **Java 21**
+- **Spring Boot 3.4.5**
+- **Spring Security**
+- **Spring Batch**
+- **Spring Data JPA**
+- **MyBatis**
 
 ### 인증 및 보안
 - **OAuth2** - 소셜 로그인 통합 (Google, Naver)
 - **JWT** - 상태 비저장 인증 토큰
-- **Spring Security** - 포괄적 보안 설정
 - **BCrypt** - 보안을 위한 비밀번호 해싱
 
 ### 데이터베이스 및 캐싱
 - **MySQL 8.0** - AWS RDS의 주 데이터베이스
 - **Redis** - 세션 관리 및 캐싱
-- **HikariCP** - 고성능 커넥션 풀링
 - **SSH 터널링** - 보안 데이터베이스 연결
 
 ### 모니터링 및 관찰 가능성
 - **ELK 스택** - Elasticsearch, Logstash, Kibana로 로그 분석
 - **Prometheus** - 메트릭 수집 및 모니터링
-- **Grafana** - 고급 시각화 대시보드
+- **Grafana** - 시각화 대시보드
 - **Spring Boot Actuator** - 애플리케이션 상태 모니터링
 
 ### DevOps 및 배포
 - **Docker & Docker Compose** - 컨테이너화
+- **k8s**
 - **GitHub Actions** - CI/CD 파이프라인 자동화
 - **AWS EC2** - 클라우드 배포 플랫폼
 - **AWS RDS** - 관리형 데이터베이스 서비스
+
+### AWS 네이티브 솔루션 -> EKS
+
 
 ### 추가 도구
 - **Firebase FCM** - 푸시 알림 서비스
 - **Swagger/OpenAPI 3.0** - API 문서화
 - **P6Spy** - 데이터베이스 쿼리 모니터링
 - **Logback** - ECS 형식의 구조화된 로깅
+- **Slack** - 로그 기반 알림 및 이슈 트래킹
+- **jira** - 원활한 업무 프로세스 지원
 
 ## 🏗 시스템 아키텍처
 
@@ -188,7 +187,7 @@ src
 1. `application.yml`에 DB 접속 정보, `jwt.secret`, OAuth2 클라이언트 ID 등 필요한 값을 설정합니다.
 2. 의존성을 설치하고 애플리케이션을 실행합니다.
 
-```*bash*
+```**bash**
 ./gradlew bootRun
 ```
 
@@ -198,7 +197,7 @@ src
 
 모니터링 및 로그 수집 도구를 함께 사용하려면 다음 명령으로 컨테이너를 기동합니다.
 
-```*bash*
+```**bash**
 docker compose up --build
 ```
 
@@ -206,7 +205,7 @@ ELK 스택과 Prometheus, Grafana, Redis가 함께 실행됩니다.
 
 ## 테스트
 
-`src/test/java`의 테스트 코드는 기본적인 서비스 로직을 검증합니다. 현재 일부 테스트가 주석 처리되어 있어 실행 시 주의가 필요합니다【F:src/test/java/garabu/garabuServer/service/MemberServiceTest.java†L1-L40】.
+`src/test/java`의 테스트 코드는 기본적인 서비스 로직을 검증합니다. 현재 일부 테스트가 주석 처리되어 있어 실행 시 주의가 필요합니다
 
 
 ### 아키텍처 특징
@@ -221,13 +220,13 @@ ELK 스택과 Prometheus, Grafana, Redis가 함께 실행됩니다.
 - **서비스 디스커버리 준비**: Eureka/Consul 통합 준비
 - **외부 설정**: 외부화된 설정 관리
 - **헬스 체크**: 포괄적인 상태 모니터링 엔드포인트
-- **회로 차단기 패턴**: Resilience4j 통합 준비
+
 
 ## 📚 API 문서
 
 ### 인증 엔드포인트
 
-```http
+```*http*
 POST /api/auth/oauth2/google
 Authorization: Bearer {google_token}
 Content-Type: application/json
@@ -239,7 +238,7 @@ Content-Type: application/json
 
 ### 가계부 관리 엔드포인트
 
-```http
+```*http*
 GET /api/books/{bookId}/records
 Authorization: Bearer {jwt_token}
 Parameters:
@@ -249,7 +248,7 @@ Parameters:
   - paymentMethodId: 1
 ```
 
-```http
+```*http*
 POST /api/books/{bookId}/records
 Authorization: Bearer {jwt_token}
 Content-Type: application/json
@@ -265,7 +264,7 @@ Content-Type: application/json
 
 ### 공유 가계부 관리
 
-```http
+```*http*
 POST /api/books/{bookId}/users
 Authorization: Bearer {jwt_token}
 Content-Type: application/json
@@ -292,24 +291,24 @@ Content-Type: application/json
 ### 로컬 개발 환경 설정
 
 1. **저장소 클론**
-```bash
+```*bash*
 git clone https://github.com/yourusername/garabu-server.git
 cd garabu-server
 ```
 
 2. **환경 변수 설정**
-```bash
+```*bash*
 cp .env.example .env
 # .env 파일을 설정에 맞게 편집
 ```
 
 3. **인프라 서비스 시작**
-```bash
+```*bash*
 docker-compose up -d mysql redis elasticsearch logstash kibana
 ```
 
 4. **애플리케이션 실행**
-```bash
+```*bash*
 ./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
@@ -322,7 +321,7 @@ docker-compose up -d mysql redis elasticsearch logstash kibana
 
 애플리케이션은 AWS EC2로의 자동 배포를 위해 **GitHub Actions**를 사용합니다:
 
-```yaml
+```*yaml*
 name: AWS EC2에 배포
 on:
   push:
@@ -351,7 +350,7 @@ jobs:
 ### 포괄적 모니터링 스택
 
 **ELK 스택 설정**
-```yaml
+```*yaml*
 # docker-compose.yml
 services:
   elasticsearch:
@@ -409,7 +408,7 @@ services:
 ### 캐싱 전략
 
 **Redis 구현**
-```java
+```*java*
 @Service
 @Transactional
 public class BudgetService {
@@ -435,7 +434,7 @@ public class BudgetService {
 ### JVM 튜닝
 
 **Java 21 Virtual Threads**
-```java
+```*java*
 @Configuration
 public class AsyncConfig {
     
@@ -444,7 +443,7 @@ public class AsyncConfig {
         return new TaskExecutor() {
             @Override
             public void execute(Runnable task) {
-                Thread.ofVirtual().start(task);
+                Thread.*ofVirtual*().start(task);
             }
         };
     }
@@ -462,7 +461,7 @@ public class AsyncConfig {
 ### 인증 및 권한 부여
 
 **OAuth2 + JWT 플로우**
-```java
+```*java*
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -486,7 +485,7 @@ public class SecurityConfig {
 }
 ```
 
-### 보안 모범 사례
+### 보안 적용 사례
 
 **입력 검증**
 - 요청 DTO를 위한 Bean Validation (JSR-303)
@@ -501,7 +500,7 @@ public class SecurityConfig {
 - **속도 제한**: 남용 방지를 위한 API 스로틀링
 
 **보안 헤더**
-```java
+```*java*
 @Component
 public class SecurityHeadersFilter implements Filter {
     
@@ -578,55 +577,53 @@ public class SecurityHeadersFilter implements Filter {
 - **유지보수 가능한 코드**: 포괄적인 테스팅과 문서화
 - **프로덕션 준비**: 엔터프라이즈급 모니터링과 배포
 
-### 개선 영역
-
 **고우선순위 개선사항**
 
 1. **API 속도 제한**
-    - **현재 갭**: 속도 제한 구현 없음
-    - **권장사항**: 슬라이딩 윈도우 방식의 Redis 기반 속도 제한 구현
-    - **영향**: API 남용 방지 및 공정한 사용 보장
+   - **현재 갭**: 속도 제한 구현 없음
+   - **권장사항**: 슬라이딩 윈도우 방식의 Redis 기반 속도 제한 구현
+   - **영향**: API 남용 방지 및 공정한 사용 보장
 
 2. **데이터베이스 마이그레이션 관리**
-    - **현재 갭**: 기본적인 마이그레이션 전략
-    - **권장사항**: 버전 관리된 마이그레이션을 위한 Flyway 또는 Liquibase 구현
-    - **영향**: 더 나은 데이터베이스 버전 관리 및 배포 안전성
+   - **현재 갭**: 기본적인 마이그레이션 전략
+   - **권장사항**: 버전 관리된 마이그레이션을 위한 Flyway 또는 Liquibase 구현
+   - **영향**: 더 나은 데이터베이스 버전 관리 및 배포 안전성
 
 3. **API 버전 관리 전략**
-    - **현재 갭**: 공식적인 버전 관리 방식 없음
-    - **권장사항**: 폐기 전략과 함께 URI 기반 버전 관리 구현
-    - **영향**: 더 나은 API 진화 및 하위 호환성
+   - **현재 갭**: 공식적인 버전 관리 방식 없음
+   - **권장사항**: 폐기 전략과 함께 URI 기반 버전 관리 구현
+   - **영향**: 더 나은 API 진화 및 하위 호환성
 
 **중우선순위 개선사항**
 
 4. **회로 차단기 패턴**
-    - **현재 갭**: 회로 차단기 구현 없음
-    - **권장사항**: 외부 서비스 호출을 위한 Resilience4j 통합
-    - **영향**: 향상된 복원력 및 내결함성
+   - **현재 갭**: 회로 차단기 구현 없음
+   - **권장사항**: 외부 서비스 호출을 위한 Resilience4j 통합
+   - **영향**: 향상된 복원력 및 내결함성
 
 5. **이벤트 기반 아키텍처**
-    - **현재 갭**: 동기 처리만
-    - **권장사항**: 감사 추적을 위한 이벤트 소싱 구현
-    - **영향**: 더 나은 확장성 및 감사 기능
+   - **현재 갭**: 동기 처리만
+   - **권장사항**: 감사 추적을 위한 이벤트 소싱 구현
+   - **영향**: 더 나은 확장성 및 감사 기능
 
 6. **고급 캐싱 전략**
-    - **현재 갭**: 기본적인 Redis 캐싱
-    - **권장사항**: 캐시 워밍이 포함된 다단계 캐싱 구현
-    - **영향**: 향상된 성능 및 데이터베이스 부하 감소
+   - **현재 갭**: 기본적인 Redis 캐싱
+   - **권장사항**: 캐시 워밍이 포함된 다단계 캐싱 구현
+   - **영향**: 향상된 성능 및 데이터베이스 부하 감소
 
 **저우선순위 개선사항**
 
 7. **GraphQL API**
-    - **현재 갭**: REST API만
-    - **권장사항**: 유연한 데이터 가져오기를 위한 GraphQL 구현
-    - **영향**: 더 나은 모바일 앱 통합 및 과도한 가져오기 감소
+   - **현재 갭**: REST API만
+   - **권장사항**: 유연한 데이터 가져오기를 위한 GraphQL 구현
+   - **영향**: 더 나은 모바일 앱 통합 및 과도한 가져오기 감소
 
 8. **Kubernetes 배포**
-    - **현재 갭**: EC2 기반 배포
-    - **권장사항**: 컨테이너 오케스트레이션을 위한 Kubernetes로 마이그레이션
-    - **영향**: 더 나은 확장성, 롤링 업데이트, 리소스 관리
+   - **현재 갭**: EC2 기반 배포
+   - **권장사항**: 컨테이너 오케스트레이션을 위한 Kubernetes로 마이그레이션
+   - **영향**: 더 나은 확장성, 롤링 업데이트, 리소스 관리
 
-### 기술 부채 평가
+### GPT & Claude 기반 기술 부채 평가
 
 **코드 품질 점수: 8.5/10**
 - **강점**: 클린 아키텍처, 포괄적인 테스팅, 좋은 문서화
