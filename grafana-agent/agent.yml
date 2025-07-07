@@ -1,0 +1,9 @@
+metrics:
+  wal_directory: /var/lib/grafana-agent/data
+  global:
+    scrape_interval: 15s
+  configs:
+    - name: k6
+      remote_write:
+        - url: http://prometheus:9090/api/v1/write   # Prometheus 서비스
+      scrape_configs: []   # Agent는 수집 안 하고 “수신 전용”

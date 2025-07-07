@@ -100,3 +100,9 @@ node_exporter.log
 *.rdb
 *.data
 *.snapshot
+
+# k6 WAL / Grafana Agent 데이터
+grafana-agent/data/
+# IDE, log 등
+.idea/
+logs/
