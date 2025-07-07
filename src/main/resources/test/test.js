@@ -7,6 +7,6 @@ export let options = {
 };
 
 export default function () {
-  http.get('http://localhost:8080/your-api-endpoint');
+  http.get('http://localhost:8080//api/v2/book/mybooks');
   sleep(1);
 }
