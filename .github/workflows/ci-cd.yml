@@ -80,4 +80,4 @@ jobs:
       - name: Health Check
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
-        run: curl -fsS --retry 3 https://$EC2_HOST/actuator/health
+        run: curl -fsS --retry 3 http://$EC2_HOST/actuator/health
