@@ -116,7 +116,7 @@ public class SecurityConfig {
 
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4000"));
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
                         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));

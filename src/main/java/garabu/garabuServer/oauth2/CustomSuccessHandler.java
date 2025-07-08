@@ -53,7 +53,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.setHeader("access", access);
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
-        response.sendRedirect("http://localhost:4000/OAuth");
+        response.sendRedirect("http://localhost:5173/OAuth");
 
     }
     private void addRefreshEntity(String username, String refresh, Long expiredMs) {

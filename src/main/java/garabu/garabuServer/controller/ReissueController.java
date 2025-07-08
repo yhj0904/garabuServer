@@ -4,6 +4,13 @@ import garabu.garabuServer.domain.RefreshEntity;
 import garabu.garabuServer.jwt.JWTUtil;
 import garabu.garabuServer.repository.RefreshRepository;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,20 +21,58 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 
+/**
+ * JWT 토큰 재발급 컨트롤러
+ * 
+ * Access Token과 Refresh Token의 재발급을 처리합니다.
+ * Refresh Token을 사용하여 새로운 Access Token을 발급받을 수 있습니다.
+ * 
+ * @author Garabu Team
+ * @version 1.0
+ */
 @RestController
+@Tag(name = "Auth", description = "인증 관리 API")
 public class ReissueController {
 
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
 
+    /**
+     * ReissueController 생성자
+     * 
+     * @param jwtUtil JWT 유틸리티
+     * @param refreshRepository Refresh 토큰 저장소
+     */
     public ReissueController(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
-
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
     }
 
+    /**
+     * JWT 토큰을 재발급합니다.
+     * 
+     * @param request HTTP 요청 객체
+     * @param response HTTP 응답 객체
+     * @return 토큰 재발급 결과
+     */
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+    @Operation(
+        summary = "JWT 토큰 재발급",
+        description = "Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "토큰 재발급 성공"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 Refresh Token 또는 만료된 토큰"
+        )
+    })
+    public ResponseEntity<?> reissue(
+        @Parameter(description = "HTTP 요청 객체") HttpServletRequest request, 
+        @Parameter(description = "HTTP 응답 객체") HttpServletResponse response) {
 
         //get refresh token
         String refresh = null;
@@ -90,6 +135,13 @@ public class ReissueController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Refresh 토큰 엔티티를 데이터베이스에 저장합니다.
+     * 
+     * @param username 사용자명
+     * @param refresh Refresh 토큰
+     * @param expiredMs 만료 시간 (밀리초)
+     */
     private void addRefreshEntity(String username, String refresh, Long expiredMs) {
 
         Date date = new Date(System.currentTimeMillis() + expiredMs);
@@ -102,6 +154,13 @@ public class ReissueController {
         refreshRepository.save(refreshEntity);
     }
 
+    /**
+     * HTTP 쿠키를 생성합니다.
+     * 
+     * @param key 쿠키 키
+     * @param value 쿠키 값
+     * @return 생성된 쿠키 객체
+     */
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
