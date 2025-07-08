@@ -20,8 +20,8 @@ import java.util.List;
  * 가계부 기록의 등록, 조회 등의 비즈니스 로직을 처리합니다.
  * 수입, 지출, 이체 등의 금융 기록을 관리합니다.
  * 
- * @author Garabu Team
- * @version 1.0
+ * @author yhj
+ * @version 2.0
  */
 @Service
 @RequiredArgsConstructor
