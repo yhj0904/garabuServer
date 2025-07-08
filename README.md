@@ -236,7 +236,83 @@ garabuserver/
 ├── logstash/                          # Logstash 설정
 └── README.md                          # 프로젝트 문서
 ```
+## 📐 데이터베이스 설계
 
+### ERD (Entity Relationship Diagram)
+```mermaid
+erDiagram
+    Member ||--o{ UserBook : "owns"
+    Book ||--o{ UserBook : "shared_with"
+    Book ||--o{ Ledger : "contains"
+    Member ||--o{ Ledger : "creates"
+    Category ||--o{ Ledger : "categorizes"
+    PaymentMethod ||--o{ Ledger : "paid_by"
+    Member ||--o{ RefreshEntity : "has_token"
+    Member ||--o{ FcmUserToken : "has_device"
+    
+    Member {
+        Long id PK
+        String username UK
+        String email UK
+        String password
+        String role
+        String providerId
+        String name
+    }
+    
+    Book {
+        Long id PK
+        String title
+        Long owner_id FK
+    }
+    
+    UserBook {
+        Long id PK
+        Long member_id FK
+        Long book_id FK
+        UserRole userRole
+    }
+    
+    Ledger {
+        Long id PK
+        LocalDate date
+        Integer amount
+        String description
+        String memo
+        AmountType amountType
+        String spender
+        Long member_id FK
+        Long book_id FK
+        Long category_id FK
+        Long payment_id FK
+    }
+    
+    Category {
+        Long id PK
+        String category UK
+    }
+    
+    PaymentMethod {
+        Long id PK
+        String payment UK
+    }
+    
+    RefreshEntity {
+        Long id PK
+        String username
+        String refresh
+        String expiration
+    }
+    
+    FcmUserToken {
+        Long id PK
+        String appId
+        String userId
+        String deviceId
+        String fcmToken
+        LocalDateTime regDt
+        String useAt
+    }
 ## 📚 API 문서
 
 ### 인증 API
