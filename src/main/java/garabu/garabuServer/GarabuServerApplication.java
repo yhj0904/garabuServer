@@ -16,7 +16,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 가계부 관리 시스템의 메인 애플리케이션으로, 
  * 회원 관리, 가계부 기록, 카테고리 관리 등의 기능을 제공합니다.
  * 
- * @author Garabu Team
+ * @author yhj
  * @version 1.0
  * @since 2024
  */
@@ -28,8 +28,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         version = "1.0",
         description = "가계부 관리 시스템 API 문서",
         contact = @Contact(
-            name = "Garabu Team",
-            email = "support@garabu.com"
+            name = "HyungJoo Yoon",
+            email = "ujk6073@gmail.com"
         ),
         license = @License(
             name = "MIT License",

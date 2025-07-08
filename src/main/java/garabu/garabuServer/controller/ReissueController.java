@@ -27,7 +27,7 @@ import java.util.Date;
  * Access Token과 Refresh Token의 재발급을 처리합니다.
  * Refresh Token을 사용하여 새로운 Access Token을 발급받을 수 있습니다.
  * 
- * @author Garabu Team
+ * @author yhj
  * @version 1.0
  */
 @RestController

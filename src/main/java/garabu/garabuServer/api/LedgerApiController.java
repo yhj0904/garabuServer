@@ -1,105 +1,112 @@
 package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.*;
-
+import garabu.garabuServer.dto.LedgerSearchConditionDTO;
 import garabu.garabuServer.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * 가계부 기록 관리 API 컨트롤러
- * 
- * 가계부 기록의 생성, 조회 등의 기능을 제공합니다.
- * 수입, 지출, 이체 등의 금융 기록을 관리합니다.
- * 
- * @author Garabu Team
- * @version 1.0
+ * 가계부 기록(Ledger) 관리 REST 컨트롤러
+ *
+ * <p>수입(INCOME)‧지출(EXPENSE)‧이체(TRANSFER) 등
+ * 다양한 금융 기록을 생성·조회하는 엔드포인트를 제공합니다.<br/>
+ * 모든 요청은 **JWT Bearer 토큰** 인증을 요구합니다.</p>
+ *
+ * @author yhj
+ * @version 2.0
  */
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v2/ledger")          // 공통 prefix
 @Tag(name = "Ledger", description = "가계부 기록 관리 API")
+@SecurityRequirement(name = "bearerAuth")  // Swagger UI Authorize 버튼
 public class LedgerApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(LedgerApiController.class);
 
-    private final BookService bookService; // 가정: Book 정보를 가져오는 서비스
-    private final CategoryService categoryService; // 가정: Category 정보를 가져오는 서비스
-    private final PaymentService paymentService;
-    private final LedgerService ledgerService;
-    private final MemberService memberService;
+    private final BookService    bookService;
+    private final CategoryService categoryService;
+    private final PaymentService  paymentService;
+    private final LedgerService   ledgerService;
+    private final MemberService   memberService;
 
+    // ───────────────────────── 기록 생성 ─────────────────────────
     /**
      * 새로운 가계부 기록을 생성합니다.
-     * 
-     * @param request 가계부 기록 생성 요청 정보
-     * @return 생성된 가계부 기록의 ID
+     *
+     * @param request Ledger 생성 요청 DTO
+     * @return 생성된 Ledger ID
      */
-    @PostMapping("/api/v2/ledger")
+    @PostMapping
     @Operation(
-        summary = "가계부 기록 생성",
-        description = "새로운 가계부 기록(수입/지출/이체)을 생성합니다."
+            summary     = "가계부 기록 생성",
+            description = "새로운 가계부 기록(수입·지출·이체)을 등록하고 고유 ID를 반환합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "가계부 기록 생성 요청 본문",
+            content = @Content(
+                    schema = @Schema(implementation = CreateLedgerRequest.class),
+                    examples = @ExampleObject(
+                            name  = "급여(수입) 예시",
+                            value = "{\n"
+                                    + "  \"date\": \"2025-07-08\",\n"
+                                    + "  \"amount\": 3000000,\n"
+                                    + "  \"description\": \"7월 월급\",\n"
+                                    + "  \"memo\": \"세후 지급액\",\n"
+                                    + "  \"amountType\": \"INCOME\",\n"
+                                    + "  \"title\": \"가족 가계부\",\n"
+                                    + "  \"payment\": \"이체\",\n"
+                                    + "  \"category\": \"급여\",\n"
+                                    + "  \"spender\": \"회사\"\n"
+                                    + "}"
+                    )
+            )
     )
     @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "가계부 기록 생성 성공",
-            content = @Content(schema = @Schema(implementation = CreateLedgerResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "잘못된 요청 데이터"
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "서버 내부 오류"
-        )
+            @ApiResponse(responseCode = "201",
+                    description  = "가계부 기록 생성 성공",
+                    content      = @Content(schema = @Schema(implementation = CreateLedgerResponse.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
-    public CreateLedgerResponse saveMemberV2(
-        @Parameter(description = "가계부 기록 정보", required = true)
-        @RequestBody @Valid CreateLedgerRequest request) {
+    public ResponseEntity<CreateLedgerResponse> createLedger(
+            @Valid @org.springframework.web.bind.annotation.RequestBody CreateLedgerRequest request) {
+
         try {
+            /* ────── 1. 로그인 사용자 확인 ────── */
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Member currentMember = memberService.findMemberByUsername(auth.getName());
 
-            // 로깅: 요청받은 데이터 전체 출력
-            logger.info("Received request to save ledger: {}", request);
-
-            // 로깅: 개별 필드 값 출력
-            logger.info("Date: {}", request.getDate());
-            logger.info("Amount: {}", request.getAmount());
-            logger.info("Description: {}", request.getDescription());
-            logger.info("Memo: {}", request.getMemo());
-            logger.info("Amount Type: {}", request.getAmountType());
-            logger.info("Title: {}", request.getTitle());
-            logger.info("Payment: {}", request.getPayment());
-            logger.info("Category: {}", request.getCategory());
-            logger.info("Spender: {}", request.getSpender());
-            logger.info("Received request to save ledger: {}", request);
-
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Member currentMember = memberService.findMemberByUsername(authentication.getName());
-            logger.info("Current Member: {}", currentMember);
-
+            /* ────── 2. 엔티티 매핑 ────── */
             Ledger ledger = new Ledger();
             ledger.setDate(request.getDate());
             ledger.setAmount(request.getAmount());
@@ -115,85 +122,175 @@ public class LedgerApiController {
             PaymentMethod paymentMethod = paymentService.findByPayment(request.getPayment());
             ledger.setPaymentMethod(paymentMethod);
 
-            ledger.setCategory(categoryService.findByCategory(request.getCategory()));
-            Long id = ledgerService.registLedger(ledger);
-            logger.info("Ledger registered with id: {}", id);
+            Category category = categoryService.findByCategory(request.getCategory());
+            ledger.setCategory(category);
 
-            return new CreateLedgerResponse(id);
+            /* ────── 3. 저장 ────── */
+            Long id = ledgerService.registLedger(ledger);
+            logger.info("Ledger registered with id={}", id);
+
+            return ResponseEntity
+                    .status(201)
+                    .body(new CreateLedgerResponse(id));
+
         } catch (Exception e) {
-            logger.error("Error saving ledger: ", e);
+            logger.error("Error saving ledger", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error saving ledger", e);
         }
     }
 
+    // ───────────────────────── 기록 목록 조회 ─────────────────────────
     /**
-     * 모든 가계부 기록을 조회합니다.
-     * 
-     * @return 가계부 기록 목록
+     * 시스템에 등록된 모든 가계부 기록을 조회합니다.
+     *
+     * @return Ledger 리스트
      */
-    @PostMapping("/api/v2/ledger/list")
+    @GetMapping("/list")
     @Operation(
-        summary = "가계부 기록 목록 조회",
-        description = "시스템에 등록된 모든 가계부 기록을 조회합니다."
+            summary     = "가계부 기록 목록 조회",
+            description = """
+        날짜 범위·카테고리·금액 유형 등으로 필터링하고
+        페이지네이션 / 정렬이 가능한 엔드포인트입니다.
+        """
     )
     @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "가계부 기록 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = Ledger.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "서버 내부 오류"
-        )
+            @ApiResponse(responseCode = "200",
+                    description  = "조회 성공",
+                    content      = @Content(schema = @Schema(implementation = ListLedgerResponse.class)))
     })
-    public List<Ledger> getAllLedgers() {
-        return ledgerService.findAllLedgers();
+    public ResponseEntity<ListLedgerResponse> listLedgers(
+            @Parameter(description = "시작 날짜(yyyy-MM-dd)", example = "2025-07-01")
+            @RequestParam(required = false) LocalDate startDate,
+
+            @Parameter(description = "종료 날짜(yyyy-MM-dd)", example = "2025-07-31")
+            @RequestParam(required = false) LocalDate endDate,
+
+            @Parameter(description = "금액 유형(INCOME/EXPENSE/TRANSFER)",
+                    example = "EXPENSE",
+                    schema = @Schema(allowableValues = {"INCOME","EXPENSE","TRANSFER"}))
+            @RequestParam(required = false) AmountType amountType,
+
+            @Parameter(description = "카테고리명", example = "식비")           @RequestParam(required = false) String category,
+
+            @Parameter(description = "결제 수단", example = "카드")           @RequestParam(required = false) String payment,
+
+            @ParameterObject Pageable pageable                                 // page, size, sort
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long memberId = memberService.findMemberByUsername(auth.getName()).getId();
+
+        LedgerSearchConditionDTO cond = new LedgerSearchConditionDTO(
+                memberId, startDate, endDate, amountType, category, payment
+        );
+
+        Page<Ledger> page = ledgerService.search(cond, pageable);
+
+        List<LedgerDto> dtoList = page.getContent().stream()
+                .map(LedgerDto::from)
+                .toList();
+
+        return ResponseEntity.ok(new ListLedgerResponse(dtoList, page.getTotalElements()));
     }
 
-    /**
-     * 가계부 기록 생성 요청 DTO
-     */
+
+    // ───────────────────────── DTO 정의 ─────────────────────────
+    /** Ledger 생성 요청 DTO */
     @Data
+    @Schema(description = "가계부 기록 생성 요청 DTO")
     static class CreateLedgerRequest {
-        @Parameter(description = "기록 날짜", example = "2024-01-15")
+        @Schema(description = "기록 날짜", example = "2025-07-08", requiredMode = Schema.RequiredMode.REQUIRED)
         private LocalDate date;
-        
-        @Parameter(description = "금액", example = "50000")
+
+        @Schema(description = "금액(원)", example = "3000000", requiredMode = Schema.RequiredMode.REQUIRED)
         private Integer amount;
-        
-        @Parameter(description = "상세 내용", example = "월급")
+
+        @Schema(description = "상세 내용", example = "7월 월급")
         private String description;
-        
-        @Parameter(description = "메모", example = "1월 월급")
+
+        @Schema(description = "메모", example = "세후 지급액")
         private String memo;
-        
-        @Parameter(description = "금액 유형 (수입/지출/이체)", example = "INCOME")
+
+        @Schema(description = "금액 유형(INCOME/EXPENSE/TRANSFER)",
+                example = "INCOME",
+                allowableValues = {"INCOME", "EXPENSE", "TRANSFER"},
+                requiredMode = Schema.RequiredMode.REQUIRED)
         private AmountType amountType;
-        
-        @Parameter(description = "가계부 제목", example = "내 가계부")
-        private String title;  // Title of the book
-        
-        @Parameter(description = "결제 수단", example = "현금")
-        private String payment;  // Payment method description
-        
-        @Parameter(description = "카테고리", example = "급여")
-        private String category;  // Category description
-        
-        @Parameter(description = "지출자", example = "홍길동")
+
+        @Schema(description = "가계부 제목", example = "가족 가계부", requiredMode = Schema.RequiredMode.REQUIRED)
+        private String title;
+
+        @Schema(description = "결제 수단", example = "이체", requiredMode = Schema.RequiredMode.REQUIRED)
+        private String payment;
+
+        @Schema(description = "카테고리명", example = "급여", requiredMode = Schema.RequiredMode.REQUIRED)
+        private String category;
+
+        @Schema(description = "지출자/수입원", example = "회사")
         private String spender;
     }
-    
-    /**
-     * 가계부 기록 생성 응답 DTO
-     */
+
+    /** Ledger 생성 응답 DTO */
     @Data
+    @Schema(description = "가계부 기록 생성 응답 DTO")
     static class CreateLedgerResponse {
-        @Parameter(description = "생성된 가계부 기록의 ID")
+        @Schema(description = "생성된 Ledger ID", example = "101")
         private Long id;
-        
+
         public CreateLedgerResponse(Long id) {
             this.id = id;
         }
     }
+
+    /** Ledger 목록 응답 DTO */
+    @Data
+    @Schema(description = "가계부 기록 목록 응답 DTO")
+    static class ListLedgerResponse {
+        @Schema(description = "Ledger 배열")
+        private List<LedgerDto> ledgers;
+
+        public ListLedgerResponse(List<LedgerDto> ledgers, long totalElements) {
+            this.ledgers = ledgers;
+        }
+    }
+
+    /** Ledger 요약 DTO */
+    @Data
+    @Schema(description = "Ledger 요약 DTO")
+    static class LedgerDto {
+        @Schema(description = "Ledger ID", example = "101")
+        private Long id;
+
+        @Schema(description = "날짜", example = "2025-07-08")
+        private LocalDate date;
+
+        @Schema(description = "금액(원)", example = "3000000")
+        private Integer amount;
+
+        @Schema(description = "카테고리명", example = "급여")
+        private String category;
+
+        @Schema(description = "금액 유형", example = "INCOME")
+        private AmountType amountType;
+
+        public static LedgerDto from(Ledger ledger) {
+            LedgerDto dto = new LedgerDto();
+            dto.id         = ledger.getId();
+            dto.date       = ledger.getDate();
+            dto.amount     = ledger.getAmount();
+            dto.category   = ledger.getCategory().getCategory();
+            dto.amountType = ledger.getAmountType();
+            return dto;
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    public class LedgerSearchCondition {
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private AmountType amountType;
+        private String category;
+        private String payment;
+    }
+
 }
