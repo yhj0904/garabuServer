@@ -12,9 +12,9 @@
 .vscode
 
 # Build output
-build/*
-!build/libs/
-!build/libs/*.jar
+#build/*
+#build/libs/
+#build/libs/*.jar
 
 # OS 및 임시 파일
 *.DS_Store
