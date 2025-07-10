@@ -56,6 +56,11 @@ public class CustomUserDetails implements UserDetails {
         return member.getEmail();
     }
 
+    public String getProviderId() {
+
+        return member.getProviderId();
+    }
+
     @Override
     public boolean isAccountNonExpired() {
 

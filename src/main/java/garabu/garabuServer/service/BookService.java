@@ -82,11 +82,18 @@ public class BookService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = userDetails.getEmail();
-        String username = userDetails.getUsername();
-        String name = userDetails.getName();
-        Member ownerName = memberRepository.findByName(name);
-        List<Member> owner = memberRepository.findByEmail(email);
-        return bookRepository.findByOwner((Member) owner);
+        String providerId = userDetails.getProviderId();
+        
+        Member owner;
+        if (providerId != null) {
+            // 소셜로그인 사용자
+            owner = memberRepository.findByEmailAndProviderId(email, providerId);
+        } else {
+            // 일반로그인 사용자 (providerId가 null)
+            owner = memberRepository.findByEmailAndProviderIdIsNull(email);
+        }
+        
+        return bookRepository.findByOwner(owner);
     }
 
     /**

@@ -14,5 +14,11 @@ public interface MemberJPARepository extends JpaRepository<Member, Long> {
     Member findByName(String name);
     Member findOneByEmail(String email);
     Optional<Member> findByProviderIdAndEmail(String providerId, String email);
+    
+    // 일반로그인 사용자 조회 (providerId가 null인 경우)
+    Member findByEmailAndProviderIdIsNull(String email);
+    
+    // 소셜로그인 사용자 조회 (email + providerId 조합)
+    Member findByEmailAndProviderId(String email, String providerId);
 
 }

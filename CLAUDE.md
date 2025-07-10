@@ -16,11 +16,17 @@ This is a Spring Boot 3.4.5 application called "가라부 (Garabu)" - a househol
 # Run the application
 ./gradlew bootRun
 
-# Run tests
+# Run tests (JUnit 5)
 ./gradlew test
+
+# Run specific test
+./gradlew test --tests MemberServiceTest
 
 # Clean build
 ./gradlew clean build
+
+# Check dependencies
+./gradlew dependencies
 ```
 
 ### Docker Commands
@@ -36,6 +42,11 @@ docker-compose up spring-app
 
 # Performance testing with k6
 docker-compose -f docker-compose.k6.yml up -d
+
+# Available k6 test scripts
+k6 run k6-scripts/loadtest.js       # Main load test
+k6 run k6-scripts/stages/smoke.js   # Smoke test
+k6 run k6-scripts/stages/soak.js    # Soak test
 ```
 
 ## Architecture Overview
@@ -52,15 +63,16 @@ docker-compose -f docker-compose.k6.yml up -d
 ### Package Structure
 ```
 src/main/java/garabu/garabuServer/
-├── api/                    # REST API controllers
+├── api/                    # REST API controllers (v2)
 ├── config/                 # Configuration classes
 ├── controller/             # Additional controllers
 ├── domain/                 # JPA entities
 ├── dto/                    # Data Transfer Objects
 ├── jwt/                    # JWT authentication
 ├── oauth2/                 # OAuth2 configuration
-├── repository/             # Data access layer
-└── service/                # Business logic layer
+├── repository/             # Data access layer (Spring Data JPA)
+├── service/                # Business logic layer
+└── mapper/                 # MyBatis mappers (not in package structure)
 ```
 
 ### Key Entities
@@ -117,5 +129,19 @@ src/main/java/garabu/garabuServer/
 ## Development Notes
 - Uses Lombok for boilerplate code reduction
 - Spring Boot DevTools for development
-- Swagger/OpenAPI 3.0 for API documentation
+- Swagger/OpenAPI 3.0 for API documentation at `/swagger-ui/index.html`
+- P6Spy for SQL query monitoring (logs all executed queries)
+- Main entry point: `GarabuServerApplication.java`
+- Application runs on port 8080 by default
+- MyBatis XML mappers located in `src/main/resources/mapper/`
+- Available test classes: MemberServiceTest, FcmSendServiceImplTest, CustomUserDetailsServiceTest, UserBookServiceTest
 - Comprehensive README.md with detailed architecture and setup instructions
+
+## Important Files and Locations
+- **Main config**: `src/main/resources/application.yml`
+- **MyBatis mappers**: `src/main/resources/mapper/*.xml` (especially LedgerMapper.xml for complex queries)
+- **Docker configs**: `docker-compose.yml`, `docker-compose.k6.yml`
+- **Kubernetes manifests**: `src/main/resources/k8s/`
+- **Monitoring configs**: `prometheus/`, `grafana/`, `logstash/`, `filebeat/`
+- **Performance tests**: `k6-scripts/`
+- **Key dependencies**: Spring Boot 3.4.5, Java 21, MySQL 8.0, Redis, Firebase FCM, JWT, OAuth2
