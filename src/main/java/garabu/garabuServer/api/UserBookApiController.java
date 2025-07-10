@@ -1,7 +1,12 @@
 package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.UserBook;
+import garabu.garabuServer.domain.BookRole;
 import garabu.garabuServer.service.UserBookService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -73,6 +78,114 @@ public class UserBookApiController {
         return ResponseEntity.ok(new ListOwnerResponse(owners));
     }
 
+    /* ───────────────────────── 가계부 공유 초대 ───────────────────────── */
+    /**
+     * 가계부에 새로운 사용자를 초대합니다.
+     *
+     * @param bookId 가계부 ID
+     * @param request 초대 요청 정보
+     * @return 초대 결과
+     */
+    @PostMapping("/{bookId}/invite")
+    @Operation(
+            summary     = "가계부 공유 초대",
+            description = "이메일로 사용자를 가계부에 초대합니다. 소유자만 초대할 수 있습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "초대 성공"),
+            @ApiResponse(responseCode = "404", description = "가계부 또는 사용자 없음"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 초대 가능)"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 참여 중인 사용자 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<InviteResponse> inviteUser(
+            @PathVariable Long bookId,
+            @RequestBody @Valid InviteRequest request) {
+        
+        userBookService.inviteUser(bookId, request.getEmail(), request.getRole());
+        return ResponseEntity.ok(new InviteResponse("사용자가 성공적으로 초대되었습니다."));
+    }
+
+    /* ───────────────────────── 가계부 멤버 제거 ───────────────────────── */
+    /**
+     * 가계부에서 멤버를 제거합니다.
+     *
+     * @param bookId 가계부 ID
+     * @param memberId 제거할 멤버 ID
+     * @return 제거 결과
+     */
+    @DeleteMapping("/{bookId}/members/{memberId}")
+    @Operation(
+            summary     = "가계부 멤버 제거",
+            description = "가계부에서 특정 멤버를 제거합니다. 소유자만 제거할 수 있습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "멤버 제거 성공"),
+            @ApiResponse(responseCode = "404", description = "가계부 또는 멤버 없음"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 제거 가능)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<RemoveMemberResponse> removeMember(
+            @PathVariable Long bookId,
+            @PathVariable Long memberId) {
+        
+        userBookService.removeMember(bookId, memberId);
+        return ResponseEntity.ok(new RemoveMemberResponse("멤버가 성공적으로 제거되었습니다."));
+    }
+
+    /* ───────────────────────── 가계부 멤버 권한 변경 ───────────────────────── */
+    /**
+     * 가계부 멤버의 권한을 변경합니다.
+     *
+     * @param bookId 가계부 ID
+     * @param memberId 권한을 변경할 멤버 ID
+     * @param request 권한 변경 요청 정보
+     * @return 권한 변경 결과
+     */
+    @PutMapping("/{bookId}/members/{memberId}/role")
+    @Operation(
+            summary     = "가계부 멤버 권한 변경",
+            description = "가계부 멤버의 권한을 변경합니다. 소유자만 변경할 수 있습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "권한 변경 성공"),
+            @ApiResponse(responseCode = "404", description = "가계부 또는 멤버 없음"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 변경 가능)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<ChangeRoleResponse> changeRole(
+            @PathVariable Long bookId,
+            @PathVariable Long memberId,
+            @RequestBody @Valid ChangeRoleRequest request) {
+        
+        userBookService.changeRole(bookId, memberId, request.getRole());
+        return ResponseEntity.ok(new ChangeRoleResponse("권한이 성공적으로 변경되었습니다."));
+    }
+
+    /* ───────────────────────── 가계부 나가기 ───────────────────────── */
+    /**
+     * 현재 사용자가 가계부에서 나갑니다.
+     *
+     * @param bookId 가계부 ID
+     * @return 나가기 결과
+     */
+    @PostMapping("/{bookId}/leave")
+    @Operation(
+            summary     = "가계부 나가기",
+            description = "현재 사용자가 가계부에서 나갑니다. 소유자는 나갈 수 없습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "나가기 성공"),
+            @ApiResponse(responseCode = "404", description = "가계부 또는 멤버 없음"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (소유자는 나갈 수 없음)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<LeaveBookResponse> leaveBook(@PathVariable Long bookId) {
+        
+        userBookService.leaveBook(bookId);
+        return ResponseEntity.ok(new LeaveBookResponse("가계부에서 성공적으로 나갔습니다."));
+    }
+
     /* ───────────────────────── DTO 정의 ───────────────────────── */
     /** 가계부 소유자(회원) 요약 DTO */
     @Data
@@ -103,6 +216,79 @@ public class UserBookApiController {
 
         public ListOwnerResponse(List<OwnerDto> owners) {
             this.owners = owners;
+        }
+    }
+
+    /* ───────────────────────── 공유 관련 DTO 정의 ───────────────────────── */
+    
+    /** 가계부 초대 요청 DTO */
+    @Data
+    @Schema(description = "가계부 초대 요청 DTO")
+    static class InviteRequest {
+        @NotBlank(message = "이메일은 필수입니다.")
+        @Email(message = "유효한 이메일 형식이어야 합니다.")
+        @Schema(description = "초대할 사용자 이메일", example = "user@example.com")
+        private String email;
+        
+        @NotNull(message = "역할은 필수입니다.")
+        @Schema(description = "가계부 내 역할", example = "EDITOR")
+        private BookRole role;
+    }
+    
+    /** 가계부 초대 응답 DTO */
+    @Data
+    @Schema(description = "가계부 초대 응답 DTO")
+    static class InviteResponse {
+        @Schema(description = "응답 메시지", example = "사용자가 성공적으로 초대되었습니다.")
+        private String message;
+        
+        public InviteResponse(String message) {
+            this.message = message;
+        }
+    }
+    
+    /** 멤버 제거 응답 DTO */
+    @Data
+    @Schema(description = "멤버 제거 응답 DTO")
+    static class RemoveMemberResponse {
+        @Schema(description = "응답 메시지", example = "멤버가 성공적으로 제거되었습니다.")
+        private String message;
+        
+        public RemoveMemberResponse(String message) {
+            this.message = message;
+        }
+    }
+    
+    /** 권한 변경 요청 DTO */
+    @Data
+    @Schema(description = "권한 변경 요청 DTO")
+    static class ChangeRoleRequest {
+        @NotNull(message = "역할은 필수입니다.")
+        @Schema(description = "변경할 역할", example = "VIEWER")
+        private BookRole role;
+    }
+    
+    /** 권한 변경 응답 DTO */
+    @Data
+    @Schema(description = "권한 변경 응답 DTO")
+    static class ChangeRoleResponse {
+        @Schema(description = "응답 메시지", example = "권한이 성공적으로 변경되었습니다.")
+        private String message;
+        
+        public ChangeRoleResponse(String message) {
+            this.message = message;
+        }
+    }
+    
+    /** 가계부 나가기 응답 DTO */
+    @Data
+    @Schema(description = "가계부 나가기 응답 DTO")
+    static class LeaveBookResponse {
+        @Schema(description = "응답 메시지", example = "가계부에서 성공적으로 나갔습니다.")
+        private String message;
+        
+        public LeaveBookResponse(String message) {
+            this.message = message;
         }
     }
 }

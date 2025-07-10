@@ -10,6 +10,7 @@ import garabu.garabuServer.service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -95,8 +96,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/login", "/"
+                                ,"/api/v2/join"
                                 , "/join").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")  // ADMIN 권한 필요
+                        .requestMatchers("/api/v2/**").hasAnyRole("USER", "ADMIN")  // USER 이상 권한 필요
                         .anyRequest().authenticated());
 
         //JWTFilter 등록
@@ -118,7 +121,11 @@ public class SecurityConfig {
                         CorsConfiguration configuration = new CorsConfiguration();
 
                         configuration.setAllowedOrigins(
-                                List.of("http://localhost:5173", "http://localhost:4000")
+                                List.of("http://localhost:5173",
+                                        "http://localhost:4000",
+                                        "http://14.5.176.24:19000",
+                                        "http://192.168.10.54:8081",// Expo Go 디버거
+                                        "http://14.5.176.24:19006")
                         );
                         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
                         configuration.setAllowCredentials(true);

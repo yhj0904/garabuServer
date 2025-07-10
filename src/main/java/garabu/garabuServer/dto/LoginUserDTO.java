@@ -12,8 +12,15 @@ import lombok.Setter;
 @Getter @Setter
 @Schema(description = "로그인한 사용자 정보 DTO")
 public class LoginUserDTO {
+    @Schema(description = "사용자 ID", example = "1")
+    private Long id;
+    
     @Schema(description = "사용자명", example = "hong123")
     private String username;
+    
     @Schema(description = "이메일", example = "hong@example.com")
     private String email;
+    
+    @Schema(description = "사용자 권한", example = "ROLE_USER")
+    private String role;
 }

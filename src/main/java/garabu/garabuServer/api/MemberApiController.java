@@ -1,6 +1,7 @@
 package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.dto.LoginUserDTO;
 import garabu.garabuServer.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -118,6 +119,27 @@ public class MemberApiController {
                 .status(201)
                 .body(new CreateMemberResponse(id));
     }
+
+    @GetMapping("/user/me")
+    @Operation(
+        summary = "현재 로그인한 사용자 정보 조회",
+        description = "JWT 토큰을 통해 인증된 현재 사용자의 정보를 반환합니다."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", 
+            description = "사용자 정보 조회 성공",
+            content = @Content(schema = @Schema(implementation = LoginUserDTO.class))),
+        @ApiResponse(responseCode = "401", description = "인증 실패"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<LoginUserDTO> getCurrentUser() {
+        LoginUserDTO currentUser = memberService.getCurrentLoginUserDTO();
+        return ResponseEntity.ok(currentUser);
+    }
+
+
+
 
     /* ───────────────────────── DTO 정의 ───────────────────────── */
     /** 공통 결과 래퍼 */

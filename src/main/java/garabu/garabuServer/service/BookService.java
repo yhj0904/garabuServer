@@ -1,15 +1,19 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Book;
+import garabu.garabuServer.domain.BookRole;
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.domain.UserBook;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.BookRepository;
 import garabu.garabuServer.repository.MemberJPARepository;
+import garabu.garabuServer.repository.UserBookJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,23 +32,34 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final MemberJPARepository memberRepository;
+    private final UserBookJpaRepository userBookJpaRepository;
 
     /**
      * 새로운 가계부를 생성합니다.
+     * 가계부 생성 시 생성자에게 자동으로 OWNER 권한을 부여합니다.
      * 
      * @param title 가계부 제목
      * @return 생성된 가계부 정보
      */
+    @Transactional
     public Book createBook(String title) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
         Member owner = memberRepository.findByUsername(currentUserName);
 
+        // 1. 가계부 생성
         Book book = new Book();
         book.setOwner(owner);
         book.setTitle(title);
-
         bookRepository.save(book);
+        
+        // 2. UserBook 생성 - 생성자에게 OWNER 권한 부여
+        UserBook userBook = new UserBook();
+        userBook.setMember(owner);
+        userBook.setBook(book);
+        userBook.setBookRole(BookRole.OWNER);
+        userBookJpaRepository.save(userBook);
+        
         return book;
     }
 

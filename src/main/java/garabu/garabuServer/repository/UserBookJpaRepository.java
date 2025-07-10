@@ -2,10 +2,12 @@ package garabu.garabuServer.repository;
 
 
 import garabu.garabuServer.domain.UserBook;
+import garabu.garabuServer.domain.BookRole;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserBookJpaRepository extends JpaRepository<UserBook, Long> {
     /**
@@ -16,4 +18,19 @@ public interface UserBookJpaRepository extends JpaRepository<UserBook, Long> {
     List<UserBook> findByBookId(Long bookId);
 
     boolean existsByBookId(Long bookId);
+    
+    @EntityGraph(attributePaths = {"member", "book"})
+    Optional<UserBook> findByBookIdAndMemberId(Long bookId, Long memberId);
+    
+    @EntityGraph(attributePaths = {"member", "book"})
+    Optional<UserBook> findByBookIdAndMemberEmail(Long bookId, String email);
+    
+    boolean existsByBookIdAndMemberId(Long bookId, Long memberId);
+    
+    boolean existsByBookIdAndMemberEmail(Long bookId, String email);
+    
+    @EntityGraph(attributePaths = {"book"})
+    Optional<UserBook> findByBookIdAndMemberIdAndBookRole(Long bookId, Long memberId, BookRole bookRole);
+    
+    void deleteByBookIdAndMemberId(Long bookId, Long memberId);
 }

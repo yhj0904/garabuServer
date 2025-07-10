@@ -31,6 +31,7 @@ public class UserBook {
     @Schema(description = "가계부")
     private Book book;      // 가게부 ID
 
+    @Enumerated(EnumType.STRING)
     @Schema(description = "가계부 내 역할", example = "OWNER")
-    private UserRole userRole; // 예를 들어, "OWNER", "MEMBER" 등의 역할 구분
+    private BookRole bookRole; // 예를 들어, "OWNER", "EDITOR", "VIEWER" 등의 역할 구분
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import garabu.garabuServer.domain.SystemRole;
 
 /**
  * 회원 관리 서비스 클래스
@@ -47,6 +48,12 @@ public class MemberService{
     public Long join (Member member) {
         validateDuplicateMember(member);
         validateDuplicateEmail(member);
+        
+        // 기본 권한 설정 (회원가입 시 기본적으로 USER 권한 부여)
+        if (member.getSystemRole() == null) {
+            member.setSystemRole(SystemRole.ROLE_USER);
+        }
+        
         memberRepository.save(member);
         return member.getId();
     }
@@ -59,23 +66,24 @@ public class MemberService{
      */
     public LoginUserDTO getCurrentLoginUserDTO() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = customOAuth2User.getName();
-        String username1 = customOAuth2User.getUsername();
-        String email = customOAuth2User.getEmail();
-        String currentUsername = authentication.getName();
-        Member member = memberJPARepository.findByUsername(currentUsername);
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UsernameNotFoundException("인증되지 않은 사용자입니다.");
+        }
+        
+        String username = authentication.getName();
+        Member member = memberJPARepository.findByUsername(username);
 
         if (member == null) {
-            // Handle the case where the member is not found, possibly throw an exception
-            throw new UsernameNotFoundException("User not found");
+            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
         }
 
         LoginUserDTO userDto = new LoginUserDTO();
-        userDto.setUsername(member.getName());
+        userDto.setId(member.getId());
+        userDto.setUsername(member.getUsername());
         userDto.setEmail(member.getEmail());
-        // Set other fields of userDto as necessary
-
+        userDto.setRole(member.getRole()); // getRole()은 SystemRole을 String으로 변환
+        
         return userDto;
     }
 

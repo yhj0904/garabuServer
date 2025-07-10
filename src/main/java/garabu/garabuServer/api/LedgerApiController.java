@@ -1,6 +1,7 @@
 package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.*;
+import garabu.garabuServer.dto.LedgerDTO;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
 import garabu.garabuServer.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -56,6 +58,7 @@ public class LedgerApiController {
     private final PaymentService  paymentService;
     private final LedgerService   ledgerService;
     private final MemberService   memberService;
+    private final UserBookService userBookService;
 
     // ───────────────────────── 기록 생성 ─────────────────────────
     /**
@@ -64,49 +67,43 @@ public class LedgerApiController {
      * @param request Ledger 생성 요청 DTO
      * @return 생성된 Ledger ID
      */
-    @PostMapping
+    @PostMapping("/ledgers")
+    @Transactional
     @Operation(
             summary     = "가계부 기록 생성",
-            description = "새로운 가계부 기록(수입·지출·이체)을 등록하고 고유 ID를 반환합니다."
-    )
-    @RequestBody(
-            required = true,
-            description = "가계부 기록 생성 요청 본문",
-            content = @Content(
-                    schema = @Schema(implementation = CreateLedgerRequest.class),
-                    examples = @ExampleObject(
-                            name  = "급여(수입) 예시",
-                            value = "{\n"
-                                    + "  \"date\": \"2025-07-08\",\n"
-                                    + "  \"amount\": 3000000,\n"
-                                    + "  \"description\": \"7월 월급\",\n"
-                                    + "  \"memo\": \"세후 지급액\",\n"
-                                    + "  \"amountType\": \"INCOME\",\n"
-                                    + "  \"title\": \"가족 가계부\",\n"
-                                    + "  \"payment\": \"이체\",\n"
-                                    + "  \"category\": \"급여\",\n"
-                                    + "  \"spender\": \"회사\"\n"
-                                    + "}"
-                    )
-            )
+            description = "새로운 수입/지출 기록을 추가합니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201",
-                    description  = "가계부 기록 생성 성공",
+                    description  = "기록 생성 성공",
                     content      = @Content(schema = @Schema(implementation = CreateLedgerResponse.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
-            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (VIEWER는 작성 불가)"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CreateLedgerResponse> createLedger(
-            @Valid @org.springframework.web.bind.annotation.RequestBody CreateLedgerRequest request) {
+            @Valid @RequestBody CreateLedgerRequest request
+    ) {
 
         try {
             /* ────── 1. 로그인 사용자 확인 ────── */
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Member currentMember = memberService.findMemberByUsername(auth.getName());
 
-            /* ────── 2. 엔티티 매핑 ────── */
+            /* ────── 2. 가계부 권한 확인 ────── */
+            Book book = bookService.findByTitle(request.getTitle());
+            
+            // 사용자의 가계부 권한 확인
+            UserBook userBook = userBookService.findByBookIdAndMemberId(book.getId(), currentMember.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 가계부에 접근 권한이 없습니다."));
+            
+            // VIEWER는 기록 작성 불가
+            if (userBook.getBookRole() == BookRole.VIEWER) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "조회 권한만 있습니다. 기록을 작성할 수 없습니다.");
+            }
+
+            /* ────── 3. 엔티티 매핑 ────── */
             Ledger ledger = new Ledger();
             ledger.setDate(request.getDate());
             ledger.setAmount(request.getAmount());
@@ -116,7 +113,6 @@ public class LedgerApiController {
             ledger.setMember(currentMember);
             ledger.setSpender(request.getSpender());
 
-            Book book = bookService.findByTitle(request.getTitle());
             ledger.setBook(book);
 
             PaymentMethod paymentMethod = paymentService.findByPayment(request.getPayment());
@@ -125,7 +121,7 @@ public class LedgerApiController {
             Category category = categoryService.findByCategory(request.getCategory());
             ledger.setCategory(category);
 
-            /* ────── 3. 저장 ────── */
+            /* ────── 4. 저장 ────── */
             Long id = ledgerService.registLedger(ledger);
             logger.info("Ledger registered with id={}", id);
 

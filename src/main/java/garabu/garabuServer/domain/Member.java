@@ -32,7 +32,10 @@ public class Member {
     @Email
     private String email;       // 이메일
     private String password;         // 비번
-    private String role;            // 사용자 역할
+    
+    @Enumerated(EnumType.STRING)
+    private SystemRole systemRole = SystemRole.ROLE_USER; // 기본값 USER로 설정
+    
     private String providerId;      // OAuth2 제공자 ID
 
     /**
@@ -41,4 +44,14 @@ public class Member {
      */
     @OneToMany(mappedBy = "member")
     private List<UserBook> userBooks = new ArrayList<>();
+    
+    // SystemRole을 String으로 변환하여 반환하는 메서드 (기존 코드와의 호환성)
+    public String getRole() {
+        return systemRole != null ? systemRole.name() : SystemRole.ROLE_USER.name();
+    }
+    
+    // String을 SystemRole로 변환하여 설정하는 메서드 (기존 코드와의 호환성)
+    public void setRole(String role) {
+        this.systemRole = SystemRole.valueOf(role);
+    }
 }
