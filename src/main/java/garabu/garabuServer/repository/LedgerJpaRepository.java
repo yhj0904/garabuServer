@@ -12,6 +12,6 @@ public interface LedgerJpaRepository extends JpaRepository<Ledger, Long> {
 
     List<Ledger> findByMember(Member member);
     
-    boolean existsByDateAndAmountAndDescriptionAndMemberIdAndBookIdAndCreatedAtAfter(
-        LocalDate date, Integer amount, String description, Long memberId, Long bookId, LocalDateTime createdAt);
+    boolean existsByDateAndAmountAndDescriptionAndMemberIdAndBookId(
+        LocalDate date, Integer amount, String description, Long memberId, Long bookId);
 }

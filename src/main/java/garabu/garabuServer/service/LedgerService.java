@@ -116,10 +116,9 @@ public class LedgerService {
      */
     public boolean existsRecentDuplicate(LocalDate date, Integer amount, String description, 
                                        Long memberId, Long bookId) {
-        // 현재 시간으로부터 1시간 전까지의 기록 중에서 중복 확인
-        return ledgerJpaRepository.existsByDateAndAmountAndDescriptionAndMemberIdAndBookIdAndCreatedAtAfter(
-            date, amount, description, memberId, bookId, 
-            java.time.LocalDateTime.now().minusHours(1)
+        // 중복 기록 확인 (시간 기준 없이 단순 중복 확인)
+        return ledgerJpaRepository.existsByDateAndAmountAndDescriptionAndMemberIdAndBookId(
+            date, amount, description, memberId, bookId
         );
     }
 }
