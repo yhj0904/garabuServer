@@ -1,8 +1,7 @@
 package garabu.garabuServer.controller;
 
-import garabu.garabuServer.domain.RefreshEntity;
 import garabu.garabuServer.jwt.JWTUtil;
-import garabu.garabuServer.repository.RefreshRepository;
+import garabu.garabuServer.service.RefreshTokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,27 +24,27 @@ import java.util.Date;
  * JWT 토큰 재발급 컨트롤러
  * 
  * Access Token과 Refresh Token의 재발급을 처리합니다.
- * Refresh Token을 사용하여 새로운 Access Token을 발급받을 수 있습니다.
+ * Redis 기반 Refresh Token 관리로 성능 최적화
  * 
  * @author yhj
- * @version 1.0
+ * @version 2.0
  */
 @RestController
 @Tag(name = "Auth", description = "인증 관리 API")
 public class ReissueController {
 
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenService refreshTokenService;
 
     /**
      * ReissueController 생성자
      * 
      * @param jwtUtil JWT 유틸리티
-     * @param refreshRepository Refresh 토큰 저장소
+     * @param refreshTokenService Redis 기반 Refresh 토큰 서비스
      */
-    public ReissueController(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
+    public ReissueController(JWTUtil jwtUtil, RefreshTokenService refreshTokenService) {
         this.jwtUtil = jwtUtil;
-        this.refreshRepository = refreshRepository;
+        this.refreshTokenService = refreshTokenService;
     }
 
     /**
@@ -103,8 +102,8 @@ public class ReissueController {
         // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(refresh);
 
-        //DB에 저장되어 있는지 확인
-        Boolean isExist = refreshRepository.existsByRefresh(refresh);
+        //Redis에 저장되어 있는지 확인
+        Boolean isExist = refreshTokenService.existsByRefreshToken(refresh);
         if (!isExist) {
 
             //response body
@@ -124,9 +123,9 @@ public class ReissueController {
         String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
-        //Refresh 토큰 저장 DB에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
-        refreshRepository.deleteByRefresh(refresh);
-        addRefreshEntity(username, newRefresh, 86400000L);
+        //Refresh 토큰 저장 Redis에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
+        refreshTokenService.deleteRefreshToken(refresh);
+        refreshTokenService.saveRefreshToken(username, newRefresh, 86400000L);
 
         //response
         response.setHeader("access", newAccess);
@@ -135,24 +134,6 @@ public class ReissueController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    /**
-     * Refresh 토큰 엔티티를 데이터베이스에 저장합니다.
-     * 
-     * @param username 사용자명
-     * @param refresh Refresh 토큰
-     * @param expiredMs 만료 시간 (밀리초)
-     */
-    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
-
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-        RefreshEntity refreshEntity = new RefreshEntity();
-        refreshEntity.setUsername(username);
-        refreshEntity.setRefresh(refresh);
-        refreshEntity.setExpiration(date.toString());
-
-        refreshRepository.save(refreshEntity);
-    }
 
     /**
      * HTTP 쿠키를 생성합니다.

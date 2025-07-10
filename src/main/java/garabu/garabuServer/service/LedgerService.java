@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -89,5 +90,36 @@ public class LedgerService {
      */
     public List<Ledger> findAllLedgers() {
          return ledgerJpaRepository.findAll();
+    }
+    
+    /**
+     * ID로 가계부 기록을 조회합니다.
+     * 
+     * @param id 가계부 기록 ID
+     * @return 가계부 기록
+     */
+    public Ledger findById(Long id) {
+        return ledgerJpaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("가계부 기록을 찾을 수 없습니다: " + id));
+    }
+    
+    /**
+     * 중복 기록 존재 여부를 확인합니다.
+     * 동일한 날짜, 금액, 설명의 기록이 최근 1시간 내에 있는지 확인
+     * 
+     * @param date 기록 날짜
+     * @param amount 금액
+     * @param description 설명
+     * @param memberId 사용자 ID
+     * @param bookId 가계부 ID
+     * @return 중복 존재 여부
+     */
+    public boolean existsRecentDuplicate(LocalDate date, Integer amount, String description, 
+                                       Long memberId, Long bookId) {
+        // 현재 시간으로부터 1시간 전까지의 기록 중에서 중복 확인
+        return ledgerJpaRepository.existsByDateAndAmountAndDescriptionAndMemberIdAndBookIdAndCreatedAtAfter(
+            date, amount, description, memberId, bookId, 
+            java.time.LocalDateTime.now().minusHours(1)
+        );
     }
 }

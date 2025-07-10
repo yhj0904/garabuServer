@@ -1,9 +1,8 @@
 package garabu.garabuServer.oauth2;
 
-import garabu.garabuServer.domain.RefreshEntity;
 import garabu.garabuServer.dto.CustomOAuth2User;
 import garabu.garabuServer.jwt.JWTUtil;
-import garabu.garabuServer.repository.RefreshRepository;
+import garabu.garabuServer.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,11 +20,11 @@ import java.util.Iterator;
 
 @Component
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenService refreshTokenService;
     private final JWTUtil jwtUtil;
 
-    public CustomSuccessHandler(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
-        this.refreshRepository = refreshRepository;
+    public CustomSuccessHandler(JWTUtil jwtUtil, RefreshTokenService refreshTokenService) {
+        this.refreshTokenService = refreshTokenService;
         this.jwtUtil = jwtUtil;
         setDefaultTargetUrl("/");
     }
@@ -46,8 +45,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String access = jwtUtil.createJwt("access", username, role, 600000L);
         String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
-        //Refresh 토큰 저장
-        addRefreshEntity(username, refresh, 86400000L);
+        //Refresh 토큰 저장 (Redis)
+        refreshTokenService.saveRefreshToken(username, refresh, 86400000L);
 
         //응답 설정
         response.setHeader("access", access);
@@ -55,17 +54,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.setStatus(HttpStatus.OK.value());
         response.sendRedirect("http://localhost:4000/OAuth");
 
-    }
-    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
-
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-        RefreshEntity refreshEntity = new RefreshEntity();
-        refreshEntity.setUsername(username);
-        refreshEntity.setRefresh(refresh);
-        refreshEntity.setExpiration(date.toString());
-
-        refreshRepository.save(refreshEntity);
     }
 
     private Cookie createCookie(String key, String value) {

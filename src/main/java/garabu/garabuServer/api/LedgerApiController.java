@@ -15,6 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -121,13 +125,36 @@ public class LedgerApiController {
             Category category = categoryService.findByCategory(request.getCategory());
             ledger.setCategory(category);
 
-            /* ────── 4. 저장 ────── */
-            Long id = ledgerService.registLedger(ledger);
-            logger.info("Ledger registered with id={}", id);
+            /* ────── 4. 중복 검사 ────── */
+            // 동일한 날짜, 금액, 설명의 기록이 최근 1시간 내에 있는지 확인
+            boolean isDuplicate = ledgerService.existsRecentDuplicate(
+                ledger.getDate(), ledger.getAmount(), ledger.getDescription(), 
+                currentMember.getId(), book.getId()
+            );
+            
+            if (isDuplicate) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "동일한 내용의 기록이 최근에 추가되었습니다. 중복 등록을 확인해주세요.");
+            }
 
+            /* ────── 5. 저장 ────── */
+            Long id = ledgerService.registLedger(ledger);
+            logger.info("Ledger registered with id={} by user={}", id, currentMember.getUsername());
+
+            /* ────── 6. 생성된 기록 조회하여 상세 정보 반환 ────── */
+            Ledger createdLedger = ledgerService.findById(id);
+            
             return ResponseEntity
                     .status(201)
-                    .body(new CreateLedgerResponse(id));
+                    .body(new CreateLedgerResponse(
+                        createdLedger.getId(),
+                        createdLedger.getDate(),
+                        createdLedger.getAmount(),
+                        createdLedger.getDescription(),
+                        createdLedger.getAmountType(),
+                        createdLedger.getCategory().getCategory(),
+                        createdLedger.getPaymentMethod().getPayment()
+                    ));
 
         } catch (Exception e) {
             logger.error("Error saving ledger", e);
@@ -194,30 +221,39 @@ public class LedgerApiController {
     @Data
     @Schema(description = "가계부 기록 생성 요청 DTO")
     static class CreateLedgerRequest {
+        @NotNull(message = "기록 날짜는 필수입니다")
+        @PastOrPresent(message = "기록 날짜는 현재 또는 과거 날짜여야 합니다")
         @Schema(description = "기록 날짜", example = "2025-07-08", requiredMode = Schema.RequiredMode.REQUIRED)
         private LocalDate date;
 
+        @NotNull(message = "금액은 필수입니다")
+        @Positive(message = "금액은 0보다 큰 값이어야 합니다")
         @Schema(description = "금액(원)", example = "3000000", requiredMode = Schema.RequiredMode.REQUIRED)
         private Integer amount;
 
-        @Schema(description = "상세 내용", example = "7월 월급")
+        @NotBlank(message = "상세 내용은 필수입니다")
+        @Schema(description = "상세 내용", example = "7월 월급", requiredMode = Schema.RequiredMode.REQUIRED)
         private String description;
 
         @Schema(description = "메모", example = "세후 지급액")
         private String memo;
 
+        @NotNull(message = "금액 유형은 필수입니다")
         @Schema(description = "금액 유형(INCOME/EXPENSE/TRANSFER)",
                 example = "INCOME",
                 allowableValues = {"INCOME", "EXPENSE", "TRANSFER"},
                 requiredMode = Schema.RequiredMode.REQUIRED)
         private AmountType amountType;
 
+        @NotBlank(message = "가계부 제목은 필수입니다")
         @Schema(description = "가계부 제목", example = "가족 가계부", requiredMode = Schema.RequiredMode.REQUIRED)
         private String title;
 
+        @NotBlank(message = "결제 수단은 필수입니다")
         @Schema(description = "결제 수단", example = "이체", requiredMode = Schema.RequiredMode.REQUIRED)
         private String payment;
 
+        @NotBlank(message = "카테고리명은 필수입니다")
         @Schema(description = "카테고리명", example = "급여", requiredMode = Schema.RequiredMode.REQUIRED)
         private String category;
 
@@ -231,9 +267,34 @@ public class LedgerApiController {
     static class CreateLedgerResponse {
         @Schema(description = "생성된 Ledger ID", example = "101")
         private Long id;
+        
+        @Schema(description = "기록 날짜", example = "2025-07-08")
+        private LocalDate date;
+        
+        @Schema(description = "금액(원)", example = "3000000")
+        private Integer amount;
+        
+        @Schema(description = "상세 내용", example = "7월 월급")
+        private String description;
+        
+        @Schema(description = "금액 유형", example = "INCOME")
+        private AmountType amountType;
+        
+        @Schema(description = "카테고리명", example = "급여")
+        private String category;
+        
+        @Schema(description = "결제 수단", example = "이체")
+        private String payment;
 
-        public CreateLedgerResponse(Long id) {
+        public CreateLedgerResponse(Long id, LocalDate date, Integer amount, String description, 
+                                  AmountType amountType, String category, String payment) {
             this.id = id;
+            this.date = date;
+            this.amount = amount;
+            this.description = description;
+            this.amountType = amountType;
+            this.category = category;
+            this.payment = payment;
         }
     }
 

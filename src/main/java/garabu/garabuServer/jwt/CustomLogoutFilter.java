@@ -1,6 +1,6 @@
 package garabu.garabuServer.jwt;
 
-import garabu.garabuServer.repository.RefreshRepository;
+import garabu.garabuServer.service.RefreshTokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,12 +16,12 @@ import java.io.IOException;
 public class CustomLogoutFilter extends GenericFilterBean {
 
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenService refreshTokenService;
 
-    public CustomLogoutFilter(JWTUtil jwtUtil, RefreshRepository refreshRepository) {
+    public CustomLogoutFilter(JWTUtil jwtUtil, RefreshTokenService refreshTokenService) {
 
         this.jwtUtil = jwtUtil;
-        this.refreshRepository = refreshRepository;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -83,8 +83,8 @@ public class CustomLogoutFilter extends GenericFilterBean {
             return;
         }
 
-        //DB에 저장되어 있는지 확인
-        Boolean isExist = refreshRepository.existsByRefresh(refresh);
+        //Redis에 저장되어 있는지 확인
+        Boolean isExist = refreshTokenService.existsByRefreshToken(refresh);
         if (!isExist) {
 
             //response status code
@@ -93,8 +93,8 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         //로그아웃 진행
-        //Refresh 토큰 DB에서 제거
-        refreshRepository.deleteByRefresh(refresh);
+        //Refresh 토큰 Redis에서 제거
+        refreshTokenService.deleteRefreshToken(refresh);
 
         //Refresh 토큰 Cookie 값 0
         Cookie cookie = new Cookie("refresh", null);

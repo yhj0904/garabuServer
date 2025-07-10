@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class UserBookServiceTest {
@@ -82,13 +83,13 @@ class UserBookServiceTest {
     
     private void mockSecurityContext() {
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        when(userDetails.getUsername()).thenReturn("owner");
+        lenient().when(userDetails.getUsername()).thenReturn("owner");
         
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
+        lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
         
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
         
         SecurityContextHolder.setContext(securityContext);
     }
@@ -145,7 +146,7 @@ class UserBookServiceTest {
         when(memberJPARepository.findOneByEmail(email)).thenReturn(invitedUser);
         when(userBookJpaRepository.existsByBookIdAndMemberId(bookId, invitedUser.getId()))
                 .thenReturn(false);
-        when(bookRepository.findOne(bookId)).thenReturn(book);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
         
         // when
         userBookService.inviteUser(bookId, email, role);
@@ -217,7 +218,7 @@ class UserBookServiceTest {
         when(memberJPARepository.findOneByEmail(email)).thenReturn(invitedUser);
         when(userBookJpaRepository.existsByBookIdAndMemberId(bookId, invitedUser.getId()))
                 .thenReturn(false);
-        when(bookRepository.findOne(bookId)).thenReturn(book);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
         
         // when & then
         assertThrows(IllegalArgumentException.class, () -> {

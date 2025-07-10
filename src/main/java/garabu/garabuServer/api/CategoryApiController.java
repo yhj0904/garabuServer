@@ -12,10 +12,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +42,7 @@ import java.util.stream.Collectors;
 @SecurityRequirement(name = "bearerAuth")
 public class CategoryApiController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CategoryApiController.class);
     private final CategoryService categoryService;
 
     // ───────────────────────── 카테고리 생성 ─────────────────────────
@@ -72,13 +79,36 @@ public class CategoryApiController {
     public ResponseEntity<CreateCategoryResponse> createCategory(
             @Valid @org.springframework.web.bind.annotation.RequestBody CreateCategoryRequest request) {
 
-        Category category = new Category();
-        category.setCategory(request.getCategory());
+        try {
+            /* ────── 1. 중복 검사 ────── */
+            // 동일한 카테고리명이 이미 존재하는지 확인
+            Category existingCategory = categoryService.findByCategory(request.getCategory());
+            if (existingCategory != null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "이미 존재하는 카테고리명입니다: " + request.getCategory());
+            }
 
-        Long id = categoryService.rigistCategory(category);
-        return ResponseEntity
-                .status(201)
-                .body(new CreateCategoryResponse(id));
+            /* ────── 2. 카테고리 생성 ────── */
+            Category category = new Category();
+            category.setCategory(request.getCategory());
+
+            Long id = categoryService.rigistCategory(category);
+            logger.info("Category created with id={}, name={}", id, request.getCategory());
+
+            /* ────── 3. 생성된 카테고리 조회하여 상세 정보 반환 ────── */
+            Category createdCategory = categoryService.findById(id);
+            
+            return ResponseEntity
+                    .status(201)
+                    .body(new CreateCategoryResponse(
+                        createdCategory.getId(),
+                        createdCategory.getCategory()
+                    ));
+                    
+        } catch (Exception e) {
+            logger.error("Error creating category", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 생성 중 오류가 발생했습니다", e);
+        }
     }
 
     // ───────────────────────── 카테고리 목록 조회 ─────────────────────────
@@ -114,6 +144,8 @@ public class CategoryApiController {
     @Data
     @Schema(description = "카테고리 생성 요청 DTO")
     static class CreateCategoryRequest {
+        @NotBlank(message = "카테고리명은 필수입니다")
+        @Size(min = 1, max = 20, message = "카테고리명은 1자 이상 20자 이하여야 합니다")
         @Schema(description = "카테고리명", example = "급여", requiredMode = Schema.RequiredMode.REQUIRED)
         private String category;
     }
@@ -124,9 +156,13 @@ public class CategoryApiController {
     static class CreateCategoryResponse {
         @Schema(description = "생성된 카테고리 ID", example = "7")
         private Long id;
+        
+        @Schema(description = "카테고리명", example = "급여")
+        private String category;
 
-        public CreateCategoryResponse(Long id) {
+        public CreateCategoryResponse(Long id, String category) {
             this.id = id;
+            this.category = category;
         }
     }
 

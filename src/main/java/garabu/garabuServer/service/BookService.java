@@ -9,6 +9,8 @@ import garabu.garabuServer.repository.BookRepository;
 import garabu.garabuServer.repository.MemberJPARepository;
 import garabu.garabuServer.repository.UserBookJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,6 +44,7 @@ public class BookService {
      * @return 생성된 가계부 정보
      */
     @Transactional
+    @CacheEvict(value = "userBooks", key = "#root.methodName.replace('createBook', 'findLoggedInUserBooks') + '_' + @bookService.getCurrentUserCacheKey()")
     public Book createBook(String title) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
@@ -75,9 +78,11 @@ public class BookService {
 
     /**
      * 현재 로그인한 사용자가 소유한 가계부 목록을 조회합니다.
+     * Redis 캐싱 적용으로 성능 최적화
      * 
      * @return 사용자의 가계부 목록
      */
+    @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()", unless = "#result == null or #result.isEmpty()")
     public List<Book> findLoggedInUserBooks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -94,6 +99,19 @@ public class BookService {
         }
         
         return bookRepository.findByOwner(owner);
+    }
+    
+    /**
+     * 현재 사용자의 캐시 키를 생성합니다.
+     * 
+     * @return 캐시 키 문자열
+     */
+    public String getCurrentUserCacheKey() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String email = userDetails.getEmail();
+        String providerId = userDetails.getProviderId();
+        return email + "_" + (providerId != null ? providerId : "null");
     }
 
     /**

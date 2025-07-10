@@ -9,13 +9,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Refresh 토큰 엔티티
+ * Refresh 토큰 엔티티 (DEPRECATED)
  *
- * JWT Refresh 토큰 정보를 저장하는 JPA 엔티티입니다.
+ * Redis 기반 RefreshTokenService로 대체됨
+ * 성능 향상을 위해 RDB에서 Redis로 이전
+ * 
+ * @deprecated Redis 기반 토큰 관리로 대체됨
  */
 @Entity
 @Getter @Setter
 @Schema(description = "Refresh 토큰 엔티티")
+@Deprecated
 public class RefreshEntity {
 
     @Id

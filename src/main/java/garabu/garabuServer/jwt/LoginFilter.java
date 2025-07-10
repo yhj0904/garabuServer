@@ -1,9 +1,8 @@
 package garabu.garabuServer.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import garabu.garabuServer.domain.RefreshEntity;
 import garabu.garabuServer.dto.LoginDTO;
-import garabu.garabuServer.repository.RefreshRepository;
+import garabu.garabuServer.service.RefreshTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.Cookie;
@@ -27,15 +26,15 @@ import java.util.Iterator;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository ) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenService refreshTokenService ) {
 
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.refreshRepository = refreshRepository;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -75,8 +74,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String access = jwtUtil.createJwt("access", username, role, 600000L);
         String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
-        //Refresh 토큰 저장
-        addRefreshEntity(username, refresh, 86400000L);
+        //Refresh 토큰 저장 (Redis)
+        refreshTokenService.saveRefreshToken(username, refresh, 86400000L);
 
         //응답 설정
         response.setHeader("access", access);
@@ -94,17 +93,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 */
     }
 
-    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
-
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-        RefreshEntity refreshEntity = new RefreshEntity();
-        refreshEntity.setUsername(username);
-        refreshEntity.setRefresh(refresh);
-        refreshEntity.setExpiration(date.toString());
-
-        refreshRepository.save(refreshEntity);
-    }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
