@@ -1,5 +1,6 @@
 package garabu.garabuServer.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,11 +24,13 @@ public class UserBook {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
+    @JsonBackReference("member-userBooks")
     @Schema(description = "작업자 회원")
     private Member member;  //  작업자 ID
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "book_id")
+    @JsonBackReference("book-userBooks")
     @Schema(description = "가계부")
     private Book book;      // 가게부 ID
 

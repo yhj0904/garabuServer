@@ -1,5 +1,6 @@
 package garabu.garabuServer.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
@@ -43,6 +44,7 @@ public class Member {
      * OneToMany 관계로 회원과 가계부는 1:N 관계
      */
     @OneToMany(mappedBy = "member")
+    @JsonManagedReference("member-userBooks")
     private List<UserBook> userBooks = new ArrayList<>();
     
     // SystemRole을 String으로 변환하여 반환하는 메서드 (기존 코드와의 호환성)

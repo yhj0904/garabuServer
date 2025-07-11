@@ -74,7 +74,7 @@ public class BookApiController {
         Book book = bookService.createBook(request.getTitle()); // 로그인 사용자 기반 생성
         return ResponseEntity
                 .status(201)
-                .body(new CreateBookResponse(book.getId()));
+                .body(new CreateBookResponse(book.getId(), book.getTitle()));
     }
 
     // ───────────────────────── 내 가계부 목록 조회 ─────────────────────────
@@ -119,9 +119,13 @@ public class BookApiController {
     static class CreateBookResponse {
         @Schema(description = "생성된 가계부 ID", example = "42")
         private Long id;
+        
+        @Schema(description = "가계부 제목", example = "우리 가족 가계부")
+        private String title;
 
-        public CreateBookResponse(Long id) {
+        public CreateBookResponse(Long id, String title) {
             this.id = id;
+            this.title = title;
         }
     }
 }

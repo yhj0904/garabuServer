@@ -33,4 +33,10 @@ public interface UserBookJpaRepository extends JpaRepository<UserBook, Long> {
     Optional<UserBook> findByBookIdAndMemberIdAndBookRole(Long bookId, Long memberId, BookRole bookRole);
     
     void deleteByBookIdAndMemberId(Long bookId, Long memberId);
+    
+    /**
+     * 특정 멤버가 참여한 모든 가계부 조회
+     */
+    @EntityGraph(attributePaths = {"book"})
+    List<UserBook> findByMember(garabu.garabuServer.domain.Member member);
 }

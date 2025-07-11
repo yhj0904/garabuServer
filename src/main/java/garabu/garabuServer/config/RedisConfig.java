@@ -1,5 +1,8 @@
 package garabu.garabuServer.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -29,19 +32,39 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(cf);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer()); // 객체 저장 가능
+        
+        // Jackson 직렬화 설정 - 무한 순환 참조 방지
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.activateDefaultTyping(
+            LaissezFaireSubTypeValidator.instance,
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
+        );
+        
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        template.setValueSerializer(jsonSerializer);
         return template;
     }
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory cf) {
+        // Jackson 직렬화 설정 - 무한 순환 참조 방지
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.activateDefaultTyping(
+            LaissezFaireSubTypeValidator.instance,
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
+        );
+        
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        
         // 기본 캐시 설정 (5분 TTL)
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(5))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                        .fromSerializer(jsonSerializer))
                 .disableCachingNullValues();
         
         return RedisCacheManager.builder(cf)
@@ -53,14 +76,14 @@ public class RedisConfig {
                         .serializeKeysWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(new StringRedisSerializer()))
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
-                                .fromSerializer(new GenericJackson2JsonRedisSerializer())))
+                                .fromSerializer(jsonSerializer)))
                 .withCacheConfiguration("categoriesAll", 
                     RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofHours(1))
                         .serializeKeysWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(new StringRedisSerializer()))
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
-                                .fromSerializer(new GenericJackson2JsonRedisSerializer())))
+                                .fromSerializer(jsonSerializer)))
                 // Payment 관련 캐시 (1시간 TTL - 정적 데이터)
                 .withCacheConfiguration("paymentMethods", 
                     RedisCacheConfiguration.defaultCacheConfig()
@@ -68,14 +91,14 @@ public class RedisConfig {
                         .serializeKeysWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(new StringRedisSerializer()))
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
-                                .fromSerializer(new GenericJackson2JsonRedisSerializer())))
+                                .fromSerializer(jsonSerializer)))
                 .withCacheConfiguration("paymentMethodsAll", 
                     RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofHours(1))
                         .serializeKeysWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(new StringRedisSerializer()))
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
-                                .fromSerializer(new GenericJackson2JsonRedisSerializer())))
+                                .fromSerializer(jsonSerializer)))
                 // 사용자 가계부 목록 캐시 (10분 TTL - 동적 데이터)
                 .withCacheConfiguration("userBooks", 
                     RedisCacheConfiguration.defaultCacheConfig()
@@ -83,7 +106,7 @@ public class RedisConfig {
                         .serializeKeysWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(new StringRedisSerializer()))
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
-                                .fromSerializer(new GenericJackson2JsonRedisSerializer())))
+                                .fromSerializer(jsonSerializer)))
                 .build();
     }
 }

@@ -1,5 +1,6 @@
 package garabu.garabuServer.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -34,6 +35,7 @@ public class Book {
     private String title;   // 가계부 이름 ex)개인 가계부, 커플 가계부
 
     @OneToMany(mappedBy = "book")
+    @JsonManagedReference("book-userBooks")
     @Schema(description = "가계부에 속한 사용자 목록")
     private List<UserBook> userBooks = new ArrayList<>();
 

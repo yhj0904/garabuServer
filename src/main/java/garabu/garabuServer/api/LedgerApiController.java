@@ -96,7 +96,7 @@ public class LedgerApiController {
             Member currentMember = memberService.findMemberByUsername(auth.getName());
 
             /* ────── 2. 가계부 권한 확인 ────── */
-            Book book = bookService.findByTitle(request.getTitle());
+            Book book = bookService.findById(request.getBookId());
             
             // 사용자의 가계부 권한 확인
             UserBook userBook = userBookService.findByBookIdAndMemberId(book.getId(), currentMember.getId())
@@ -333,9 +333,9 @@ public class LedgerApiController {
                 requiredMode = Schema.RequiredMode.REQUIRED)
         private AmountType amountType;
 
-        @NotBlank(message = "가계부 제목은 필수입니다")
-        @Schema(description = "가계부 제목", example = "가족 가계부", requiredMode = Schema.RequiredMode.REQUIRED)
-        private String title;
+        @NotNull(message = "가계부 ID는 필수입니다")
+        @Schema(description = "가계부 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+        private Long bookId;
 
         @NotBlank(message = "결제 수단은 필수입니다")
         @Schema(description = "결제 수단", example = "이체", requiredMode = Schema.RequiredMode.REQUIRED)
