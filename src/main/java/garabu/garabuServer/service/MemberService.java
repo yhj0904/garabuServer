@@ -155,4 +155,27 @@ public class MemberService{
     public Member findMemberByUsername(String username) {
         return memberJPARepository.findByUsername(username);
     }
+
+    /**
+     * 현재 로그인한 사용자의 Member 엔티티를 반환합니다.
+     * 
+     * @return 로그인한 사용자의 Member 엔티티
+     * @throws UsernameNotFoundException 사용자를 찾을 수 없는 경우
+     */
+    public Member getCurrentMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UsernameNotFoundException("인증되지 않은 사용자입니다.");
+        }
+        
+        String username = authentication.getName();
+        Member member = memberJPARepository.findByUsername(username);
+
+        if (member == null) {
+            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
+        }
+
+        return member;
+    }
 }

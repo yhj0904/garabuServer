@@ -123,7 +123,8 @@ public class SecurityConfig {
                         configuration.setAllowedOrigins(
                                 List.of("http://localhost:5173",
                                         "http://localhost:4000",
-                                        "http://101.1.13.107:8081",
+                                        "http://192.0.0.2:8081",
+                                        "http://localhost:8081",
                                         "http://192.168.10.54:8081")
                         );
                         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));

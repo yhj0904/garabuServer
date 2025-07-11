@@ -100,6 +100,11 @@ public class BookService {
      * 
      * @return 사용자의 가계부 목록
      */
+    @CacheEvict(value = "userBooks", allEntries = true)
+    public void clearUserBooksCache() {
+        // 캐시 초기화용 메서드
+    }
+
     @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()", unless = "#result == null or #result.isEmpty()")
     public List<Book> findLoggedInUserBooks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

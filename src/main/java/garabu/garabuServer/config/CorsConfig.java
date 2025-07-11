@@ -13,8 +13,9 @@ public class CorsConfig implements WebMvcConfigurer {
                 .exposedHeaders("Set-Cookie", "access", "refresh", "Access-Control-Expose-Headers")
                 .allowedOrigins("http://localhost:5173",
                                 "http://localhost:4000",
+                                "http://localhost:8081",
                                 "http://192.168.10.54:8081",
-                                "http://101.1.13.107:8081")
+                                "http://192.0.0.2:8081")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);

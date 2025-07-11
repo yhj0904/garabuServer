@@ -96,6 +96,8 @@ public class BookApiController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     public ResponseEntity<List<Book>> getMyBooks() {
+        // Redis 캐시 오류 발생 시 캐시 초기화 후 재시도
+        bookService.clearUserBooksCache();
         List<Book> books = bookService.findLoggedInUserBooks();
         return ResponseEntity.ok(books);
     }

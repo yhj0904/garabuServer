@@ -1,7 +1,10 @@
 package garabu.garabuServer.api;
 
+import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Category;
+import garabu.garabuServer.service.BookService;
 import garabu.garabuServer.service.CategoryService;
+import garabu.garabuServer.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -44,6 +47,8 @@ public class CategoryApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(CategoryApiController.class);
     private final CategoryService categoryService;
+    private final BookService bookService;
+    private final MemberService memberService;
 
     // ───────────────────────── 카테고리 생성 ─────────────────────────
     /**
@@ -79,41 +84,29 @@ public class CategoryApiController {
     public ResponseEntity<CreateCategoryResponse> createCategory(
             @Valid @org.springframework.web.bind.annotation.RequestBody CreateCategoryRequest request) {
 
-        try {
-            /* ────── 1. 중복 검사 ────── */
-            // 동일한 카테고리명이 이미 존재하는지 확인
-            Category existingCategory = categoryService.findByCategory(request.getCategory());
-            if (existingCategory != null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "이미 존재하는 카테고리명입니다: " + request.getCategory());
-            }
+        logger.info("카테고리 생성 요청: {}", request.getCategory());
 
-            /* ────── 2. 카테고리 생성 ────── */
-            Category category = new Category();
-            category.setCategory(request.getCategory());
-
-            Long id = categoryService.rigistCategory(category);
-            logger.info("Category created with id={}, name={}", id, request.getCategory());
-
-            /* ────── 3. 생성된 카테고리 조회하여 상세 정보 반환 ────── */
-            Category createdCategory = categoryService.findById(id);
-            
-            return ResponseEntity
-                    .status(201)
-                    .body(new CreateCategoryResponse(
-                        createdCategory.getId(),
-                        createdCategory.getCategory()
-                    ));
-                    
-        } catch (Exception e) {
-            logger.error("Error creating category", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 생성 중 오류가 발생했습니다", e);
+        // 중복 검사
+        Category existingCategory = categoryService.findByCategory(request.getCategory());
+        if (existingCategory != null) {
+            logger.warn("중복된 카테고리명: {}", request.getCategory());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 존재하는 카테고리명입니다.");
         }
+
+        Category category = new Category();
+        category.setCategory(request.getCategory());
+
+        Long id = categoryService.rigistCategory(category);
+        logger.info("카테고리 생성 완료 - ID: {}", id);
+
+        return ResponseEntity
+                .status(201)
+                .body(new CreateCategoryResponse(id, request.getCategory()));
     }
 
     // ───────────────────────── 카테고리 목록 조회 ─────────────────────────
     /**
-     * 시스템에 등록된 카테고리 목록을 조회합니다.
+     * 등록된 모든 카테고리를 조회합니다.
      *
      * @return 카테고리 리스트
      */
@@ -133,10 +126,128 @@ public class CategoryApiController {
         List<Category> categories = categoryService.findAllCategories();
 
         List<ListCategoryDto> data = categories.stream()
-                .map(c -> new ListCategoryDto(c.getId(), c.getCategory()))
+                .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(new ListCategoryResponse(data));
+    }
+
+    // ───────────────────────── 가계부별 카테고리 목록 조회 (기본 + 사용자 정의) ─────────────────────────
+    /**
+     * 특정 가계부의 카테고리 목록을 조회합니다.
+     * 기본 제공 카테고리 + 해당 가계부의 사용자 정의 카테고리를 모두 반환합니다.
+     *
+     * @param bookId 가계부 ID
+     * @return 가계부별 카테고리 리스트 (기본 + 사용자 정의)
+     */
+    @GetMapping("/book/{bookId}")
+    @Operation(
+            summary     = "가계부별 카테고리 목록 조회",
+            description = "특정 가계부의 기본 제공 카테고리 + 사용자 정의 카테고리를 모두 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description  = "가계부별 카테고리 목록 조회 성공",
+                    content      = @Content(schema = @Schema(implementation = ListCategoryResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "가계부 접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<ListCategoryResponse> listCategoriesByBook(@PathVariable Long bookId) {
+        Book book = bookService.findById(bookId);
+        
+        // 사용자가 해당 가계부에 접근 권한이 있는지 확인
+        categoryService.validateBookAccess(book);
+        
+        // 기본 카테고리 + 가계부별 사용자 정의 카테고리 조회
+        List<Category> categories = categoryService.findCombinedCategories(book);
+
+        List<ListCategoryDto> data = categories.stream()
+                .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new ListCategoryResponse(data));
+    }
+    
+    // ───────────────────────── 기본 제공 카테고리 목록 조회 ─────────────────────────
+    /**
+     * 기본 제공 카테고리 목록을 조회합니다.
+     *
+     * @return 기본 제공 카테고리 리스트
+     */
+    @GetMapping("/default")
+    @Operation(
+            summary     = "기본 제공 카테고리 목록 조회",
+            description = "모든 사용자에게 공통으로 제공되는 기본 카테고리 목록을 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description  = "기본 카테고리 목록 조회 성공",
+                    content      = @Content(schema = @Schema(implementation = ListCategoryResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<ListCategoryResponse> listDefaultCategories() {
+        List<Category> categories = categoryService.findDefaultCategories();
+
+        List<ListCategoryDto> data = categories.stream()
+                .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new ListCategoryResponse(data));
+    }
+
+    // ───────────────────────── 가계부별 카테고리 생성 ─────────────────────────
+    /**
+     * 특정 가계부에 새로운 카테고리를 생성합니다.
+     *
+     * @param bookId 가계부 ID
+     * @param request 카테고리 생성 요청 DTO
+     * @return 생성된 카테고리 ID
+     */
+    @PostMapping("/book/{bookId}")
+    @Operation(
+            summary     = "가계부별 사용자 정의 카테고리 생성",
+            description = "특정 가계부에 새로운 사용자 정의 카테고리를 생성합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",
+                    description  = "가계부별 카테고리 생성 성공",
+                    content      = @Content(schema = @Schema(implementation = CreateCategoryResponse.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "가계부 수정 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<CreateCategoryResponse> createCategoryForBook(
+            @PathVariable Long bookId,
+            @Valid @org.springframework.web.bind.annotation.RequestBody CreateCategoryRequest request) {
+
+        logger.info("가계부별 카테고리 생성 요청 - 가계부ID: {}, 카테고리: {}", bookId, request.getCategory());
+
+        Book book = bookService.findById(bookId);
+        
+        // 가계부 수정 권한 확인
+        categoryService.validateBookEditAccess(book);
+        
+        // 가계부 내 중복 검사 (기본 카테고리 + 사용자 정의 카테고리)
+        List<Category> existingCategories = categoryService.findCombinedCategories(book);
+        boolean isDuplicate = existingCategories.stream()
+                .anyMatch(c -> c.getCategory().equals(request.getCategory()));
+        
+        if (isDuplicate) {
+            logger.warn("가계부 내 중복된 카테고리명: {}", request.getCategory());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 존재하는 카테고리명입니다.");
+        }
+
+        Long id = categoryService.createCategoryForBook(book, request.getCategory());
+        logger.info("가계부별 카테고리 생성 완료 - ID: {}", id);
+
+        return ResponseEntity
+                .status(201)
+                .body(new CreateCategoryResponse(id, request.getCategory()));
     }
 
     // ───────────────────────── DTO 정의 ─────────────────────────
@@ -187,10 +298,18 @@ public class CategoryApiController {
 
         @Schema(description = "카테고리명", example = "식비")
         private String category;
+        
+        @Schema(description = "카테고리 이모지", example = "🍽️")
+        private String emoji;
+        
+        @Schema(description = "기본 제공 카테고리 여부", example = "true")
+        private Boolean isDefault;
 
-        public ListCategoryDto(Long id, String category) {
+        public ListCategoryDto(Long id, String category, String emoji, Boolean isDefault) {
             this.id = id;
             this.category = category;
+            this.emoji = emoji;
+            this.isDefault = isDefault;
         }
     }
 }

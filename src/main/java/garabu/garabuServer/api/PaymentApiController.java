@@ -1,6 +1,8 @@
 package garabu.garabuServer.api;
 
+import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.PaymentMethod;
+import garabu.garabuServer.service.BookService;
 import garabu.garabuServer.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 public class PaymentApiController {
 
     private final PaymentService paymentService;
+    private final BookService bookService;
 
     /* ───────────────────────── 결제 수단 생성 ───────────────────────── */
     /**
@@ -107,6 +110,78 @@ public class PaymentApiController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(new ListPaymentResponse(dtoList));
+    }
+
+    /* ───────────────────────── 가계부별 결제 수단 목록 조회 ───────────────────────── */
+    /**
+     * 특정 가계부의 결제 수단 목록을 조회합니다.
+     *
+     * @param bookId 가계부 ID
+     * @return 가계부별 결제 수단 리스트
+     */
+    @GetMapping("/book/{bookId}")
+    @Operation(
+            summary     = "가계부별 결제 수단 목록 조회",
+            description = "특정 가계부에 속한 결제 수단 목록을 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description  = "가계부별 결제 수단 목록 조회 성공",
+                    content      = @Content(schema = @Schema(implementation = ListPaymentResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<ListPaymentResponse> listPaymentsByBook(@PathVariable Long bookId) {
+        Book book = bookService.findById(bookId);
+        List<PaymentMethod> payments = paymentService.findByBook(book);
+
+        List<ListPaymentDto> dtoList = payments.stream()
+                .map(p -> new ListPaymentDto(p.getId(), p.getPayment()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new ListPaymentResponse(dtoList));
+    }
+
+    /* ───────────────────────── 가계부별 결제 수단 생성 ───────────────────────── */
+    /**
+     * 특정 가계부에 새로운 결제 수단을 생성합니다.
+     *
+     * @param bookId 가계부 ID
+     * @param request 결제 수단 생성 요청 DTO
+     * @return 생성된 결제 수단 ID
+     */
+    @PostMapping("/book/{bookId}")
+    @Operation(
+            summary     = "가계부별 결제 수단 생성",
+            description = "특정 가계부에 새로운 결제 수단을 생성합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",
+                    description  = "가계부별 결제 수단 생성 성공",
+                    content      = @Content(schema = @Schema(implementation = CreatePaymentResponse.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<CreatePaymentResponse> createPaymentForBook(
+            @PathVariable Long bookId,
+            @Valid @org.springframework.web.bind.annotation.RequestBody CreatePaymentRequest request) {
+
+        Book book = bookService.findById(bookId);
+        
+        // 가계부 내 중복 검사
+        PaymentMethod existingPayment = paymentService.findByBookAndPayment(book, request.getPayment());
+        if (existingPayment != null) {
+            throw new RuntimeException("이미 존재하는 결제 수단입니다.");
+        }
+
+        Long id = paymentService.createPaymentForBook(book, request.getPayment());
+
+        return ResponseEntity
+                .status(201)
+                .body(new CreatePaymentResponse(id));
     }
 
     /* ───────────────────────── DTO 정의 ───────────────────────── */

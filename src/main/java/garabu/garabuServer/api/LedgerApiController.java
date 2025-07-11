@@ -89,6 +89,16 @@ public class LedgerApiController {
     public ResponseEntity<CreateLedgerResponse> createLedger(
             @Valid @RequestBody CreateLedgerRequest request
     ) {
+        logger.info("=== Ledger 생성 요청 수신 ===");
+        logger.info("Request body: {}", request);
+        logger.info("date: {}", request.getDate());
+        logger.info("amount: {}", request.getAmount());
+        logger.info("description: {}", request.getDescription());
+        logger.info("amountType: {}", request.getAmountType());
+        logger.info("bookId: {}", request.getBookId());
+        logger.info("payment: {}", request.getPayment());
+        logger.info("category: {}", request.getCategory());
+        logger.info("===========================");
 
         try {
             /* ────── 1. 로그인 사용자 확인 ────── */
@@ -119,10 +129,20 @@ public class LedgerApiController {
 
             ledger.setBook(book);
 
-            PaymentMethod paymentMethod = paymentService.findByPayment(request.getPayment());
+            // 가계부별 결제수단 조회
+            PaymentMethod paymentMethod = paymentService.findByBookAndPayment(book, request.getPayment());
+            if (paymentMethod == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "해당 가계부에 존재하지 않는 결제수단입니다: " + request.getPayment());
+            }
             ledger.setPaymentMethod(paymentMethod);
 
-            Category category = categoryService.findByCategory(request.getCategory());
+            // 가계부별 카테고리 조회
+            Category category = categoryService.findByBookAndCategory(book, request.getCategory());
+            if (category == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "해당 가계부에 존재하지 않는 카테고리입니다: " + request.getCategory());
+            }
             ledger.setCategory(category);
 
             /* ────── 4. 중복 검사 ────── */
