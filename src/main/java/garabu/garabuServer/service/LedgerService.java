@@ -2,6 +2,7 @@ package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Ledger;
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
 import garabu.garabuServer.mapper.LedgerMapper;
 import garabu.garabuServer.repository.LedgerJpaRepository;
@@ -33,10 +34,20 @@ public class LedgerService {
 
     private final LedgerMapper ledgerMapper;
 
-    public Page<Ledger> search(LedgerSearchConditionDTO cond,
-                               Pageable pageable) {
+    /**
+     * 가계부별 기본 목록 조회 (JPA 사용)
+     */
+    public Page<Ledger> findLedgersByBook(Book book, Pageable pageable) {
+        return ledgerJpaRepository.findByBookWithAuthorization(book, pageable);
+    }
+    
+    /**
+     * 검색 조건이 있는 경우 동적 검색 (MyBatis 사용)
+     */
+    public Page<Ledger> searchLedgers(LedgerSearchConditionDTO cond,
+                                     Pageable pageable) {
 
-        long total = ledgerMapper.countLedgers(cond);
+        long total = ledgerMapper.countSearchLedgers(cond);
 
         // 페이지 초과 요청 시 빈 페이지 처리
         if (total == 0) {
@@ -57,7 +68,7 @@ public class LedgerService {
         long offset = (long) pageable.getPageNumber() * pageable.getPageSize();
         long limit  = pageable.getPageSize();
 
-        List<Ledger> content = ledgerMapper.selectLedgers(cond, orderBy, offset, limit);
+        List<Ledger> content = ledgerMapper.searchLedgers(cond, orderBy, offset, limit);
 
         return new PageImpl<>(content, pageable, total);
     }

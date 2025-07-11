@@ -21,10 +21,10 @@ import java.time.LocalDate;
         description = "가계부 기록 검색 조건 DTO")
 public class LedgerSearchConditionDTO {
 
-    @Schema(description = "로그인한 회원 ID(내부 주입용)",
-            example = "15",
+    @Schema(description = "가계부 ID",
+            example = "1",
             accessMode = Schema.AccessMode.READ_ONLY)
-    private Long memberId;
+    private Long bookId;
 
     @Schema(description = "검색 시작 날짜",
             example = "2025-07-01",
@@ -51,13 +51,13 @@ public class LedgerSearchConditionDTO {
             example = "카드")
     private String payment;
 
-    public LedgerSearchConditionDTO(Long memberId,
+    public LedgerSearchConditionDTO(Long bookId,
                                     LocalDate startDate,
                                     LocalDate endDate,
                                     AmountType amountType,
                                     String category,
                                     String payment) {
-        this.memberId   = memberId;
+        this.bookId     = bookId;
         this.startDate  = startDate;
         this.endDate    = endDate;
         this.amountType = amountType;

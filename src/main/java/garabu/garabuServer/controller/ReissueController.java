@@ -73,47 +73,86 @@ public class ReissueController {
         @Parameter(description = "HTTP 요청 객체") HttpServletRequest request, 
         @Parameter(description = "HTTP 응답 객체") HttpServletResponse response) {
 
-        //get refresh token
+        // 1) refresh 토큰 추출 - 쿠키와 Authorization 헤더 모두 지원
         String refresh = null;
+        
+        // 쿠키에서 추출 시도
         Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-
-            if (cookie.getName().equals("refresh")) {
-
-                refresh = cookie.getValue();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh".equals(cookie.getName())) {
+                    refresh = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        
+        // 쿠키에서 찾지 못한 경우 Authorization 헤더에서 추출
+        if (refresh == null || refresh.isBlank()) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                refresh = authHeader.substring(7);
+            }
+        }
+        
+        // 요청 본문에서 추출 시도 (JSON 형태)
+        if (refresh == null || refresh.isBlank()) {
+            try {
+                String requestBody = request.getReader().lines()
+                    .collect(java.util.stream.Collectors.joining(System.lineSeparator()));
+                if (requestBody != null && !requestBody.isEmpty()) {
+                    // 간단한 JSON 파싱 (refreshToken 필드 추출)
+                    if (requestBody.contains("refreshToken")) {
+                        String[] parts = requestBody.split("refreshToken");
+                        if (parts.length > 1) {
+                            String tokenPart = parts[1].replaceAll("[\"\s:{}]", "");
+                            if (tokenPart.contains(",")) {
+                                refresh = tokenPart.substring(0, tokenPart.indexOf(","));
+                            } else {
+                                refresh = tokenPart;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // JSON 파싱 실패시 무시
             }
         }
 
-        if (refresh == null) {
-
-            //response status code
-            return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
+        // 2) 방어 코드 : 토큰 없음
+        if (refresh == null || refresh.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new TokenResponse("refresh token null", null, null));
         }
+
 
         //expired check
         try {
             jwtUtil.isExpired(refresh);
         } catch (ExpiredJwtException e) {
-
-            //response status code
-            return new ResponseEntity<>("refresh token expired", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new TokenResponse("refresh token expired", null, null));
         }
 
         // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
-        String category = jwtUtil.getCategory(refresh);
+        String category;
+        try {
+            category = jwtUtil.getCategory(refresh);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new TokenResponse("invalid refresh token format", null, null));
+        }
 
         //Redis에 저장되어 있는지 확인
         Boolean isExist = refreshTokenService.existsByRefreshToken(refresh);
         if (!isExist) {
-
-            //response body
-            return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new TokenResponse("invalid refresh token", null, null));
         }
 
-        if (!category.equals("refresh")) {
-
-            //response status code
-            return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
+        if (!"refresh".equals(category)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new TokenResponse("invalid refresh token category", null, null));
         }
 
         String username = jwtUtil.getUsername(refresh);
@@ -127,11 +166,15 @@ public class ReissueController {
         refreshTokenService.deleteRefreshToken(refresh);
         refreshTokenService.saveRefreshToken(username, newRefresh, 86400000L);
 
-        //response
+        //response - 헤더와 쿠키 모두 설정, JSON 응답도 추가
         response.setHeader("access", newAccess);
+        response.setHeader("refresh", newRefresh);
         response.addCookie(createCookie("refresh", newRefresh));
+        
+        // CORS 헤더 설정
+        response.setHeader("Access-Control-Expose-Headers", "access, refresh");
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(new TokenResponse("success", newAccess, newRefresh));
     }
 
 
@@ -143,7 +186,6 @@ public class ReissueController {
      * @return 생성된 쿠키 객체
      */
     private Cookie createCookie(String key, String value) {
-
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(24*60*60);
         //cookie.setSecure(true);
@@ -151,5 +193,32 @@ public class ReissueController {
         cookie.setHttpOnly(true);
 
         return cookie;
+    }
+    
+    /**
+     * 토큰 재발급 응답 DTO
+     */
+    public static class TokenResponse {
+        private String message;
+        private String accessToken;
+        private String refreshToken;
+        
+        public TokenResponse(String message, String accessToken, String refreshToken) {
+            this.message = message;
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+        }
+        
+        public String getMessage() {
+            return message;
+        }
+        
+        public String getAccessToken() {
+            return accessToken;
+        }
+        
+        public String getRefreshToken() {
+            return refreshToken;
+        }
     }
 }

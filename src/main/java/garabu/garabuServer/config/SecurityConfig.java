@@ -123,9 +123,8 @@ public class SecurityConfig {
                         configuration.setAllowedOrigins(
                                 List.of("http://localhost:5173",
                                         "http://localhost:4000",
-                                        "http://14.5.176.24:19000",
-                                        "http://192.168.10.54:8081",// Expo Go 디버거
-                                        "http://14.5.176.24:19006")
+                                        "http://101.1.13.107:8081",
+                                        "http://192.168.10.54:8081")
                         );
                         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
                         configuration.setAllowCredentials(true);

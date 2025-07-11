@@ -10,11 +10,13 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry corsRegistry) {
 
         corsRegistry.addMapping("/**")
-                .exposedHeaders("Set-Cookie", "access")
+                .exposedHeaders("Set-Cookie", "access", "refresh", "Access-Control-Expose-Headers")
                 .allowedOrigins("http://localhost:5173",
                                 "http://localhost:4000",
                                 "http://192.168.10.54:8081",
-                                "http://14.5.176.24:19000",  // Expo Go 디버거
-                                "http://14.5.176.24:19006");
+                                "http://101.1.13.107:8081")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

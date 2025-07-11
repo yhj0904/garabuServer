@@ -69,6 +69,14 @@ public class UserBookService {
     }
     
     /**
+     * 사용자가 가계부에 접근할 수 있는지 확인 (읽기 권한)
+     */
+    public void validateBookAccess(Member member, Book book) {
+        UserBook userBook = userBookJpaRepository.findByBookIdAndMemberId(book.getId(), member.getId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 가계부에 대한 접근 권한이 없습니다."));
+    }
+    
+    /**
      * 사용자가 가계부의 소유자인지 확인
      */
     private void validateOwnership(Long bookId, Member currentUser) {

@@ -202,11 +202,99 @@ public class LedgerApiController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long memberId = memberService.findMemberByUsername(auth.getName()).getId();
 
+        // 기본 가계부 ID가 필요하다면 현재 사용자의 첫 번째 가계부를 사용
+        // 또는 bookId 파라미터를 추가해야 함
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+            "이 API는 deprecated 되었습니다. /{bookId} 또는 /{bookId}/search를 사용하세요.");
+    }
+    
+    /**
+     * 가계부별 기본 목록 조회 (검색 조건 없음)
+     */
+    @GetMapping("/{bookId}")
+    @Operation(
+            summary     = "가계부 기록 기본 목록 조회",
+            description = "특정 가계부의 모든 기록을 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description  = "조회 성공",
+                    content      = @Content(schema = @Schema(implementation = ListLedgerResponse.class)))
+    })
+    public ResponseEntity<ListLedgerResponse> getLedgersByBook(
+            @Parameter(description = "가계부 ID", example = "1")
+            @PathVariable Long bookId,
+            @ParameterObject Pageable pageable
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member currentMember = memberService.findMemberByUsername(auth.getName());
+        
+        Book book = bookService.findById(bookId);
+        
+        // 가계부 접근 권한 확인
+        userBookService.validateBookAccess(currentMember, book);
+        
+        Page<Ledger> page = ledgerService.findLedgersByBook(book, pageable);
+
+        List<LedgerDto> dtoList = page.getContent().stream()
+                .map(LedgerDto::from)
+                .toList();
+
+        return ResponseEntity.ok(new ListLedgerResponse(dtoList, page.getTotalElements()));
+    }
+    
+    /**
+     * 가계부 기록 검색 (동적 조건)
+     */
+    @GetMapping("/{bookId}/search")
+    @Operation(
+            summary     = "가계부 기록 검색",
+            description = """
+        날짜 범위·카테고리·금액 유형 등으로 필터링하고
+        페이지네이션 / 정렬이 가능한 검색 엔드포인트입니다.
+        """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description  = "검색 성공",
+                    content      = @Content(schema = @Schema(implementation = ListLedgerResponse.class)))
+    })
+    public ResponseEntity<ListLedgerResponse> searchLedgersInBook(
+            @Parameter(description = "가계부 ID", example = "1")
+            @PathVariable Long bookId,
+            
+            @Parameter(description = "시작 날짜(yyyy-MM-dd)", example = "2025-07-01")
+            @RequestParam(required = false) LocalDate startDate,
+
+            @Parameter(description = "종료 날짜(yyyy-MM-dd)", example = "2025-07-31")
+            @RequestParam(required = false) LocalDate endDate,
+
+            @Parameter(description = "금액 유형(INCOME/EXPENSE/TRANSFER)",
+                    example = "EXPENSE",
+                    schema = @Schema(allowableValues = {"INCOME","EXPENSE","TRANSFER"}))
+            @RequestParam(required = false) AmountType amountType,
+
+            @Parameter(description = "카테고리명", example = "식비")           
+            @RequestParam(required = false) String category,
+
+            @Parameter(description = "결제 수단", example = "카드")           
+            @RequestParam(required = false) String payment,
+
+            @ParameterObject Pageable pageable
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member currentMember = memberService.findMemberByUsername(auth.getName());
+        
+        Book book = bookService.findById(bookId);
+        
+        // 가계부 접근 권한 확인
+        userBookService.validateBookAccess(currentMember, book);
+
         LedgerSearchConditionDTO cond = new LedgerSearchConditionDTO(
-                memberId, startDate, endDate, amountType, category, payment
+                bookId, startDate, endDate, amountType, category, payment
         );
 
-        Page<Ledger> page = ledgerService.search(cond, pageable);
+        Page<Ledger> page = ledgerService.searchLedgers(cond, pageable);
 
         List<LedgerDto> dtoList = page.getContent().stream()
                 .map(LedgerDto::from)
