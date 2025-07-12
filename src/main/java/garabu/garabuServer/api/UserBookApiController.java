@@ -80,7 +80,7 @@ public class UserBookApiController {
 
     /* ───────────────────────── 가계부 공유 초대 ───────────────────────── */
     /**
-     * @deprecated 이메일 초대 방식은 사용하지 않습니다. 초대 코드 방식을 사용하세요.
+     * @deprecated 이메일 초대 방식은 아직 지원하지 않습니다. 초대 코드 방식을 사용하세요.
      * @see BookInviteApiController#createBookInviteCode
      * 
      * 가계부에 새로운 사용자를 초대합니다.

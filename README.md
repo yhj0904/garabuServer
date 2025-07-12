@@ -1,14 +1,13 @@
 # 가라부 (Garabu) 서버 💰
 
 > **가계부 관리 백엔드 API 서버**  
-> 다중 사용자 지원, 실시간 알림, 모니터링 기능을 갖춘 가계부 관리 애플리케이션
+> 다중 사용자 지원, 실시간 WebSocket 통신, 안전한 인증, 포괄적 모니터링을 갖춘 가계부 관리 애플리케이션
 
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?style=flat-square&logo=springboot)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql)
 ![Redis](https://img.shields.io/badge/Redis-Cache-red?style=flat-square&logo=redis)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker)
-![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20RDS-orange?style=flat-square&logo=amazonaws)
 
 ## 🎯 프로젝트 개요
 
@@ -18,9 +17,10 @@
 ### 🚀 프로젝트 하이라이트
 
 - **🏗️ 아키텍처**: 마이크로서비스 준비 설계로 확장성 확보
-- **🔒 보안**: OAuth2 + JWT 기반 인증, SSH 터널링으로 데이터 보안
+- **🔒 보안**: OAuth2 + JWT 기반 인증, WebSocket 보안 지원, SSH 터널링으로 데이터 보안
 - **📊 모니터링**: ELK 스택 + Prometheus + Grafana로 완전한 관찰 가능성
-- **⚡ 성능**: Redis 캐싱, JVM 튜닝으로 최적화된 응답 시간
+- **⚡ 성능**: Redis 캐싱 최적화, Hibernate 직렬화 지원, JVM 튜닝으로 최적화된 응답 시간
+- **🔄 실시간 통신**: WebSocket STOMP 프로토콜 지원으로 실시간 데이터 동기화
 - **🔄 CI/CD**: GitHub Actions를 통한 자동화된 배포 파이프라인
 - **☁️ 클라우드 네이티브**: EC2에서 EKS로의 단계적 마이그레이션 진행중
 
@@ -35,7 +35,9 @@
 
 - **UserBook 엔티티**: 다중 사용자 가계부 공유를 위한 고급 권한 관리 시스템
 - **실시간 알림**: Firebase FCM을 통한 즉시 푸시 알림 시스템
-- **캐싱 전략**: Redis를 활용한 성능 최적화 및 세션 관리
+- **실시간 동기화**: WebSocket STOMP를 통한 실시간 데이터 동기화 및 협업 지원
+- **캐싱 전략**: Redis를 활용한 성능 최적화, Hibernate Lazy Loading 지원, 세션 관리
+- **인증 보안**: JWT 토큰 기반 WebSocket 인증, 자동 토큰 갱신 메커니즘
 - **모니터링 스택**: ELK + Prometheus + Grafana로 완전한 시스템 관찰 가능성
 
 ## 📋 목차
@@ -66,36 +68,38 @@
 ## ✨ 주요 기능
 
 ### 핵심 가계부 관리
-- 간단한 UI로 예산, 기록, 카테고리, 결제 수단 관리
-- **공유 가계부**와 세분화된 권한 관리
-- **스마트 분류**와 커스터마이징 가능한 모든 카테고리
-- **다중 통화 지원**으로 국제적인 예산 추적
+- **가계부 CRUD**: 다중 가계부 생성, 수정, 삭제 지원
+- **거래 기록 관리**: 수입/지출 기록, 카테고리별 분류, 결제 수단 추적
+- **공유 가계부**: 세분화된 권한 관리 (OWNER/EDITOR/VIEWER)
+- **스마트 분류**: 커스터마이징 가능한 카테고리 및 결제 수단 관리
+- **고급 검색**: 날짜, 카테고리, 결제 수단별 복합 조건 검색
 
 ### 사용자 경험
 - **OAuth2 소셜 로그인** (Google, Naver)과 원활한 온보딩
-- **푸시 알림**으로 예산 알림 및 협업 업데이트
-- **실시간 동기화**로 여러 기기와 사용자 간 동기화
-- **고급 필터링**과 검색 기능
-- **가계부 관리 API**:  가계부, 가계 기록, 카테고리, 결제수단 등을 제공
-- **공동 가계부**: 여러 사용자가 하나의 가계부를 realtime 공유할 수 있습니다.
+- **JWT 인증**: 액세스 토큰(10분) + 리프레시 토큰(24시간) 자동 갱신
+- **푸시 알림**: Firebase FCM을 통한 실시간 알림
+- **실시간 동기화**: WebSocket STOMP를 통한 실시간 데이터 동기화
+- **공동 가계부**: 여러 사용자가 하나의 가계부를 실시간 공유
+- **사용자 초대**: 이메일 기반 가계부 멤버 초대 시스템
 
 ### 인프라
-- **포괄적 모니터링**을 위한 ELK 스택과 Prometheus 메트릭
-- **자동화된 CI/CD**를 통한 GitHub Actions와 AWS 배포
-- **고성능 캐싱**으로 Redis를 사용한 최적의 응답 시간
-- **보안 데이터베이스 접근**을 위한 SSH 터널링을 통한 AWS RDS 연결
-- 업무 프로세스 연동으로 **Slack**과 **Jira**를 연동해 자동 배포 및 로그 기반 알림을 전송합니다
-- **모니터링/로그 수집** 모니터링 및 로그 수집으로 **Slack** 에 알림을 전송합니다.
+- **포괄적 모니터링**: ELK 스택과 Prometheus 메트릭
+- **자동화된 CI/CD**: GitHub Actions와 AWS 배포
+- **고성능 캐싱**: Redis를 사용한 최적의 응답 시간, Hibernate 직렬화 최적화
+- **보안 데이터베이스 접근**: SSH 터널링을 통한 AWS RDS 연결
+- **실시간 통신**: WebSocket STOMP 서버 구성
+- **업무 프로세스 연동**: Slack과 Jira 연동을 통한 자동 배포 및 로그 기반 알림
+- **모니터링/로그 수집**: Slack 알림과 연동된 통합 모니터링 시스템
 
 ## 🛠 기술 스택
 
 ### 백엔드 프레임워크
 - **Java 21**
 - **Spring Boot 3.4.5**
-- **Spring Security**
-- **Spring Batch**
-- **Spring Data JPA**
-- **MyBatis**
+- **Spring Security** - OAuth2 + JWT 인증
+- **Spring WebSocket** - STOMP 프로토콜 지원
+- **Spring Data JPA** - 기본 CRUD 작업
+- **MyBatis** - 복잡한 쿼리 및 페이징
 
 ### 인증 및 보안
 - **OAuth2** - 소셜 로그인 통합 (Google, Naver)
@@ -104,8 +108,9 @@
 
 ### 데이터베이스 및 캐싱
 - **MySQL 8.0** - AWS RDS의 주 데이터베이스
-- **Redis** - 세션 관리 및 캐싱
+- **Redis** - 세션 관리, 캐싱, Hibernate 직렬화 지원
 - **SSH 터널링** - 보안 데이터베이스 연결
+- **Jackson ObjectMapper** - Redis 직렬화 최적화
 
 ### 모니터링 및 관찰 가능성
 - **ELK 스택** - Elasticsearch, Logstash, Kibana로 로그 분석
