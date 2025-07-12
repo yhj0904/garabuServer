@@ -1,5 +1,6 @@
 package garabu.garabuServer.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class Book {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "owner_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @Schema(description = "가계부 소유 회원")
     private Member owner;      // 소유한 사용자의 식별자 Id
 

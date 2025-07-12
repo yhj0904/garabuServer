@@ -80,31 +80,34 @@ public class UserBookApiController {
 
     /* ───────────────────────── 가계부 공유 초대 ───────────────────────── */
     /**
+     * @deprecated 이메일 초대 방식은 사용하지 않습니다. 초대 코드 방식을 사용하세요.
+     * @see BookInviteApiController#createBookInviteCode
+     * 
      * 가계부에 새로운 사용자를 초대합니다.
      *
      * @param bookId 가계부 ID
      * @param request 초대 요청 정보
      * @return 초대 결과
      */
-    @PostMapping("/{bookId}/invite")
-    @Operation(
-            summary     = "가계부 공유 초대",
-            description = "이메일로 사용자를 가계부에 초대합니다. 소유자만 초대할 수 있습니다."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "초대 성공"),
-            @ApiResponse(responseCode = "404", description = "가계부 또는 사용자 없음"),
-            @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 초대 가능)"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 참여 중인 사용자 등)"),
-            @ApiResponse(responseCode = "401", description = "인증 실패")
-    })
-    public ResponseEntity<InviteResponse> inviteUser(
-            @PathVariable Long bookId,
-            @RequestBody @Valid InviteRequest request) {
-        
-        userBookService.inviteUser(bookId, request.getEmail(), request.getRole());
-        return ResponseEntity.ok(new InviteResponse("사용자가 성공적으로 초대되었습니다."));
-    }
+    // @PostMapping("/{bookId}/invite")
+    // @Operation(
+    //         summary     = "가계부 공유 초대",
+    //         description = "이메일로 사용자를 가계부에 초대합니다. 소유자만 초대할 수 있습니다."
+    // )
+    // @ApiResponses({
+    //         @ApiResponse(responseCode = "200", description = "초대 성공"),
+    //         @ApiResponse(responseCode = "404", description = "가계부 또는 사용자 없음"),
+    //         @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 초대 가능)"),
+    //         @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 참여 중인 사용자 등)"),
+    //         @ApiResponse(responseCode = "401", description = "인증 실패")
+    // })
+    // public ResponseEntity<InviteResponse> inviteUser(
+    //         @PathVariable Long bookId,
+    //         @RequestBody @Valid InviteRequest request) {
+    //     
+    //     userBookService.inviteUser(bookId, request.getEmail(), request.getRole());
+    //     return ResponseEntity.ok(new InviteResponse("사용자가 성공적으로 초대되었습니다."));
+    // }
 
     /* ───────────────────────── 가계부 멤버 제거 ───────────────────────── */
     /**

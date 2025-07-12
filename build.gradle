@@ -41,6 +41,7 @@ dependencies {
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 	implementation 'com.google.firebase:firebase-admin:9.4.3'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'com.mysql:mysql-connector-j'
 	implementation 'com.github.mwiede:jsch:0.2.16'
 	compileOnly 'org.projectlombok:lombok'

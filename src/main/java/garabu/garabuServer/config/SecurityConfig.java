@@ -97,7 +97,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/login", "/"
                                 ,"/api/v2/join"
-                                , "/join").permitAll()
+                                , "/join"
+                                , "/ws/**").permitAll()  // WebSocket 엔드포인트 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")  // ADMIN 권한 필요
                         .requestMatchers("/api/v2/**").hasAnyRole("USER", "ADMIN")  // USER 이상 권한 필요
                         .anyRequest().authenticated());
@@ -125,6 +126,7 @@ public class SecurityConfig {
                                         "http://localhost:4000",
                                         "http://192.0.0.2:8081",
                                         "http://localhost:8081",
+                                        "http://101.1.13.71:8081",
                                         "http://192.168.10.54:8081")
                         );
                         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));

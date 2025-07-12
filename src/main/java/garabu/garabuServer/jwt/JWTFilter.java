@@ -26,15 +26,36 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 헤더에서 access키에 담긴 토큰을 꺼냄
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        String requestUri = request.getRequestURI();
+        String accessToken = null;
+        
+        // WebSocket 연결인 경우 쿼리 파라미터에서 토큰 추출
+        if (requestUri.startsWith("/ws")) {
+            accessToken = request.getParameter("token");
+            if (accessToken == null) {
+                // SockJS fallback - 쿼리 파라미터에서 토큰 확인
+                String queryString = request.getQueryString();
+                if (queryString != null && queryString.contains("token=")) {
+                    String[] params = queryString.split("&");
+                    for (String param : params) {
+                        if (param.startsWith("token=")) {
+                            accessToken = param.substring(6); // "token=" 제거
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            // 일반 HTTP 요청인 경우 헤더에서 access키에 담긴 토큰을 꺼냄
+            String authHeader = request.getHeader("Authorization");
+            
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
+            accessToken = authHeader.substring(7); // "Bearer " 제거
         }
-
-        String accessToken = authHeader.substring(7); // "Bearer " 제거
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
@@ -71,8 +92,6 @@ public class JWTFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        String requestUri = request.getRequestURI();
-
         if (requestUri.matches("^\\/login(?:\\/.*)?$")) {
 
             filterChain.doFilter(request, response);

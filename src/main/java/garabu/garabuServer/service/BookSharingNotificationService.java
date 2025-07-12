@@ -247,6 +247,110 @@ public class BookSharingNotificationService {
     }
     
     /**
+     * 가계부 참가 요청 알림
+     * @param owner 가계부 소유자
+     * @param book 가계부
+     * @param requesterName 요청자 이름
+     */
+    public void sendJoinRequestNotification(Member owner, Book book, String requesterName) {
+        try {
+            String title = "새로운 가계부 참가 요청";
+            String body = String.format("%s님이 '%s' 가계부 참가를 요청했습니다.", 
+                requesterName, book.getTitle());
+            
+            // FCM 푸시 알림 발송
+            FcmSendRequestDTO fcmRequest = FcmSendRequestDTO.builder()
+                    .appId(APP_ID)
+                    .noticeTitle(title)
+                    .noticeBody(body)
+                    .noticeAction("join_request")
+                    .userId(owner.getEmail())
+                    .userNm(owner.getUsername())
+                    .pushUse("Y")
+                    .smsUse("N")
+                    .webUse("N")
+                    .sendUserList(owner.getEmail())
+                    .build();
+            
+            fcmSendService.sendPush(fcmRequest);
+            log.info("가계부 참가 요청 알림 발송 - owner: {}, book: {}, requester: {}", 
+                    owner.getEmail(), book.getTitle(), requesterName);
+            
+        } catch (Exception e) {
+            log.error("가계부 참가 요청 알림 발송 실패", e);
+        }
+    }
+    
+    /**
+     * 가계부 참가 수락 알림
+     * @param member 요청자
+     * @param book 가계부
+     * @param role 부여된 역할
+     */
+    public void sendJoinAcceptedNotification(Member member, Book book, BookRole role) {
+        try {
+            String roleDisplay = getRoleDisplayName(role);
+            String title = "가계부 참가 승인";
+            String body = String.format("'%s' 가계부에 %s로 참가가 승인되었습니다.", 
+                book.getTitle(), roleDisplay);
+            
+            // FCM 푸시 알림 발송
+            FcmSendRequestDTO fcmRequest = FcmSendRequestDTO.builder()
+                    .appId(APP_ID)
+                    .noticeTitle(title)
+                    .noticeBody(body)
+                    .noticeAction("join_accepted")
+                    .userId(member.getEmail())
+                    .userNm(member.getUsername())
+                    .pushUse("Y")
+                    .smsUse("N")
+                    .webUse("N")
+                    .sendUserList(member.getEmail())
+                    .build();
+            
+            fcmSendService.sendPush(fcmRequest);
+            log.info("가계부 참가 승인 알림 발송 - member: {}, book: {}, role: {}", 
+                    member.getEmail(), book.getTitle(), role);
+            
+        } catch (Exception e) {
+            log.error("가계부 참가 승인 알림 발송 실패", e);
+        }
+    }
+    
+    /**
+     * 가계부 참가 거절 알림
+     * @param member 요청자
+     * @param book 가계부
+     */
+    public void sendJoinRejectedNotification(Member member, Book book) {
+        try {
+            String title = "가계부 참가 거절";
+            String body = String.format("'%s' 가계부 참가 요청이 거절되었습니다.", book.getTitle());
+            
+            // FCM 푸시 알림 발송
+            FcmSendRequestDTO fcmRequest = FcmSendRequestDTO.builder()
+                    .appId(APP_ID)
+                    .noticeTitle(title)
+                    .noticeBody(body)
+                    .noticeAction("join_rejected")
+                    .userId(member.getEmail())
+                    .userNm(member.getUsername())
+                    .pushUse("Y")
+                    .smsUse("N")
+                    .webUse("N")
+                    .sendUserList(member.getEmail())
+                    .build();
+            
+            fcmSendService.sendPush(fcmRequest);
+            log.info("가계부 참가 거절 알림 발송 - member: {}, book: {}", 
+                    member.getEmail(), book.getTitle());
+            
+        } catch (Exception e) {
+            log.error("가계부 참가 거절 알림 발송 실패", e);
+        }
+    }
+
+    /**
      * 역할 표시명 반환
      */
     private String getRoleDisplayName(BookRole role) {
