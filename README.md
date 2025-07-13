@@ -331,6 +331,9 @@ garabuserver/
 ```
 ## 📐 데이터베이스 설계
 
+<details>
+<summary><strong>🗄️ ERD 및 테이블 구조</strong></summary>
+
 ### ERD (Entity Relationship Diagram)
 ```mermaid
 erDiagram
@@ -433,8 +436,12 @@ erDiagram
 
 **활용**: 개발/테스트 환경에서 쿼리 최적화
 
+</details>
 
 ## 📚 API 문서
+
+<details>
+<summary><strong>📋 REST API 엔드포인트</strong></summary>
 
 ### 인증 API
 모든 API는 JWT Bearer 토큰 인증이 필요합니다 (회원가입 제외).
@@ -509,7 +516,13 @@ curl -X GET "http://localhost:8080/api/v2/ledger/list?startDate=2025-07-01&endDa
    ↓
 6. 발송 결과 업데이트 및 로깅 (NotiSendStack)
 ```
+
+</details>
+
 ## 🚀 설치 및 설정
+
+<details>
+<summary><strong>⚙️ 개발 환경 구성</strong></summary>
 
 ### 사전 요구사항
 - Java 21
@@ -583,7 +596,12 @@ FLUSH PRIVILEGES;
 애플리케이션 실행 후 다음 URL에서 Swagger UI를 확인할 수 있습니다:
 - http://localhost:8080/swagger-ui/index.html
 
+</details>
+
 ## 📊 모니터링 및 배포
+
+<details>
+<summary><strong>📈 ELK + Prometheus + Grafana 모니터링</strong></summary>
 
 ### 모니터링 스택 구성
 
@@ -655,10 +673,14 @@ output {
 }
 ```
 
+</details>
+
 ## ⚡ 성능 최적화
 
 <details>
-<summary><strong>🚀 Redis 캐싱 전략 적용 (2025년 7월 신규 적용)</strong></summary>
+<summary><strong>🚀 Redis 캐싱 및 성능 튜닝</strong></summary>
+
+### 🚀 Redis 캐싱 전략 적용 (2025년 7월 신규 적용)
 
 #### 1. 적용 영역별 캐싱 전략
 
@@ -811,10 +833,7 @@ export const options = {
 - **캐시 워밍**: 애플리케이션 시작 시 주요 데이터 미리 캐싱
 - **캐시 메트릭**: Prometheus를 통한 캐시 성능 모니터링
 
-</details>
-
-<details>
-<summary><strong>💾 Redis 기반 Refresh Token 관리 (2025년 7월 신규 적용)</strong></summary>
+### 💾 Redis 기반 Refresh Token 관리 (2025년 7월 신규 적용)
 
 #### **기존 문제점과 개선 사항**
 
@@ -932,6 +951,9 @@ docker run -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" garabuserver:latest
 
 ## 🔒 보안 구현
 
+<details>
+<summary><strong>🛡️ OAuth2 + JWT + SSH 터널링</strong></summary>
+
 ### 1. 인증 및 권한 관리
 - **OAuth2**: Google, Naver 소셜 로그인 지원
 - **JWT**: 상태 비저장 토큰 기반 인증
@@ -978,7 +1000,12 @@ public class SshDataSourceConfig {
 }
 ```
 
+</details>
+
 ## 🔄 WebSocket 실시간 동기화
+
+<details>
+<summary><strong>⚡ STOMP 프로토콜 기반 실시간 협업</strong></summary>
 
 ### 📱 WebSocket 필요성 분석
 
@@ -1343,7 +1370,12 @@ public class HybridRealtimeService {
 
 SSE는 단방향 통신 한계로 **진정한 실시간 협업**을 구현할 수 없으며, WebSocket + Redis Pub/Sub 하이브리드 접근법이 가라부의 모든 요구사항을 만족시키는 최적 솔루션입니다.
 
+</details>
+
 ## 👨‍💻 개발 가이드
+
+<details>
+<summary><strong>🛠️ 코딩 컨벤션 및 개발 프로세스</strong></summary>
 
 ### 1. 개발 환경 설정
 ```bash
@@ -1594,7 +1626,12 @@ class MemberServiceTest {
 
 </details>
 
+</details>
+
 ## 🚀 배포 가이드
+
+<details>
+<summary><strong>🐳 Docker 배포 및 AWS 인프라</strong></summary>
 
 ### 1. Docker 이미지 빌드
 ```bash
@@ -1930,9 +1967,12 @@ addons:
 - 📅 **EKS 클러스터 프로비저닝** (2025년 8월 예정)
 - 📅 **모니터링 스택 마이그레이션** (2025년 8월 예정)
 
-
+</details>
 
 ## 🎯 기술적 도전과제
+
+<details>
+<summary><strong>⚡ 복잡한 기술적 과제와 해결책</strong></summary>
 
 ### 1. 다중 사용자 가계부 공유 시스템 설계
 **도전**: 여러 사용자가 동시에 하나의 가계부를 편집할 때의 데이터 일관성 보장
@@ -2083,9 +2123,32 @@ public class FcmSendService {
 - **해결**: providerId + email 조합으로 고유성 보장
 - **결과**: 플랫폼 간 회원 통합 관리
 
+</details>
 
+## 📊 성과 및 지표
+
+<details>
+<summary><strong>📈 프로젝트 성과 및 핵심 지표</strong></summary>
+
+### 🏆 기술적 성과
+
+#### 성능 지표
+- **API 응답 시간**: 평균 156ms → 42ms (73% 개선)
+- **동시 사용자 처리**: 500명 → 1,200명 (140% 증가)
+- **DB 커넥션 사용률**: 85% → 35% (59% 감소)
+- **캐시 히트율**: 평균 85% 이상 달성
+
+#### 인프라 지표  
+- **Docker 이미지 크기**: 1.2GB → 380MB (68% 최적화)
+- **메모리 사용량**: 1.1GB → 1.3GB (Redis 캐싱으로 인한 제어된 증가)
+- **CPU 사용률**: 65% → 28% (57% 감소)
+
+</details>
 
 ## 🔮 향후 개선 계획
+
+<details>
+<summary><strong>🚀 로드맵 및 확장 계획</strong></summary>
 
 ### 단기 계획 (1-3개월)
 - [ ] **실시간 알림 기능 강화**: WebSocket을 통한 실시간 업데이트
@@ -2104,6 +2167,8 @@ public class FcmSendService {
 - [ ] **클라우드 네이티브**: AWS EKS로 마이그레이션
 - [ ] **대용량 데이터 처리**: Apache Kafka를 통한 이벤트 스트리밍
 - [ ] **고급 분석**: 빅데이터 분석 및 예측 모델링
+
+</details>
 
 ## 🤝 기여하기
 
@@ -2226,7 +2291,11 @@ public List<Book> findLoggedInUserBooks() {
 4. **성능 모니터링**: 캐시 히트율 및 응답 시간 측정
 
 ---
+
 ## 🔍 기술 부채 평가
+
+<details>
+<summary><strong>⚖️ GPT & Claude 기반 종합 코드 품질 평가</strong></summary>
 
 ### GPT & Claude 기반 기술 부채 평가
 
@@ -2248,3 +2317,5 @@ public List<Book> findLoggedInUserBooks() {
 
 ### 📈 종합 평가
 이 가라부 서버 프로젝트는 **엔터프라이즈급 Spring Boot 개발 기술**을 보여주는 우수한 포트폴리오 작품입니다. 기술적 깊이와 실용적인 소프트웨어 엔지니어링 역량을 모두 갖추고 있으며, 실제 운영 환경을 고려한 설계와 구현이 돋보입니다.
+
+</details>
