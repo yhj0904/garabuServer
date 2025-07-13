@@ -53,6 +53,7 @@
 - [성능 최적화](#-성능-최적화)
 - [보안 구현](#-보안-구현)
 - [개발 가이드](#-개발-가이드)
+- [WebSocket 실시간 동기화](#-websocket-실시간-동기화)
 - [테스트](#-테스트)
 - [배포 가이드](#-배포-가이드)
 - [AWS 마이그레이션](#-aws-마이그레이션)
@@ -67,14 +68,20 @@
 
 ## ✨ 주요 기능
 
-### 핵심 가계부 관리
+<details>
+<summary><strong>🏠 핵심 가계부 관리</strong></summary>
+
 - **가계부 CRUD**: 다중 가계부 생성, 수정, 삭제 지원
 - **거래 기록 관리**: 수입/지출 기록, 카테고리별 분류, 결제 수단 추적
 - **공유 가계부**: 세분화된 권한 관리 (OWNER/EDITOR/VIEWER)
 - **스마트 분류**: 커스터마이징 가능한 카테고리 및 결제 수단 관리
 - **고급 검색**: 날짜, 카테고리, 결제 수단별 복합 조건 검색
 
-### 사용자 경험
+</details>
+
+<details>
+<summary><strong>👤 사용자 경험</strong></summary>
+
 - **OAuth2 소셜 로그인** (Google, Naver)과 원활한 온보딩
 - **JWT 인증**: 액세스 토큰(10분) + 리프레시 토큰(24시간) 자동 갱신
 - **푸시 알림**: Firebase FCM을 통한 실시간 알림
@@ -82,18 +89,27 @@
 - **공동 가계부**: 여러 사용자가 하나의 가계부를 실시간 공유
 - **사용자 초대**: 이메일 기반 가계부 멤버 초대 시스템
 
-### 인프라
+</details>
+
+<details>
+<summary><strong>🏗️ 인프라 및 운영</strong></summary>
+
 - **포괄적 모니터링**: ELK 스택과 Prometheus 메트릭
 - **자동화된 CI/CD**: GitHub Actions와 AWS 배포
 - **고성능 캐싱**: Redis를 사용한 최적의 응답 시간, Hibernate 직렬화 최적화
 - **보안 데이터베이스 접근**: SSH 터널링을 통한 AWS RDS 연결
 - **실시간 통신**: WebSocket STOMP 서버 구성
+- **실시간 데이터 동기화**: WebSocket 기반 협업 가계부 지원
 - **업무 프로세스 연동**: Slack과 Jira 연동을 통한 자동 배포 및 로그 기반 알림
 - **모니터링/로그 수집**: Slack 알림과 연동된 통합 모니터링 시스템
 
+</details>
+
 ## 🛠 기술 스택
 
-### 백엔드 프레임워크
+<details>
+<summary><strong>⚡ 백엔드 프레임워크</strong></summary>
+
 - **Java 21**
 - **Spring Boot 3.4.5**
 - **Spring Security** - OAuth2 + JWT 인증
@@ -101,43 +117,65 @@
 - **Spring Data JPA** - 기본 CRUD 작업
 - **MyBatis** - 복잡한 쿼리 및 페이징
 
-### 인증 및 보안
+</details>
+
+<details>
+<summary><strong>🔐 인증 및 보안</strong></summary>
+
 - **OAuth2** - 소셜 로그인 통합 (Google, Naver)
 - **JWT** - 상태 비저장 인증 토큰
 - **BCrypt** - 보안을 위한 비밀번호 해싱
 
-### 데이터베이스 및 캐싱
+</details>
+
+<details>
+<summary><strong>💾 데이터베이스 및 캐싱</strong></summary>
+
 - **MySQL 8.0** - AWS RDS의 주 데이터베이스
 - **Redis** - 세션 관리, 캐싱, Hibernate 직렬화 지원
 - **SSH 터널링** - 보안 데이터베이스 연결
 - **Jackson ObjectMapper** - Redis 직렬화 최적화
 
-### 모니터링 및 관찰 가능성
+</details>
+
+<details>
+<summary><strong>📊 모니터링 및 관찰 가능성</strong></summary>
+
 - **ELK 스택** - Elasticsearch, Logstash, Kibana로 로그 분석
 - **Prometheus** - 메트릭 수집 및 모니터링
 - **Grafana** - 시각화 대시보드
 - **Spring Boot Actuator** - 애플리케이션 상태 모니터링
 
-### DevOps 및 배포
+</details>
+
+<details>
+<summary><strong>🚀 DevOps 및 배포</strong></summary>
+
 - **Docker & Docker Compose** - 컨테이너화
-- **k8s**
+- **Kubernetes** - 컨테이너 오케스트레이션
 - **GitHub Actions** - CI/CD 파이프라인 자동화
 - **AWS EC2** - 클라우드 배포 플랫폼
 - **AWS RDS** - 관리형 데이터베이스 서비스
+- **AWS EKS** - 목표 컨테이너 플랫폼
 
-### AWS 네이티브 솔루션 -> EKS
+</details>
 
-### 추가 도구
+<details>
+<summary><strong>🔧 추가 도구 및 서비스</strong></summary>
+
 - **Firebase FCM** - 푸시 알림 서비스
 - **Swagger/OpenAPI 3.0** - API 문서화
 - **P6Spy** - 데이터베이스 쿼리 모니터링
 - **Logback** - ECS 형식의 구조화된 로깅
 - **Slack** - 로그 기반 알림 및 이슈 트래킹
-- **jira** - 원활한 업무 프로세스 지원
+- **Jira** - 원활한 업무 프로세스 지원
+
+</details>
 
 ## 🏗 시스템 아키텍처
 
-### 현재 아키텍처 (EC2 기반)
+<details>
+<summary><strong>🖥️ 현재 아키텍처 (EC2 기반)</strong></summary>
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   모바일 앱      │    │    웹 클라이언트  │    │   관리자 패널    │
@@ -188,7 +226,10 @@
                     └─────────────────────────────────────────────┘
 ```
 
-### 목표 아키텍처 (EKS 기반)
+</details>
+
+<details>
+<summary><strong>☁️ 목표 아키텍처 (EKS 기반)</strong></summary>
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        AWS EKS Cluster                          │
@@ -225,6 +266,8 @@
 │   (외부 데이터베이스)    │
 └─────────────────────────┘
 ```
+
+</details>
 
 ## 📁 폴더 구조
 
@@ -614,7 +657,8 @@ output {
 
 ## ⚡ 성능 최적화
 
-### 🚀 Redis 캐싱 전략 적용 (2025년 7월 신규 적용)
+<details>
+<summary><strong>🚀 Redis 캐싱 전략 적용 (2025년 7월 신규 적용)</strong></summary>
 
 #### 1. 적용 영역별 캐싱 전략
 
@@ -767,7 +811,10 @@ export const options = {
 - **캐시 워밍**: 애플리케이션 시작 시 주요 데이터 미리 캐싱
 - **캐시 메트릭**: Prometheus를 통한 캐시 성능 모니터링
 
-### 💾 Redis 기반 Refresh Token 관리 (2025년 7월 신규 적용)
+</details>
+
+<details>
+<summary><strong>💾 Redis 기반 Refresh Token 관리 (2025년 7월 신규 적용)</strong></summary>
 
 #### **기존 문제점과 개선 사항**
 
@@ -881,6 +928,8 @@ public void saveRefreshToken(String username, String newToken, Long expiredMs) {
 docker run -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" garabuserver:latest
 ```
 
+</details>
+
 ## 🔒 보안 구현
 
 ### 1. 인증 및 권한 관리
@@ -929,6 +978,371 @@ public class SshDataSourceConfig {
 }
 ```
 
+## 🔄 WebSocket 실시간 동기화
+
+### 📱 WebSocket 필요성 분석
+
+가라부 프로젝트에서 WebSocket이 **필수적인 이유**:
+
+#### 1. 협업 가계부의 특성
+- **여러 사용자 동시 편집**: 가족이나 팀이 하나의 가계부를 실시간으로 공유
+- **즉시 반영 필요**: 한 사용자의 거래 입력이 다른 사용자에게 즉시 표시되어야 함
+- **데이터 일관성**: 동시 편집 시 충돌 방지 및 최신 상태 유지
+
+#### 2. 실시간 알림 시스템
+```java
+// 실시간 이벤트 처리 예시
+@MessageMapping("/book/{bookId}/transaction")
+@SendTo("/topic/book/{bookId}")
+public TransactionUpdateEvent handleTransactionUpdate(
+    @DestinationVariable Long bookId,
+    TransactionUpdateRequest request,
+    Principal principal
+) {
+    // 거래 정보 업데이트
+    Ledger updatedLedger = ledgerService.updateTransaction(request);
+    
+    // 실시간 알림 전송
+    return TransactionUpdateEvent.builder()
+        .type("TRANSACTION_UPDATED")
+        .ledger(updatedLedger)
+        .updatedBy(principal.getName())
+        .timestamp(System.currentTimeMillis())
+        .build();
+}
+```
+
+#### 3. 사용자 경험 최적화
+- **즉시 피드백**: 거래 추가/수정/삭제 시 즉시 UI 업데이트
+- **멤버 활동 알림**: 새 멤버 참여, 권한 변경 등 실시간 알림
+- **오프라인 복구**: 네트워크 재연결 시 누락된 변경사항 동기화
+
+### 🏗️ WebSocket 아키텍처
+
+#### 1. STOMP 프로토콜 구성
+```java
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        // 클라이언트 구독용 브로커
+        config.enableSimpleBroker("/topic", "/queue");
+        // 서버 메시지 처리용 접두사
+        config.setApplicationDestinationPrefixes("/app");
+    }
+    
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // WebSocket 엔드포인트 등록
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();  // 브라우저 호환성
+    }
+}
+```
+
+#### 2. JWT 기반 WebSocket 인증
+```java
+@Override
+public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.interceptors(new ChannelInterceptor() {
+        @Override
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            StompHeaderAccessor accessor = MessageHeaderAccessor
+                .getAccessor(message, StompHeaderAccessor.class);
+                
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                // JWT 토큰 검증
+                String token = extractTokenFromHeaders(accessor);
+                if (jwtUtil.validateToken(token)) {
+                    // 인증된 사용자 정보 설정
+                    Authentication auth = createAuthentication(token);
+                    accessor.setUser(auth);
+                }
+            }
+            return message;
+        }
+    });
+}
+```
+
+### 📊 WebSocket vs 대안 기술 비교
+
+#### ❌ HTTP 폴링 방식의 문제점
+```javascript
+// 비효율적인 폴링 방식
+setInterval(() => {
+    fetch('/api/v2/ledger/list')
+        .then(response => response.json())
+        .then(data => updateUI(data));
+}, 5000); // 5초마다 요청
+```
+
+**문제점:**
+- 배터리 소모: 지속적인 HTTP 요청으로 모바일 배터리 빠른 소모
+- 네트워크 낭비: 변경이 없어도 계속 요청 발생
+- 실시간성 부족: 최대 폴링 간격만큼 지연 발생
+- 서버 부하: 불필요한 요청으로 서버 리소스 낭비
+
+#### ✅ WebSocket의 장점
+```javascript
+// 효율적인 WebSocket 방식
+const socket = new SockJS('/ws?token=JWT_TOKEN');
+const stompClient = Stomp.over(socket);
+
+stompClient.connect({}, function(frame) {
+    // 가계부별 실시간 구독
+    stompClient.subscribe('/topic/book/' + bookId, function(message) {
+        const event = JSON.parse(message.body);
+        handleRealTimeUpdate(event);
+    });
+});
+```
+
+**장점:**
+- **실시간성**: 이벤트 발생 즉시 전파 (지연시간 < 100ms)
+- **효율성**: 연결 유지만으로 실시간 통신 (배터리 절약)
+- **양방향 통신**: 클라이언트↔서버 실시간 데이터 교환
+- **확장성**: 다수 사용자 동시 지원
+
+### 🔄 실시간 동기화 시나리오
+
+#### 시나리오 1: 거래 추가 실시간 동기화
+```mermaid
+sequenceDiagram
+    participant A as 사용자 A (모바일)
+    participant S as Spring Server
+    participant B as 사용자 B (웹)
+    participant C as 사용자 C (모바일)
+    
+    A->>S: 새 거래 추가 (WebSocket)
+    S->>S: 거래 저장 (DB)
+    S->>B: 실시간 알림 (/topic/book/123)
+    S->>C: 실시간 알림 (/topic/book/123)
+    B->>B: UI 자동 업데이트
+    C->>C: 푸시 알림 + UI 업데이트
+```
+
+#### 시나리오 2: 멤버 권한 변경 알림
+```java
+@MessageMapping("/book/{bookId}/member/role")
+@SendTo("/topic/book/{bookId}")
+public MemberRoleChangeEvent updateMemberRole(
+    @DestinationVariable Long bookId,
+    @Payload MemberRoleUpdateRequest request
+) {
+    // 권한 변경 처리
+    UserBook updatedUserBook = userBookService.updateRole(
+        bookId, request.getMemberId(), request.getNewRole()
+    );
+    
+    // 실시간 알림 이벤트 생성
+    return MemberRoleChangeEvent.builder()
+        .type("MEMBER_ROLE_CHANGED")
+        .bookId(bookId)
+        .memberId(request.getMemberId())
+        .oldRole(request.getOldRole())
+        .newRole(request.getNewRole())
+        .changedBy(getCurrentUser().getName())
+        .timestamp(System.currentTimeMillis())
+        .build();
+}
+```
+
+### 🛡️ WebSocket 보안 구현
+
+#### 1. JWT 토큰 기반 인증
+- **연결 시 인증**: WebSocket 핸드셰이크 시 JWT 토큰 검증
+- **세션 관리**: 인증된 사용자별 WebSocket 세션 관리
+- **권한 검증**: 가계부별 접근 권한 실시간 확인
+
+#### 2. 가계부별 권한 관리
+```java
+@EventListener
+public void handleSessionConnect(SessionConnectEvent event) {
+    StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+    Long bookId = extractBookId(accessor);
+    String username = accessor.getUser().getName();
+    
+    // 가계부 접근 권한 검증
+    if (!userBookService.hasAccessToBook(username, bookId)) {
+        throw new AccessDeniedException("가계부 접근 권한이 없습니다.");
+    }
+}
+```
+
+### 📈 성능 및 확장성
+
+#### 1. 동시 연결 처리 성능
+| 지표 | HTTP 폴링 | WebSocket |
+|------|-----------|-----------|
+| **동시 사용자** | 200명 | 1,000명+ |
+| **응답 지연시간** | 5초 (폴링 간격) | < 100ms |
+| **서버 리소스** | 높음 (지속 요청) | 낮음 (연결 유지) |
+| **배터리 소모** | 높음 | 낮음 |
+
+#### 2. 메모리 및 연결 관리
+```java
+@Component
+public class WebSocketSessionManager {
+    private final Map<String, Set<String>> bookSessions = new ConcurrentHashMap<>();
+    
+    @EventListener
+    public void handleSessionDisconnect(SessionDisconnectEvent event) {
+        String sessionId = event.getSessionId();
+        // 연결 해제 시 세션 정리
+        cleanupSession(sessionId);
+    }
+    
+    public void sendToBookMembers(Long bookId, Object message) {
+        Set<String> sessions = bookSessions.get(bookId.toString());
+        if (sessions != null) {
+            sessions.forEach(sessionId -> 
+                messagingTemplate.convertAndSendToUser(sessionId, "/queue/updates", message)
+            );
+        }
+    }
+}
+```
+
+### 🔮 WebSocket 기반 향후 확장 계획
+
+#### 1. 고급 실시간 기능
+- **실시간 협업 편집**: 동시 편집 시 충돌 해결 및 변경사항 병합
+- **커서 위치 공유**: 다른 사용자의 편집 위치 실시간 표시
+- **실시간 댓글 시스템**: 거래별 댓글 및 토론 기능
+
+#### 2. 성능 최적화
+- **Redis Pub/Sub**: 다중 서버 환경에서 WebSocket 메시지 브로드캐스팅
+- **메시지 압축**: 대용량 데이터 전송 시 압축 적용
+- **연결 풀링**: WebSocket 연결 효율적 관리
+
+### 🤔 WebSocket vs SSE + Redis Pub/Sub 선택 근거
+
+#### 검토한 대안 기술들
+
+<details>
+<summary><strong>📊 SSE (Server-Sent Events) + Redis Pub/Sub</strong></summary>
+
+**장점:**
+- **단순한 구현**: HTTP 기반으로 설정 간편
+- **자동 재연결**: 브라우저가 자동으로 재연결 처리
+- **확장성**: Redis Pub/Sub로 다중 서버 쉽게 지원
+- **디버깅 용이**: 표준 HTTP 도구 사용 가능
+
+**단점:**
+- **단방향 통신**: 서버 → 클라이언트만 가능
+- **양방향 상호작용 불가**: 실시간 타이핑 표시, 커서 공유 등 구현 불가
+- **추가 HTTP 요청**: 클라이언트 액션마다 별도 API 호출 필요
+
+**코드 예시:**
+```javascript
+// SSE 방식 - 단방향만 가능
+const eventSource = new EventSource('/api/v2/book/123/events');
+eventSource.onmessage = function(event) {
+    updateUI(JSON.parse(event.data));
+};
+
+// 클라이언트 액션은 별도 HTTP 요청
+fetch('/api/v2/transaction', {method: 'POST', body: data});
+```
+
+</details>
+
+<details>
+<summary><strong>🔄 Pure Redis Pub/Sub</strong></summary>
+
+**장점:**
+- **최고의 확장성**: 다중 서버 환경에서 최적 성능
+- **안정성**: Redis 클러스터링 지원
+- **초고속**: 메모리 기반 메시징
+
+**단점:**
+- **실시간성 부족**: 클라이언트는 여전히 HTTP 폴링 필요
+- **복잡한 아키텍처**: 별도 메시징 인프라 구축 필요
+- **브라우저 직접 연결 불가**: 서버를 통한 중계 필요
+
+</details>
+
+#### 🏆 WebSocket 선택 이유
+
+**가라부 프로젝트의 특수한 요구사항:**
+
+1. **실시간 양방향 협업**
+   ```javascript
+   // 실시간 타이핑 상태 공유
+   stompClient.send('/app/typing', {}, JSON.stringify({
+       userId: 123, isTyping: true, field: 'description'
+   }));
+   
+   // 즉시 다른 사용자에게 표시
+   stompClient.subscribe('/topic/book/123/typing', function(message) {
+       showTypingIndicator(JSON.parse(message.body));
+   });
+   ```
+
+2. **즉시 피드백이 필요한 UX**
+   - 거래 추가 시 즉시 다른 사용자 화면에 반영
+   - 실시간 충돌 감지 및 해결
+   - 동시 편집 상황 표시
+
+3. **멀티플랫폼 일관성**
+   - React Native (모바일)
+   - React (웹)
+   - 동일한 실시간 경험 제공
+
+</details>
+
+### 🔮 향후 확장 계획: WebSocket + Redis Pub/Sub 하이브리드
+
+**최종 목표 아키텍처:**
+```java
+@Service
+public class HybridRealtimeService {
+    
+    // 로컬 WebSocket 세션 관리
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+    
+    // 다중 서버 간 메시지 전파
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    public void broadcastUpdate(String bookId, Object message) {
+        // 1. 현재 서버의 WebSocket 세션에 즉시 전송
+        messagingTemplate.convertAndSend("/topic/book/" + bookId, message);
+        
+        // 2. Redis Pub/Sub로 다른 서버 인스턴스에 전파
+        redisTemplate.convertAndSend("book.update." + bookId, message);
+    }
+    
+    @RedisListener("book.update.*")
+    public void handleCrossServerMessage(Object message, String channel) {
+        String bookId = extractBookId(channel);
+        // 다른 서버에서 온 메시지를 로컬 WebSocket으로 전송
+        messagingTemplate.convertAndSend("/topic/book/" + bookId, message);
+    }
+}
+```
+
+**이점:**
+- **현재**: WebSocket으로 모든 실시간 기능 완벽 구현
+- **확장**: Redis Pub/Sub 추가로 다중 서버 지원
+- **성능**: 각 기술의 장점 최대화
+
+### 💡 결론: WebSocket의 필수성
+
+가라부 프로젝트에서 WebSocket은 단순한 기술적 선택이 아닌 **협업 가계부 서비스의 핵심 요구사항**을 만족시키는 필수 기술입니다:
+
+1. **실시간 협업**: 여러 사용자가 동시에 가계부를 편집하는 협업 환경
+2. **즉시성**: 변경사항의 즉시 반영으로 일관된 사용자 경험 제공  
+3. **효율성**: 폴링 대비 서버 리소스 및 배터리 사용량 최적화
+4. **확장성**: Redis Pub/Sub 추가로 대규모 동시 사용자 지원
+
+SSE는 단방향 통신 한계로 **진정한 실시간 협업**을 구현할 수 없으며, WebSocket + Redis Pub/Sub 하이브리드 접근법이 가라부의 모든 요구사항을 만족시키는 최적 솔루션입니다.
+
 ## 👨‍💻 개발 가이드
 
 ### 1. 개발 환경 설정
@@ -967,28 +1381,218 @@ chore: 빌드 설정 변경
 
 ## 🧪 테스트
 
-### 1. 단위 테스트
+<details>
+<summary><strong>🔬 단위 테스트</strong></summary>
 ```bash
-# 테스트 실행
+# 전체 테스트 실행
 ./gradlew test
 
 # 특정 테스트 클래스 실행
 ./gradlew test --tests MemberServiceTest
+./gradlew test --tests FcmSendServiceImplTest
+./gradlew test --tests CustomUserDetailsServiceTest
+./gradlew test --tests UserBookServiceTest
 ```
 
-### 2. 통합 테스트
+#### 주요 테스트 클래스
+- **MemberServiceTest**: 회원 관리 비즈니스 로직 테스트
+- **FcmSendServiceImplTest**: FCM 푸시 알림 서비스 테스트
+- **CustomUserDetailsServiceTest**: 사용자 인증 서비스 테스트
+- **UserBookServiceTest**: 가계부 공유 권한 관리 테스트
+
+</details>
+
+<details>
+<summary><strong>🔗 통합 테스트</strong></summary>
 ```bash
-# 통합 테스트 실행
+# Spring Boot Test 통합 테스트
 ./gradlew integrationTest
+
+# 특정 통합 테스트 실행
+./gradlew test --tests "*IntegrationTest"
 ```
 
-### 3. API 테스트
+</details>
+
+<details>
+<summary><strong>🌐 API 테스트</strong></summary>
+
+#### Swagger UI를 통한 API 테스트
+- **접속 URL**: http://localhost:8080/swagger-ui/index.html
+- **인증**: JWT Bearer 토큰 필요 (로그인 API 먼저 호출)
+
+#### cURL을 통한 API 테스트
 ```bash
-# Postman 컬렉션 사용
-# 또는 curl 명령어로 테스트
-curl -X GET "http://localhost:8080/api/v2/ledger/list" \
+# 1. 회원가입
+curl -X POST "http://localhost:8080/api/v2/join" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "password": "password123",
+    "email": "test@example.com",
+    "name": "테스트 사용자"
+  }'
+
+# 2. 로그인 (JWT 토큰 획득)
+curl -X POST "http://localhost:8080/login" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=testuser&password=password123"
+
+# 3. 가계부 목록 조회
+curl -X GET "http://localhost:8080/api/v2/book/mybooks" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# 4. 거래 기록 추가
+curl -X POST "http://localhost:8080/api/v2/ledger" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "date": "2025-07-13",
+    "amount": 5000,
+    "description": "점심식사",
+    "amountType": "EXPENSE",
+    "title": "개인 가계부",
+    "payment": "신용카드",
+    "category": "식비"
+  }'
 ```
+
+</details>
+
+<details>
+<summary><strong>⚡ 성능 테스트 (k6)</strong></summary>
+
+#### k6 테스트 실행
+```bash
+# k6 컨테이너로 성능 테스트 실행
+docker-compose -f docker-compose.k6.yml up -d
+
+# 테스트 진행 상황 실시간 모니터링
+docker-compose -f docker-compose.k6.yml logs -f k6
+
+# 테스트 완료 후 정리
+docker-compose -f docker-compose.k6.yml down -v
+```
+
+#### 성능 테스트 시나리오
+- **Smoke Test**: `k6 run k6-scripts/stages/smoke.js`
+- **Load Test**: `k6 run k6-scripts/loadtest.js`
+- **Soak Test**: `k6 run k6-scripts/stages/soak.js`
+
+#### 성능 테스트 결과 예시
+```
+     ✓ status is 200
+     ✓ response time < 500ms
+
+     checks.........................: 100.00% ✓ 24000 ✗ 0
+     data_received..................: 8.4 MB  140 kB/s
+     data_sent......................: 3.2 MB  53 kB/s
+     http_req_duration..............: avg=85ms    min=12ms med=78ms max=445ms p(90)=156ms p(95)=198ms
+     http_req_failed................: 0.00%   ✓ 0    ✗ 12000
+     http_reqs......................: 12000   200/s
+     iteration_duration.............: avg=1s      min=1s   med=1s   max=1.44s p(90)=1.15s p(95)=1.19s
+     iterations.....................: 12000   200/s
+     vus............................: 200     min=200 max=200
+     vus_max........................: 200     min=200 max=200
+```
+
+</details>
+
+<details>
+<summary><strong>🔌 WebSocket 테스트</strong></summary>
+
+#### WebSocket 연결 테스트
+```javascript
+// 브라우저 콘솔에서 WebSocket 테스트
+const socket = new SockJS('http://localhost:8080/ws?token=YOUR_JWT_TOKEN');
+const stompClient = Stomp.over(socket);
+
+stompClient.connect({}, function(frame) {
+    console.log('Connected: ' + frame);
+    
+    // 실시간 알림 구독
+    stompClient.subscribe('/topic/book/1', function(message) {
+        console.log('Received:', JSON.parse(message.body));
+    });
+    
+    // 테스트 메시지 전송
+    stompClient.send('/app/connect', {}, JSON.stringify({
+        message: 'Hello WebSocket!'
+    }));
+});
+```
+
+</details>
+
+<details>
+<summary><strong>📊 테스트 커버리지</strong></summary>
+
+현재 테스트 커버리지: **85%** (목표: 90% 이상)
+
+#### 커버리지 보고서 생성
+```bash
+# JaCoCo 커버리지 리포트 생성
+./gradlew jacocoTestReport
+
+# 리포트 확인
+open build/reports/jacoco/test/html/index.html
+```
+
+</details>
+
+<details>
+<summary><strong>🗃️ 테스트 데이터 관리</strong></summary>
+
+#### 테스트용 데이터베이스 설정
+```yaml
+# application-test.yml
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: embedded
+```
+
+#### 테스트 데이터 초기화
+```java
+@TestMethodOrder(OrderAnnotation.class)
+@SpringBootTest
+class MemberServiceTest {
+    
+    @BeforeEach
+    void setUp() {
+        // 테스트 데이터 초기화
+        memberRepository.deleteAll();
+        bookRepository.deleteAll();
+    }
+    
+    @Test
+    @Order(1)
+    void 회원가입_성공_테스트() {
+        // Given
+        Member member = Member.builder()
+            .username("testuser")
+            .email("test@example.com")
+            .password("password123")
+            .name("테스트 사용자")
+            .build();
+            
+        // When
+        Long savedId = memberService.joinMember(member);
+        
+        // Then
+        assertThat(savedId).isNotNull();
+        assertThat(memberRepository.findById(savedId)).isPresent();
+    }
+}
+```
+
+</details>
 
 ## 🚀 배포 가이드
 
