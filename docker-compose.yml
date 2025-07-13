@@ -5,6 +5,8 @@ networks:
 secrets:
   slack_webhook:
     file: ./secrets/slack-webhook.txt
+  ec2_private_key:
+    file: ./secrets/AWSGarabu.pem
 
 volumes:
   elasticsearch_data:
@@ -189,6 +191,8 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+    env_file:
+      - ./spring-app.env
     environment:
       # Spring Boot 프로파일 설정
       - SPRING_PROFILES_ACTIVE=docker
@@ -207,18 +211,19 @@ services:
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
       # EC2 SSH 터널 설정
-      - EC2_REMOTE_JUMP_HOST=54.208.24.49
-      - EC2_SSH_PORT=22
-      - EC2_USER=ec2-user
-      - EC2_PRIVATE_KEY_PATH=/opt/keys/AWSGarabu.pem
-      - EC2_DATABASE_ENDPOINT=rdsgarabu.ccd6gqgqm5kj.us-east-1.rds.amazonaws.com
-      - EC2_DATABASE_PORT=3306
+      - EC2_REMOTE_JUMP_HOST=${EC2_REMOTE_JUMP_HOST}
+      - EC2_SSH_PORT=${EC2_SSH_PORT:-22}
+      - EC2_USER=${EC2_USER}
+      - EC2_PRIVATE_KEY_PATH=/run/secrets/ec2_private_key
+      - EC2_DATABASE_ENDPOINT=${EC2_DATABASE_ENDPOINT}
+      - EC2_DATABASE_PORT=${EC2_DATABASE_PORT:-3306}
+    secrets:
+      - ec2_private_key
     volumes:
       # 애플리케이션 로그를 공유 볼륨에 저장
       - app_logs:/app/logs
       # 설정 파일 마운트
       - ./config:/app/config
-      - /Users/yoonhyungjoo/Documents/keys/AWSgarabu.pem:/opt/keys/AWSGarabu.pem
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
