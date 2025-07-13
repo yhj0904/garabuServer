@@ -7,6 +7,7 @@ import garabu.garabuServer.jwt.LoginFilter;
 import garabu.garabuServer.oauth2.CustomSuccessHandler;
 import garabu.garabuServer.service.CustomOAuth2UserService;
 import garabu.garabuServer.service.RefreshTokenService;
+import garabu.garabuServer.service.BlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +30,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSecurity
@@ -39,14 +41,21 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final CustomSuccessHandler customSuccessHandler;
+    private final BlacklistService blacklistService;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, RefreshTokenService refreshTokenService,CustomOAuth2UserService customOAuth2UserService, CustomSuccessHandler customSuccessHandler) {
-
-        this.authenticationConfiguration = authenticationConfiguration;
-        this.jwtUtil = jwtUtil;
-        this.refreshTokenService = refreshTokenService;
+    @Autowired
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
+                         CustomSuccessHandler customSuccessHandler,
+                         JWTUtil jwtUtil,
+                         RefreshTokenService refreshTokenService,
+                         BlacklistService blacklistService,
+                         AuthenticationConfiguration authenticationConfiguration) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customSuccessHandler = customSuccessHandler;
+        this.jwtUtil = jwtUtil;
+        this.refreshTokenService = refreshTokenService;
+        this.blacklistService = blacklistService;
+        this.authenticationConfiguration = authenticationConfiguration;
     }
 
     @Bean
@@ -85,10 +94,10 @@ public class SecurityConfig {
                         .successHandler(customSuccessHandler)
                 );
         http
-                .addFilterAfter(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class);
+                .addFilterAfter(new JWTFilter(jwtUtil, blacklistService), OAuth2LoginAuthenticationFilter.class);
 
         http
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshTokenService), LogoutFilter.class);
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshTokenService, blacklistService), LogoutFilter.class);
 
         http
                 .authorizeHttpRequests((auth) -> auth
@@ -105,7 +114,7 @@ public class SecurityConfig {
 
         //JWTFilter 등록
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+                .addFilterBefore(new JWTFilter(jwtUtil, blacklistService), LoginFilter.class);
 
         http
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenService), UsernamePasswordAuthenticationFilter.class);
@@ -134,8 +143,7 @@ public class SecurityConfig {
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
                         configuration.setMaxAge(3600L);
 
-                        configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-                        configuration.setExposedHeaders(Arrays.asList("Authorization", "access"));
+                        configuration.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization", "access", "refresh"));
 
                         return configuration;
                     }

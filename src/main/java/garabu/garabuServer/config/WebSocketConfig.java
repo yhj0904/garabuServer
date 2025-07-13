@@ -1,8 +1,10 @@
 package garabu.garabuServer.config;
 
 import garabu.garabuServer.jwt.JWTUtil;
+import garabu.garabuServer.jwt.JWTConstants;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.service.BlacklistService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JWTUtil jwtUtil;
+    private final BlacklistService blacklistService;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -74,7 +77,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             // Validate token
                             if (!jwtUtil.isExpired(token)) {
                                 String category = jwtUtil.getCategory(token);
-                                if ("access".equals(category)) {
+                                if (JWTConstants.ACCESS_TOKEN_CATEGORY.equals(category)) {
+                                    // 블랙리스트 체크
+                                    String jti = jwtUtil.getJti(token);
+                                    if (blacklistService.isBlacklisted(jti)) {
+                                        log.warn("Blacklisted token attempted to connect via WebSocket");
+                                        throw new RuntimeException("Blacklisted token");
+                                    }
+                                    
                                     String username = jwtUtil.getUsername(token);
                                     String role = jwtUtil.getRole(token);
                                     

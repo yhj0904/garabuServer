@@ -1,6 +1,7 @@
 package garabu.garabuServer.oauth2;
 
 import garabu.garabuServer.dto.CustomOAuth2User;
+import garabu.garabuServer.jwt.JWTConstants;
 import garabu.garabuServer.jwt.JWTUtil;
 import garabu.garabuServer.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
@@ -20,6 +21,7 @@ import java.util.Iterator;
 
 @Component
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
     private final RefreshTokenService refreshTokenService;
     private final JWTUtil jwtUtil;
 
@@ -42,11 +44,15 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String access = jwtUtil.createJwt("access", username, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+        //토큰 생성 (jti 포함)
+        String access = jwtUtil.createJwt(JWTConstants.ACCESS_TOKEN_CATEGORY, username, role, JWTConstants.ACCESS_TOKEN_EXPIRE_TIME);
+        String refresh = jwtUtil.createJwt(JWTConstants.REFRESH_TOKEN_CATEGORY, username, role, JWTConstants.REFRESH_TOKEN_EXPIRE_TIME);
+        
+        // JTI 추출
+        String refreshJti = jwtUtil.getJti(refresh);
 
         //Refresh 토큰 저장 (Redis)
-        refreshTokenService.saveRefreshToken(username, refresh, 86400000L);
+        refreshTokenService.saveRefreshToken(username, refresh, refreshJti, JWTConstants.REFRESH_TOKEN_EXPIRE_TIME);
 
         //응답 설정
         response.setHeader("access", access);
@@ -59,7 +65,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60*60*60);
+        cookie.setMaxAge(60*24*60*60); // 60일
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);

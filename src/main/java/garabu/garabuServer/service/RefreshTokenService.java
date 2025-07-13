@@ -1,23 +1,23 @@
 package garabu.garabuServer.service;
 
+import garabu.garabuServer.jwt.JWTConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Redis 기반 Refresh Token 관리 서비스
  * 
- * 기존 RDB 기반 저장 방식에서 Redis 기반으로 성능 최적화
- * - 자동 만료 기능 (TTL)
- * - 빠른 조회/삭제 성능
- * - 메모리 기반 저장으로 DB 부하 감소
+ * 토큰 로테이션, 재사용 감지, 사용자당 토큰 수 제한 기능 포함
  * 
  * @author yhj
- * @version 2.0
+ * @version 3.0
  */
 @Service
 @RequiredArgsConstructor
@@ -26,39 +26,106 @@ public class RefreshTokenService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     
-    private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
-    private static final String USERNAME_TOKEN_PREFIX = "user_tokens:";
+    private static final String REFRESH_TOKEN_PREFIX = JWTConstants.REFRESH_TOKEN_PREFIX;
+    private static final String USERNAME_TOKEN_PREFIX = JWTConstants.USERNAME_TOKEN_PREFIX;
+    private static final String TOKEN_FAMILY_PREFIX = JWTConstants.TOKEN_FAMILY_PREFIX;
     
     /**
-     * Refresh Token을 Redis에 저장
+     * Refresh Token을 Redis에 저장 (토큰 로테이션 지원)
      * 
      * @param username 사용자명
      * @param refreshToken 리프레시 토큰
+     * @param jti JWT ID
      * @param expiredMs 만료 시간 (밀리초)
+     * @return 저장 성공 여부
      */
-    public void saveRefreshToken(String username, String refreshToken, Long expiredMs) {
+    public boolean saveRefreshToken(String username, String refreshToken, String jti, Long expiredMs) {
         try {
             String tokenKey = REFRESH_TOKEN_PREFIX + refreshToken;
             String userKey = USERNAME_TOKEN_PREFIX + username;
             
-            // 1. 토큰 -> 사용자 매핑 저장 (토큰으로 사용자 조회용)
-            redisTemplate.opsForValue().set(tokenKey, username, expiredMs, TimeUnit.MILLISECONDS);
+            // 토큰 정보 객체 생성
+            Map<String, Object> tokenInfo = new HashMap<>();
+            tokenInfo.put("username", username);
+            tokenInfo.put("jti", jti);
+            tokenInfo.put("issuedAt", System.currentTimeMillis());
+            tokenInfo.put("lastUsed", System.currentTimeMillis());
             
-            // 2. 사용자 -> 토큰 매핑 저장 (기존 토큰 삭제용)
-            // 사용자별로 하나의 토큰만 유지
-            String oldToken = (String) redisTemplate.opsForValue().getAndSet(userKey, refreshToken);
-            redisTemplate.expire(userKey, Duration.ofMillis(expiredMs));
+            // 1. 토큰 -> 사용자 정보 매핑 저장
+            redisTemplate.opsForValue().set(tokenKey, tokenInfo, expiredMs, TimeUnit.MILLISECONDS);
             
-            // 3. 기존 토큰이 있다면 삭제
-            if (oldToken != null && !oldToken.equals(refreshToken)) {
-                redisTemplate.delete(REFRESH_TOKEN_PREFIX + oldToken);
-            }
+            // 2. 사용자의 활성 토큰 목록 관리 (최대 5개)
+            manageUserTokens(username, refreshToken, expiredMs);
             
-            log.info("Refresh token saved for user: {}, TTL: {}ms", username, expiredMs);
+            log.info("Refresh token saved for user: {}, jti: {}, TTL: {}ms", username, jti, expiredMs);
+            return true;
             
         } catch (Exception e) {
             log.error("Failed to save refresh token for user: {}", username, e);
-            throw new RuntimeException("Failed to save refresh token", e);
+            return false;
+        }
+    }
+    
+    /**
+     * 사용자별 토큰 수 제한 관리
+     */
+    private void manageUserTokens(String username, String newToken, Long expiredMs) {
+        String userKey = USERNAME_TOKEN_PREFIX + username;
+        
+        // Lua 스크립트로 원자성 보장
+        String luaScript = """
+            local userKey = KEYS[1]
+            local newToken = ARGV[1]
+            local maxTokens = tonumber(ARGV[2])
+            local ttl = tonumber(ARGV[3])
+            
+            redis.call('lpush', userKey, newToken)
+            local count = redis.call('llen', userKey)
+            
+            if count > maxTokens then
+                local removedToken = redis.call('rpop', userKey)
+                if removedToken then
+                    redis.call('del', 'refresh_token:' .. removedToken)
+                end
+            end
+            
+            redis.call('expire', userKey, ttl)
+            return count
+        """;
+        
+        RedisScript<Long> script = RedisScript.of(luaScript, Long.class);
+        Long count = redisTemplate.execute(script, 
+            Collections.singletonList(userKey),
+            newToken, 
+            String.valueOf(JWTConstants.MAX_ACTIVE_TOKENS_PER_USER),
+            String.valueOf(expiredMs / 1000));
+            
+        log.debug("User {} has {} active tokens", username, count);
+    }
+    
+    /**
+     * Refresh Token 재사용 감지
+     * 
+     * @param refreshToken 검증할 리프레시 토큰
+     * @return 재사용 여부 (true: 재사용 감지됨, false: 정상)
+     */
+    public boolean isTokenReused(String refreshToken) {
+        try {
+            String tokenKey = REFRESH_TOKEN_PREFIX + refreshToken;
+            Object tokenInfo = redisTemplate.opsForValue().get(tokenKey);
+            
+            if (tokenInfo == null) {
+                // 토큰이 존재하지 않음 - 이미 사용되었거나 만료됨
+                log.warn("Token reuse detected - token not found: {}", refreshToken.substring(0, 20) + "...");
+                return true;
+            }
+            
+            // 토큰이 존재하면 정상
+            return false;
+            
+        } catch (Exception e) {
+            log.error("Failed to check token reuse", e);
+            return true; // 안전한 기본값
         }
     }
     
@@ -83,22 +150,38 @@ public class RefreshTokenService {
     }
     
     /**
+     * Refresh Token으로 토큰 정보 조회
+     * 
+     * @param refreshToken 리프레시 토큰
+     * @return 토큰 정보 맵 (없으면 null)
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getTokenInfo(String refreshToken) {
+        try {
+            String tokenKey = REFRESH_TOKEN_PREFIX + refreshToken;
+            Object tokenInfo = redisTemplate.opsForValue().get(tokenKey);
+            
+            if (tokenInfo instanceof Map) {
+                return (Map<String, Object>) tokenInfo;
+            }
+            
+            return null;
+            
+        } catch (Exception e) {
+            log.error("Failed to get token info", e);
+            return null;
+        }
+    }
+    
+    /**
      * Refresh Token으로 사용자명 조회
      * 
      * @param refreshToken 리프레시 토큰
      * @return 사용자명 (토큰이 없거나 만료된 경우 null)
      */
     public String getUsernameByRefreshToken(String refreshToken) {
-        try {
-            String tokenKey = REFRESH_TOKEN_PREFIX + refreshToken;
-            Object username = redisTemplate.opsForValue().get(tokenKey);
-            
-            return username != null ? username.toString() : null;
-            
-        } catch (Exception e) {
-            log.error("Failed to get username by refresh token", e);
-            return null;
-        }
+        Map<String, Object> tokenInfo = getTokenInfo(refreshToken);
+        return tokenInfo != null ? (String) tokenInfo.get("username") : null;
     }
     
     /**
@@ -110,18 +193,18 @@ public class RefreshTokenService {
         try {
             String tokenKey = REFRESH_TOKEN_PREFIX + refreshToken;
             
-            // 1. 토큰으로 사용자명 조회
-            String username = getUsernameByRefreshToken(refreshToken);
+            // 1. 토큰 정보 조회
+            Map<String, Object> tokenInfo = getTokenInfo(refreshToken);
             
             // 2. 토큰 삭제
             redisTemplate.delete(tokenKey);
             
-            // 3. 사용자-토큰 매핑에서도 삭제 (해당 토큰이 현재 토큰인 경우)
-            if (username != null) {
-                String userKey = USERNAME_TOKEN_PREFIX + username;
-                String currentToken = (String) redisTemplate.opsForValue().get(userKey);
-                if (refreshToken.equals(currentToken)) {
-                    redisTemplate.delete(userKey);
+            // 3. 사용자-토큰 매핑에서도 삭제
+            if (tokenInfo != null) {
+                String username = (String) tokenInfo.get("username");
+                if (username != null) {
+                    String userKey = USERNAME_TOKEN_PREFIX + username;
+                    redisTemplate.opsForList().remove(userKey, 1, refreshToken);
                 }
             }
             
@@ -137,41 +220,65 @@ public class RefreshTokenService {
      * 
      * @param username 사용자명
      */
-    public void deleteAllRefreshTokensByUsername(String username) {
+    public void deleteAllUserTokens(String username) {
         try {
             String userKey = USERNAME_TOKEN_PREFIX + username;
-            String currentToken = (String) redisTemplate.opsForValue().get(userKey);
             
-            if (currentToken != null) {
-                // 토큰 삭제
-                redisTemplate.delete(REFRESH_TOKEN_PREFIX + currentToken);
-                // 사용자-토큰 매핑 삭제
-                redisTemplate.delete(userKey);
+            // 사용자의 모든 토큰 조회
+            List<Object> userTokens = redisTemplate.opsForList().range(userKey, 0, -1);
+            
+            if (userTokens != null && !userTokens.isEmpty()) {
+                // 각 토큰 삭제
+                for (Object token : userTokens) {
+                    String tokenKey = REFRESH_TOKEN_PREFIX + token;
+                    redisTemplate.delete(tokenKey);
+                }
                 
-                log.info("All refresh tokens deleted for user: {}", username);
+                // 사용자 토큰 목록 삭제
+                redisTemplate.delete(userKey);
             }
             
+            log.info("All refresh tokens deleted for user: {}", username);
+            
         } catch (Exception e) {
-            log.error("Failed to delete all refresh tokens for user: {}", username, e);
+            log.error("Failed to delete all tokens for user: {}", username, e);
         }
     }
     
     /**
-     * Refresh Token의 남은 TTL 조회
+     * 사용자의 활성 토큰 JTI 목록 조회 (블랙리스트 처리용)
      * 
-     * @param refreshToken 리프레시 토큰
-     * @return TTL (초 단위, 만료되었거나 존재하지 않으면 -1)
+     * @param username 사용자명
+     * @return JTI 목록
      */
-    public long getTokenTTL(String refreshToken) {
+    public List<String> getUserTokenJtis(String username) {
+        List<String> jtis = new ArrayList<>();
+        
         try {
-            String tokenKey = REFRESH_TOKEN_PREFIX + refreshToken;
-            Long ttl = redisTemplate.getExpire(tokenKey, TimeUnit.SECONDS);
+            String userKey = USERNAME_TOKEN_PREFIX + username;
+            List<Object> userTokens = redisTemplate.opsForList().range(userKey, 0, -1);
             
-            return ttl != null ? ttl : -1L;
+            if (userTokens != null) {
+                for (Object token : userTokens) {
+                    Map<String, Object> tokenInfo = getTokenInfo(token.toString());
+                    if (tokenInfo != null && tokenInfo.containsKey("jti")) {
+                        jtis.add((String) tokenInfo.get("jti"));
+                    }
+                }
+            }
             
         } catch (Exception e) {
-            log.error("Failed to get token TTL: {}", refreshToken, e);
-            return -1L;
+            log.error("Failed to get user token JTIs", e);
         }
+        
+        return jtis;
+    }
+    
+    /**
+     * 기존 메서드 호환성 유지
+     */
+    public void saveRefreshToken(String username, String refreshToken, Long expiredMs) {
+        // JTI는 토큰에서 추출해야 하지만, 기존 호환성을 위해 임시 처리
+        saveRefreshToken(username, refreshToken, UUID.randomUUID().toString(), expiredMs);
     }
 }

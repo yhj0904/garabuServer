@@ -106,3 +106,5 @@ grafana-agent/data/
 # IDE, log 등
 .idea/
 logs/
+
+CLAUDE.md

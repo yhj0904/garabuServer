@@ -1,6 +1,7 @@
 package garabu.garabuServer.jwt;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.service.BlacklistService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,10 +18,11 @@ import java.io.PrintWriter;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final BlacklistService blacklistService;
 
-    public JWTFilter(JWTUtil jwtUtil) {
-
+    public JWTFilter(JWTUtil jwtUtil, BlacklistService blacklistService) {
         this.jwtUtil = jwtUtil;
+        this.blacklistService = blacklistService;
     }
 
 
@@ -59,17 +61,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
-
             filterChain.doFilter(request, response);
-
             return;
         }
 
-// 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
+        // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
             jwtUtil.isExpired(accessToken);
         } catch (ExpiredJwtException e) {
-
             //response body
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
@@ -79,11 +78,10 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-// 토큰이 access인지 확인 (발급시 페이로드에 명시)
+        // 토큰이 access인지 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(accessToken);
 
         if (!category.equals("access")) {
-
             //response body
             PrintWriter writer = response.getWriter();
             writer.print("invalid access token");
@@ -92,18 +90,29 @@ public class JWTFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        if (requestUri.matches("^\\/login(?:\\/.*)?$")) {
+        
+        // 블랙리스트 체크
+        String jti = jwtUtil.getJti(accessToken);
+        if (blacklistService.isBlacklisted(jti)) {
+            //response body
+            PrintWriter writer = response.getWriter();
+            writer.print("blacklisted token");
 
+            //response status code
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        
+        if (requestUri.matches("^\\/login(?:\\/.*)?$")) {
             filterChain.doFilter(request, response);
             return;
         }
         if (requestUri.matches("^\\/oauth2(?:\\/.*)?$")) {
-
             filterChain.doFilter(request, response);
             return;
         }
 
-// username, role 값을 획득
+        // username, role 값을 획득
         String username = jwtUtil.getUsername(accessToken);
         String role = jwtUtil.getRole(accessToken);
 
@@ -117,6 +126,4 @@ public class JWTFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
-
 }

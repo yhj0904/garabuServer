@@ -70,45 +70,36 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        //토큰 생성
-        String access = jwtUtil.createJwt("access", username, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+        //토큰 생성 (jti 포함)
+        String access = jwtUtil.createJwt(JWTConstants.ACCESS_TOKEN_CATEGORY, username, role, JWTConstants.ACCESS_TOKEN_EXPIRE_TIME);
+        String refresh = jwtUtil.createJwt(JWTConstants.REFRESH_TOKEN_CATEGORY, username, role, JWTConstants.REFRESH_TOKEN_EXPIRE_TIME);
+        
+        // JTI 추출
+        String refreshJti = jwtUtil.getJti(refresh);
 
         //Refresh 토큰 저장 (Redis)
-        refreshTokenService.saveRefreshToken(username, refresh, 86400000L);
+        refreshTokenService.saveRefreshToken(username, refresh, refreshJti, JWTConstants.REFRESH_TOKEN_EXPIRE_TIME);
 
         //응답 설정
         response.setHeader("access", access);
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
-/*
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        String username = customUserDetails.getUsername();
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
-        String role = auth.getAuthority();
-        String token = jwtUtil.createJwt(username, role, 60 * 60 * 10L);
-        response.addHeader("Authorization", "Bearer " + token);
-*/
     }
-
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
 
         response.setStatus(401);
     }
+
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(24*60*60);
+        cookie.setMaxAge(60*24*60*60); // 60일
         //cookie.setSecure(true);
         //cookie.setPath("/");
         cookie.setHttpOnly(true);
 
         return cookie;
     }
-
-
 }
