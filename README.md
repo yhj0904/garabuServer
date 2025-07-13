@@ -1,13 +1,13 @@
-# 가라부 (Garabu) 서버 💰
+# # 가라부 (Garabu) 서버 💰
 
 > **가계부 관리 백엔드 API 서버**  
 > 다중 사용자 지원, 실시간 WebSocket 통신, 안전한 인증, 포괄적 모니터링을 갖춘 가계부 관리 애플리케이션
 
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?style=flat-square&logo=springboot)
-![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java)
-![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql)
-![Redis](https://img.shields.io/badge/Redis-Cache-red?style=flat-square&logo=redis)
-![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker)
+![Spring Boot](*https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?style=flat-square&logo=springboot*)
+![Java](*https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java*)
+![MySQL](*https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql*)
+![Redis](*https://img.shields.io/badge/Redis-Cache-red?style=flat-square&logo=redis*)
+![Docker](*https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker*)
 
 ## 🎯 프로젝트 개요
 
@@ -42,46 +42,40 @@
 
 ## 📋 목차
 
-- [프로젝트 개요](#-프로젝트-개요)
-- [주요 기능](#-주요-기능)
-- [기술 스택](#-기술-스택)
-- [시스템 아키텍처](#-시스템-아키텍처)
-- [데이터베이스 설계](#-데이터베이스-설계)
-- [API 문서](#-api-문서)
-- [설치 및 설정](#-설치-및-설정)
-- [모니터링 및 배포](#-모니터링-및-배포)
-- [성능 최적화](#-성능-최적화)
-- [보안 구현](#-보안-구현)
-- [개발 가이드](#-개발-가이드)
-- [WebSocket 실시간 동기화](#-websocket-실시간-동기화)
-- [테스트](#-테스트)
-- [배포 가이드](#-배포-가이드)
-- [AWS 마이그레이션](#-aws-마이그레이션)
-- [기술적 도전과제](#-기술적-도전과제)
-- [성과 및 지표](#-성과-및-지표)
-- [프로젝트 회고](#-프로젝트-회고)
-- [향후 개선 계획](#-향후-개선-계획)
-- [기술 부채 평가](#-기술-부채-평가)
-- [기여하기](#-기여하기)
-- [라이선스](#-라이선스)
-- [연락처](#-연락처)
+- [프로젝트 개요](*#-**프로젝트**-**개요*)
+- [주요 기능](*#-**주요**-**기능*)
+- [기술 스택](*#-**기술**-**스택*)
+- [시스템 아키텍처](*#-**시스템**-**아키텍처*)
+- [데이터베이스 설계](*#-**데이터베이스**-**설계*)
+- [API 문서](*#-api-**문서*)
+- [설치 및 설정](*#-**설치**-**및**-**설정*)
+- [모니터링 및 배포](*#-**모니터링**-**및**-**배포*)
+- [성능 최적화](*#-**성능**-**최적화*)
+- [보안 구현](*#-**보안**-**구현*)
+- [개발 가이드](*#-**개발**-**가이드*)
+- [WebSocket 실시간 동기화](*#-websocket-**실시간**-**동기화*)
+- [테스트](*#-**테스트*)
+- [배포 가이드](*#-**배포**-**가이드*)
+- [AWS 마이그레이션](*#-aws-**마이그레이션*)
+- [기술적 도전과제](*#-**기술적**-**도전과제*)
+- [성과 및 지표](*#-**성과**-**및**-**지표*)
+- [프로젝트 회고](*#-**프로젝트**-**회고*)
+- [향후 개선 계획](*#-**향후**-**개선**-**계획*)
+- [기술 부채 평가](*#-**기술**-**부채**-**평가*)
+- [기여하기](*#-**기여하기*)
+- [라이선스](*#-**라이선스*)
+- [연락처](*#-**연락처*)
 
 ## ✨ 주요 기능
 
-<details>
-<summary><strong>🏠 핵심 가계부 관리</strong></summary>
-
+### 핵심 가계부 관리
 - **가계부 CRUD**: 다중 가계부 생성, 수정, 삭제 지원
 - **거래 기록 관리**: 수입/지출 기록, 카테고리별 분류, 결제 수단 추적
 - **공유 가계부**: 세분화된 권한 관리 (OWNER/EDITOR/VIEWER)
 - **스마트 분류**: 커스터마이징 가능한 카테고리 및 결제 수단 관리
 - **고급 검색**: 날짜, 카테고리, 결제 수단별 복합 조건 검색
 
-</details>
-
-<details>
-<summary><strong>👤 사용자 경험</strong></summary>
-
+### 사용자 경험
 - **OAuth2 소셜 로그인** (Google, Naver)과 원활한 온보딩
 - **JWT 인증**: 액세스 토큰(10분) + 리프레시 토큰(24시간) 자동 갱신
 - **푸시 알림**: Firebase FCM을 통한 실시간 알림
@@ -89,11 +83,7 @@
 - **공동 가계부**: 여러 사용자가 하나의 가계부를 실시간 공유
 - **사용자 초대**: 이메일 기반 가계부 멤버 초대 시스템
 
-</details>
-
-<details>
-<summary><strong>🏗️ 인프라 및 운영</strong></summary>
-
+### 인프라
 - **포괄적 모니터링**: ELK 스택과 Prometheus 메트릭
 - **자동화된 CI/CD**: GitHub Actions와 AWS 배포
 - **고성능 캐싱**: Redis를 사용한 최적의 응답 시간, Hibernate 직렬화 최적화
@@ -103,13 +93,9 @@
 - **업무 프로세스 연동**: Slack과 Jira 연동을 통한 자동 배포 및 로그 기반 알림
 - **모니터링/로그 수집**: Slack 알림과 연동된 통합 모니터링 시스템
 
-</details>
-
 ## 🛠 기술 스택
 
-<details>
-<summary><strong>⚡ 백엔드 프레임워크</strong></summary>
-
+### 백엔드 프레임워크
 - **Java 21**
 - **Spring Boot 3.4.5**
 - **Spring Security** - OAuth2 + JWT 인증
@@ -117,65 +103,43 @@
 - **Spring Data JPA** - 기본 CRUD 작업
 - **MyBatis** - 복잡한 쿼리 및 페이징
 
-</details>
-
-<details>
-<summary><strong>🔐 인증 및 보안</strong></summary>
-
+### 인증 및 보안
 - **OAuth2** - 소셜 로그인 통합 (Google, Naver)
 - **JWT** - 상태 비저장 인증 토큰
 - **BCrypt** - 보안을 위한 비밀번호 해싱
 
-</details>
-
-<details>
-<summary><strong>💾 데이터베이스 및 캐싱</strong></summary>
-
+### 데이터베이스 및 캐싱
 - **MySQL 8.0** - AWS RDS의 주 데이터베이스
 - **Redis** - 세션 관리, 캐싱, Hibernate 직렬화 지원
 - **SSH 터널링** - 보안 데이터베이스 연결
 - **Jackson ObjectMapper** - Redis 직렬화 최적화
 
-</details>
-
-<details>
-<summary><strong>📊 모니터링 및 관찰 가능성</strong></summary>
-
+### 모니터링 및 관찰 가능성
 - **ELK 스택** - Elasticsearch, Logstash, Kibana로 로그 분석
 - **Prometheus** - 메트릭 수집 및 모니터링
 - **Grafana** - 시각화 대시보드
 - **Spring Boot Actuator** - 애플리케이션 상태 모니터링
 
-</details>
-
-<details>
-<summary><strong>🚀 DevOps 및 배포</strong></summary>
-
+### DevOps 및 배포
 - **Docker & Docker Compose** - 컨테이너화
-- **Kubernetes** - 컨테이너 오케스트레이션
+- **k8s**
 - **GitHub Actions** - CI/CD 파이프라인 자동화
 - **AWS EC2** - 클라우드 배포 플랫폼
 - **AWS RDS** - 관리형 데이터베이스 서비스
-- **AWS EKS** - 목표 컨테이너 플랫폼
 
-</details>
+### AWS 네이티브 솔루션 -> EKS
 
-<details>
-<summary><strong>🔧 추가 도구 및 서비스</strong></summary>
-
+### 추가 도구
 - **Firebase FCM** - 푸시 알림 서비스
 - **Swagger/OpenAPI 3.0** - API 문서화
 - **P6Spy** - 데이터베이스 쿼리 모니터링
 - **Logback** - ECS 형식의 구조화된 로깅
 - **Slack** - 로그 기반 알림 및 이슈 트래킹
-- **Jira** - 원활한 업무 프로세스 지원
-
-</details>
+- **jira** - 원활한 업무 프로세스 지원
 
 ## 🏗 시스템 아키텍처
 
-<details>
-<summary><strong>🖥️ 현재 아키텍처 (EC2 기반)</strong></summary>
+### 현재 아키텍처 (EC2 기반)
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   모바일 앱      │    │    웹 클라이언트  │    │   관리자 패널    │
@@ -226,10 +190,7 @@
                     └─────────────────────────────────────────────┘
 ```
 
-</details>
-
-<details>
-<summary><strong>☁️ 목표 아키텍처 (EKS 기반)</strong></summary>
+### 목표 아키텍처 (EKS 기반)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        AWS EKS Cluster                          │
@@ -266,8 +227,6 @@
 │   (외부 데이터베이스)    │
 └─────────────────────────┘
 ```
-
-</details>
 
 ## 📁 폴더 구조
 
@@ -331,11 +290,8 @@ garabuserver/
 ```
 ## 📐 데이터베이스 설계
 
-<details>
-<summary><strong>🗄️ ERD 및 테이블 구조</strong></summary>
-
 ### ERD (Entity Relationship Diagram)
-```mermaid
+```*mermaid*
 erDiagram
     Member ||--o{ UserBook : "owns"
     Book ||--o{ UserBook : "shared_with"
@@ -436,12 +392,8 @@ erDiagram
 
 **활용**: 개발/테스트 환경에서 쿼리 최적화
 
-</details>
 
 ## 📚 API 문서
-
-<details>
-<summary><strong>📋 REST API 엔드포인트</strong></summary>
 
 ### 인증 API
 모든 API는 JWT Bearer 토큰 인증이 필요합니다 (회원가입 제외).
@@ -470,7 +422,7 @@ erDiagram
 ### API 사용 예시
 
 #### 가계부 기록 생성
-```bash
+```*bash*
 curl -X POST "http://localhost:8080/api/v2/ledger" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
@@ -488,7 +440,7 @@ curl -X POST "http://localhost:8080/api/v2/ledger" \
 ```
 
 #### 가계부 기록 조회 (필터링)
-```bash
+```*bash*
 curl -X GET "http://localhost:8080/api/v2/ledger/list?startDate=2025-07-01&endDate=2025-07-31&amountType=EXPENSE&page=0&size=20" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
@@ -516,13 +468,7 @@ curl -X GET "http://localhost:8080/api/v2/ledger/list?startDate=2025-07-01&endDa
    ↓
 6. 발송 결과 업데이트 및 로깅 (NotiSendStack)
 ```
-
-</details>
-
 ## 🚀 설치 및 설정
-
-<details>
-<summary><strong>⚙️ 개발 환경 구성</strong></summary>
 
 ### 사전 요구사항
 - Java 21
@@ -531,7 +477,7 @@ curl -X GET "http://localhost:8080/api/v2/ledger/list?startDate=2025-07-01&endDa
 - Redis
 
 ### 1. 프로젝트 클론
-```bash
+```*bash*
 git clone <repository-url>
 cd garabuserver
 ```
@@ -539,7 +485,7 @@ cd garabuserver
 ### 2. 환경 설정
 `src/main/resources/application.yml` 파일을 수정하여 데이터베이스 연결 정보를 설정합니다:
 
-```yaml
+```*yaml*
 spring:
   datasource:
     url: jdbc:p6spy:mysql://localhost:3306/garabu?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -565,12 +511,12 @@ jwt:
 ### 3. 로컬 개발 환경 실행
 
 #### Gradle을 사용한 실행
-```bash
+```*bash*
 ./gradlew bootRun
 ```
 
 #### Docker Compose를 사용한 실행 (모니터링 포함)
-```bash
+```*bash*
 # 전체 스택 실행 (ELK, Prometheus, Grafana 포함)
 docker-compose up -d
 
@@ -579,7 +525,7 @@ docker-compose up spring-app
 ```
 
 ### 4. 데이터베이스 초기화
-```bash
+```*bash*
 # MySQL 접속
 mysql -u root -p
 
@@ -596,12 +542,7 @@ FLUSH PRIVILEGES;
 애플리케이션 실행 후 다음 URL에서 Swagger UI를 확인할 수 있습니다:
 - http://localhost:8080/swagger-ui/index.html
 
-</details>
-
 ## 📊 모니터링 및 배포
-
-<details>
-<summary><strong>📈 ELK + Prometheus + Grafana 모니터링</strong></summary>
 
 ### 모니터링 스택 구성
 
@@ -618,7 +559,7 @@ FLUSH PRIVILEGES;
 ### 모니터링 설정
 
 #### Prometheus 설정 (`prometheus/prometheus.yml`)
-```yaml
+```*yaml*
 global:
   scrape_interval: 15s
 
@@ -638,7 +579,7 @@ scrape_configs:
 ### 로그 수집 설정
 
 #### Filebeat 설정 (`filebeat/filebeat.yml`)
-```yaml
+```*yaml*
 filebeat.inputs:
 - type: log
   enabled: true
@@ -650,7 +591,7 @@ output.logstash:
 ```
 
 #### Logstash 설정 (`logstash/logstash.conf`)
-```conf
+```*conf*
 input {
   beats {
     port => 5044
@@ -673,12 +614,7 @@ output {
 }
 ```
 
-</details>
-
 ## ⚡ 성능 최적화
-
-<details>
-<summary><strong>🚀 Redis 캐싱 및 성능 튜닝</strong></summary>
 
 ### 🚀 Redis 캐싱 전략 적용 (2025년 7월 신규 적용)
 
@@ -688,7 +624,7 @@ output {
 자주 조회되지만 변경이 거의 없는 데이터에 장기 캐싱 적용
 
 **CategoryService 캐싱:**
-```java
+```*java*
 @Cacheable(value = "categoriesAll", unless = "#result == null or #result.isEmpty()")
 public List<Category> findAllCategories() {
     return categoryJpaRepository.findAll();
@@ -706,7 +642,7 @@ public Long rigistCategory(Category category) {
 ```
 
 **PaymentService 캐싱:**
-```java
+```*java*
 @Cacheable(value = "paymentMethodsAll", unless = "#result == null or #result.isEmpty()")
 public List<PaymentMethod> findAllPayment() {
     return paymentJpaRepository.findAll();
@@ -722,7 +658,7 @@ public PaymentMethod findByPayment(String name) {
 사용자별 데이터로 중간 수준의 캐싱 적용
 
 **BookService 사용자 가계부 목록 캐싱:**
-```java
+```*java*
 @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()", 
            unless = "#result == null or #result.isEmpty()")
 public List<Book> findLoggedInUserBooks() {
@@ -739,7 +675,7 @@ public Book createBook(String title) {
 #### 2. Redis 캐시 설정
 
 **TTL 및 직렬화 설정:**
-```java
+```*java*
 @Bean
 public CacheManager cacheManager(RedisConnectionFactory cf) {
     return RedisCacheManager.builder(cf)
@@ -775,7 +711,7 @@ public CacheManager cacheManager(RedisConnectionFactory cf) {
 
 #### **캐시 히트율 (Cache Hit Rate)**
 - **Categories**: 98.5% (거의 모든 요청이 캐시에서 처리)
-- **PaymentMethods**: 97.8% (거의 모든 요청이 캐시에서 처리)  
+- **PaymentMethods**: 97.8% (거의 모든 요청이 캐시에서 처리)
 - **UserBooks**: 76.2% (사용자별 반복 조회가 많은 경우)
 
 #### **비즈니스 임팩트**
@@ -798,7 +734,7 @@ public CacheManager cacheManager(RedisConnectionFactory cf) {
 ### 🧪 성능 테스트 (k6)
 
 #### 부하 테스트 실행
-```bash
+```*bash*
 # k6 컨테이너 실행
 docker-compose -f docker-compose.k6.yml up -d
 
@@ -810,7 +746,7 @@ docker-compose -f docker-compose.k6.yml down -v
 ```
 
 #### 성능 테스트 스크립트 (`k6-scripts/loadtest.js`)
-```javascript
+```*javascript*
 export const options = {
   vus: 200,                 // 동시 200 가상 사용자 (증가)
   duration: '5m',           // 5분간 지속 (연장)
@@ -838,7 +774,7 @@ export const options = {
 #### **기존 문제점과 개선 사항**
 
 ##### **RDB 기반 토큰 관리 (개선 전)**
-```java
+```*java*
 // 기존: RefreshEntity를 MySQL에 저장
 RefreshEntity refreshEntity = new RefreshEntity();
 refreshEntity.setUsername(username);
@@ -854,7 +790,7 @@ refreshRepository.save(refreshEntity);  // DB 저장
 - **확장성 한계**: 토큰 검증이 DB 성능에 의존
 
 ##### **Redis 기반 토큰 관리 (개선 후)**
-```java
+```*java*
 // 개선: Redis에 자동 TTL과 함께 저장
 @Service
 public class RefreshTokenService {
@@ -895,14 +831,14 @@ public class RefreshTokenService {
 #### **기능적 개선 사항**
 
 ##### **자동 토큰 만료 관리**
-```java
+```*java*
 // Redis TTL 활용 - 자동 만료
 redisTemplate.opsForValue().set(tokenKey, username, 86400000L, TimeUnit.MILLISECONDS);
 // 24시간 후 자동 삭제, 별도 정리 작업 불필요
 ```
 
 ##### **멀티 디바이스 토큰 관리**
-```java
+```*java*
 // 사용자별 단일 토큰 정책 (보안 강화)
 public void saveRefreshToken(String username, String newToken, Long expiredMs) {
     String userKey = "user_tokens:" + username;
@@ -942,17 +878,12 @@ public void saveRefreshToken(String username, String newToken, Long expiredMs) {
 - **메모리 사용량**: 토큰 저장소 효율성 측정
 
 ### 4. JVM 튜닝
-```bash
+```*bash*
 # Docker 실행 시 JVM 옵션 설정
 docker run -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" garabuserver:latest
 ```
 
-</details>
-
 ## 🔒 보안 구현
-
-<details>
-<summary><strong>🛡️ OAuth2 + JWT + SSH 터널링</strong></summary>
 
 ### 1. 인증 및 권한 관리
 - **OAuth2**: Google, Naver 소셜 로그인 지원
@@ -965,7 +896,7 @@ docker run -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" garabuserver:latest
 - **SQL Injection 방지**: JPA와 MyBatis 사용
 
 ### 3. 보안 헤더 설정
-```java
+```*java*
 @Configuration
 public class SecurityConfig {
     @Bean
@@ -984,7 +915,7 @@ public class SecurityConfig {
 ### 4. SSH 터널링
 AWS RDS에 안전하게 접근하기 위한 SSH 터널링 설정:
 
-```java
+```*java*
 @Configuration
 public class SshDataSourceConfig {
     @Value("${ec2.remote_jump_host}")
@@ -1000,12 +931,7 @@ public class SshDataSourceConfig {
 }
 ```
 
-</details>
-
 ## 🔄 WebSocket 실시간 동기화
-
-<details>
-<summary><strong>⚡ STOMP 프로토콜 기반 실시간 협업</strong></summary>
 
 ### 📱 WebSocket 필요성 분석
 
@@ -1017,7 +943,7 @@ public class SshDataSourceConfig {
 - **데이터 일관성**: 동시 편집 시 충돌 방지 및 최신 상태 유지
 
 #### 2. 실시간 알림 시스템
-```java
+```*java*
 // 실시간 이벤트 처리 예시
 @MessageMapping("/book/{bookId}/transaction")
 @SendTo("/topic/book/{bookId}")
@@ -1047,7 +973,7 @@ public TransactionUpdateEvent handleTransactionUpdate(
 ### 🏗️ WebSocket 아키텍처
 
 #### 1. STOMP 프로토콜 구성
-```java
+```*java*
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -1071,7 +997,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 ```
 
 #### 2. JWT 기반 WebSocket 인증
-```java
+```*java*
 @Override
 public void configureClientInboundChannel(ChannelRegistration registration) {
     registration.interceptors(new ChannelInterceptor() {
@@ -1098,7 +1024,7 @@ public void configureClientInboundChannel(ChannelRegistration registration) {
 ### 📊 WebSocket vs 대안 기술 비교
 
 #### ❌ HTTP 폴링 방식의 문제점
-```javascript
+```*javascript*
 // 비효율적인 폴링 방식
 setInterval(() => {
     fetch('/api/v2/ledger/list')
@@ -1114,7 +1040,7 @@ setInterval(() => {
 - 서버 부하: 불필요한 요청으로 서버 리소스 낭비
 
 #### ✅ WebSocket의 장점
-```javascript
+```*javascript*
 // 효율적인 WebSocket 방식
 const socket = new SockJS('/ws?token=JWT_TOKEN');
 const stompClient = Stomp.over(socket);
@@ -1137,7 +1063,7 @@ stompClient.connect({}, function(frame) {
 ### 🔄 실시간 동기화 시나리오
 
 #### 시나리오 1: 거래 추가 실시간 동기화
-```mermaid
+```*mermaid*
 sequenceDiagram
     participant A as 사용자 A (모바일)
     participant S as Spring Server
@@ -1153,7 +1079,7 @@ sequenceDiagram
 ```
 
 #### 시나리오 2: 멤버 권한 변경 알림
-```java
+```*java*
 @MessageMapping("/book/{bookId}/member/role")
 @SendTo("/topic/book/{bookId}")
 public MemberRoleChangeEvent updateMemberRole(
@@ -1173,7 +1099,7 @@ public MemberRoleChangeEvent updateMemberRole(
         .oldRole(request.getOldRole())
         .newRole(request.getNewRole())
         .changedBy(getCurrentUser().getName())
-        .timestamp(System.currentTimeMillis())
+        .timestamp(System.*currentTimeMillis*())
         .build();
 }
 ```
@@ -1186,7 +1112,7 @@ public MemberRoleChangeEvent updateMemberRole(
 - **권한 검증**: 가계부별 접근 권한 실시간 확인
 
 #### 2. 가계부별 권한 관리
-```java
+```*java*
 @EventListener
 public void handleSessionConnect(SessionConnectEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -1211,7 +1137,7 @@ public void handleSessionConnect(SessionConnectEvent event) {
 | **배터리 소모** | 높음 | 낮음 |
 
 #### 2. 메모리 및 연결 관리
-```java
+```*java*
 @Component
 public class WebSocketSessionManager {
     private final Map<String, Set<String>> bookSessions = new ConcurrentHashMap<>();
@@ -1246,139 +1172,21 @@ public class WebSocketSessionManager {
 - **메시지 압축**: 대용량 데이터 전송 시 압축 적용
 - **연결 풀링**: WebSocket 연결 효율적 관리
 
-### 🤔 WebSocket vs SSE + Redis Pub/Sub 선택 근거
-
-#### 검토한 대안 기술들
-
-<details>
-<summary><strong>📊 SSE (Server-Sent Events) + Redis Pub/Sub</strong></summary>
-
-**장점:**
-- **단순한 구현**: HTTP 기반으로 설정 간편
-- **자동 재연결**: 브라우저가 자동으로 재연결 처리
-- **확장성**: Redis Pub/Sub로 다중 서버 쉽게 지원
-- **디버깅 용이**: 표준 HTTP 도구 사용 가능
-
-**단점:**
-- **단방향 통신**: 서버 → 클라이언트만 가능
-- **양방향 상호작용 불가**: 실시간 타이핑 표시, 커서 공유 등 구현 불가
-- **추가 HTTP 요청**: 클라이언트 액션마다 별도 API 호출 필요
-
-**코드 예시:**
-```javascript
-// SSE 방식 - 단방향만 가능
-const eventSource = new EventSource('/api/v2/book/123/events');
-eventSource.onmessage = function(event) {
-    updateUI(JSON.parse(event.data));
-};
-
-// 클라이언트 액션은 별도 HTTP 요청
-fetch('/api/v2/transaction', {method: 'POST', body: data});
-```
-
-</details>
-
-<details>
-<summary><strong>🔄 Pure Redis Pub/Sub</strong></summary>
-
-**장점:**
-- **최고의 확장성**: 다중 서버 환경에서 최적 성능
-- **안정성**: Redis 클러스터링 지원
-- **초고속**: 메모리 기반 메시징
-
-**단점:**
-- **실시간성 부족**: 클라이언트는 여전히 HTTP 폴링 필요
-- **복잡한 아키텍처**: 별도 메시징 인프라 구축 필요
-- **브라우저 직접 연결 불가**: 서버를 통한 중계 필요
-
-</details>
-
-#### 🏆 WebSocket 선택 이유
-
-**가라부 프로젝트의 특수한 요구사항:**
-
-1. **실시간 양방향 협업**
-   ```javascript
-   // 실시간 타이핑 상태 공유
-   stompClient.send('/app/typing', {}, JSON.stringify({
-       userId: 123, isTyping: true, field: 'description'
-   }));
-   
-   // 즉시 다른 사용자에게 표시
-   stompClient.subscribe('/topic/book/123/typing', function(message) {
-       showTypingIndicator(JSON.parse(message.body));
-   });
-   ```
-
-2. **즉시 피드백이 필요한 UX**
-   - 거래 추가 시 즉시 다른 사용자 화면에 반영
-   - 실시간 충돌 감지 및 해결
-   - 동시 편집 상황 표시
-
-3. **멀티플랫폼 일관성**
-   - React Native (모바일)
-   - React (웹)
-   - 동일한 실시간 경험 제공
-
-</details>
-
-### 🔮 향후 확장 계획: WebSocket + Redis Pub/Sub 하이브리드
-
-**최종 목표 아키텍처:**
-```java
-@Service
-public class HybridRealtimeService {
-    
-    // 로컬 WebSocket 세션 관리
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    
-    // 다중 서버 간 메시지 전파
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-    
-    public void broadcastUpdate(String bookId, Object message) {
-        // 1. 현재 서버의 WebSocket 세션에 즉시 전송
-        messagingTemplate.convertAndSend("/topic/book/" + bookId, message);
-        
-        // 2. Redis Pub/Sub로 다른 서버 인스턴스에 전파
-        redisTemplate.convertAndSend("book.update." + bookId, message);
-    }
-    
-    @RedisListener("book.update.*")
-    public void handleCrossServerMessage(Object message, String channel) {
-        String bookId = extractBookId(channel);
-        // 다른 서버에서 온 메시지를 로컬 WebSocket으로 전송
-        messagingTemplate.convertAndSend("/topic/book/" + bookId, message);
-    }
-}
-```
-
-**이점:**
-- **현재**: WebSocket으로 모든 실시간 기능 완벽 구현
-- **확장**: Redis Pub/Sub 추가로 다중 서버 지원
-- **성능**: 각 기술의 장점 최대화
-
 ### 💡 결론: WebSocket의 필수성
 
 가라부 프로젝트에서 WebSocket은 단순한 기술적 선택이 아닌 **협업 가계부 서비스의 핵심 요구사항**을 만족시키는 필수 기술입니다:
 
 1. **실시간 협업**: 여러 사용자가 동시에 가계부를 편집하는 협업 환경
-2. **즉시성**: 변경사항의 즉시 반영으로 일관된 사용자 경험 제공  
+2. **즉시성**: 변경사항의 즉시 반영으로 일관된 사용자 경험 제공
 3. **효율성**: 폴링 대비 서버 리소스 및 배터리 사용량 최적화
-4. **확장성**: Redis Pub/Sub 추가로 대규모 동시 사용자 지원
+4. **확장성**: 대규모 동시 사용자 지원 가능한 아키텍처
 
-SSE는 단방향 통신 한계로 **진정한 실시간 협업**을 구현할 수 없으며, WebSocket + Redis Pub/Sub 하이브리드 접근법이 가라부의 모든 요구사항을 만족시키는 최적 솔루션입니다.
-
-</details>
+WebSocket 없이는 진정한 **실시간 협업 가계부 서비스**를 구현할 수 없으며, 이는 가라부 프로젝트의 핵심 가치 제안에 직접적으로 연결되는 기술적 토대입니다.
 
 ## 👨‍💻 개발 가이드
 
-<details>
-<summary><strong>🛠️ 코딩 컨벤션 및 개발 프로세스</strong></summary>
-
 ### 1. 개발 환경 설정
-```bash
+```*bash*
 # IDE 설정 (IntelliJ IDEA 권장)
 # - Java 21 SDK 설정
 # - Gradle 프로젝트 import
@@ -1392,7 +1200,7 @@ SSE는 단방향 통신 한계로 **진정한 실시간 협업**을 구현할 �
 - **주석**: JavaDoc 형식 사용
 
 ### 3. Git 워크플로우
-```bash
+```*bash*
 # 기능 브랜치 생성
 git checkout -b feature/new-feature
 
@@ -1413,9 +1221,8 @@ chore: 빌드 설정 변경
 
 ## 🧪 테스트
 
-<details>
-<summary><strong>🔬 단위 테스트</strong></summary>
-```bash
+### 1. 단위 테스트
+```*bash*
 # 전체 테스트 실행
 ./gradlew test
 
@@ -1432,11 +1239,8 @@ chore: 빌드 설정 변경
 - **CustomUserDetailsServiceTest**: 사용자 인증 서비스 테스트
 - **UserBookServiceTest**: 가계부 공유 권한 관리 테스트
 
-</details>
-
-<details>
-<summary><strong>🔗 통합 테스트</strong></summary>
-```bash
+### 2. 통합 테스트
+```*bash*
 # Spring Boot Test 통합 테스트
 ./gradlew integrationTest
 
@@ -1444,17 +1248,14 @@ chore: 빌드 설정 변경
 ./gradlew test --tests "*IntegrationTest"
 ```
 
-</details>
-
-<details>
-<summary><strong>🌐 API 테스트</strong></summary>
+### 3. API 테스트
 
 #### Swagger UI를 통한 API 테스트
 - **접속 URL**: http://localhost:8080/swagger-ui/index.html
 - **인증**: JWT Bearer 토큰 필요 (로그인 API 먼저 호출)
 
 #### cURL을 통한 API 테스트
-```bash
+```*bash*
 # 1. 회원가입
 curl -X POST "http://localhost:8080/api/v2/join" \
   -H "Content-Type: application/json" \
@@ -1489,13 +1290,10 @@ curl -X POST "http://localhost:8080/api/v2/ledger" \
   }'
 ```
 
-</details>
-
-<details>
-<summary><strong>⚡ 성능 테스트 (k6)</strong></summary>
+### 4. 성능 테스트 (k6)
 
 #### k6 테스트 실행
-```bash
+```*bash*
 # k6 컨테이너로 성능 테스트 실행
 docker-compose -f docker-compose.k6.yml up -d
 
@@ -1513,8 +1311,8 @@ docker-compose -f docker-compose.k6.yml down -v
 
 #### 성능 테스트 결과 예시
 ```
-     ✓ status is 200
-     ✓ response time < 500ms
+     - [x] status is 200
+     - [x] response time < 500ms
 
      checks.........................: 100.00% ✓ 24000 ✗ 0
      data_received..................: 8.4 MB  140 kB/s
@@ -1528,13 +1326,10 @@ docker-compose -f docker-compose.k6.yml down -v
      vus_max........................: 200     min=200 max=200
 ```
 
-</details>
-
-<details>
-<summary><strong>🔌 WebSocket 테스트</strong></summary>
+### 5. WebSocket 테스트
 
 #### WebSocket 연결 테스트
-```javascript
+```*javascript*
 // 브라우저 콘솔에서 WebSocket 테스트
 const socket = new SockJS('http://localhost:8080/ws?token=YOUR_JWT_TOKEN');
 const stompClient = Stomp.over(socket);
@@ -1554,15 +1349,12 @@ stompClient.connect({}, function(frame) {
 });
 ```
 
-</details>
-
-<details>
-<summary><strong>📊 테스트 커버리지</strong></summary>
+### 6. 테스트 커버리지
 
 현재 테스트 커버리지: **85%** (목표: 90% 이상)
 
 #### 커버리지 보고서 생성
-```bash
+```*bash*
 # JaCoCo 커버리지 리포트 생성
 ./gradlew jacocoTestReport
 
@@ -1570,13 +1362,10 @@ stompClient.connect({}, function(frame) {
 open build/reports/jacoco/test/html/index.html
 ```
 
-</details>
-
-<details>
-<summary><strong>🗃️ 테스트 데이터 관리</strong></summary>
+### 7. 테스트 데이터 관리
 
 #### 테스트용 데이터베이스 설정
-```yaml
+```*yaml*
 # application-test.yml
 spring:
   datasource:
@@ -1591,7 +1380,7 @@ spring:
 ```
 
 #### 테스트 데이터 초기화
-```java
+```*java*
 @TestMethodOrder(OrderAnnotation.class)
 @SpringBootTest
 class MemberServiceTest {
@@ -1622,16 +1411,8 @@ class MemberServiceTest {
         assertThat(memberRepository.findById(savedId)).isPresent();
     }
 }
-```
-
-</details>
-
-</details>
 
 ## 🚀 배포 가이드
-
-<details>
-<summary><strong>🐳 Docker 배포 및 AWS 인프라</strong></summary>
 
 ### 1. Docker 이미지 빌드
 ```bash
@@ -1643,7 +1424,7 @@ docker build -t garabuserver:latest .
 ```
 
 ### 2. AWS EC2 배포
-```bash
+```*bash*
 # EC2 인스턴스에 접속
 ssh -i your-key.pem ubuntu@your-ec2-ip
 
@@ -1656,7 +1437,7 @@ docker-compose up -d
 ```
 
 ### 3. Kubernetes 배포
-```bash
+```*bash*
 # Kubernetes 매니페스트 적용
 kubectl apply -f src/main/resources/k8s/
 
@@ -1666,7 +1447,7 @@ kubectl get services
 ```
 
 ### 4. CI/CD 파이프라인 (GitHub Actions)
-```yaml
+```*yaml*
 name: Deploy to AWS
 on:
   push:
@@ -1763,7 +1544,7 @@ AWS EKS Cluster
 ### 📝 주요 설정 파일
 
 #### ECS Task Definition (ecs-task-definition.json)
-```json
+```*json*
 {
   "family": "garabu-app",
   "networkMode": "awsvpc",
@@ -1806,7 +1587,7 @@ AWS EKS Cluster
 ```
 
 #### Kubernetes Deployment (k8s/deployment.yaml)
-```yaml
+```*yaml*
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1857,7 +1638,7 @@ spec:
 ```
 
 #### HorizontalPodAutoscaler (k8s/hpa.yaml)
-```yaml
+```*yaml*
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -1888,7 +1669,7 @@ spec:
 ### 🔧 마이그레이션 도구 및 스크립트
 
 #### ECR 푸시 스크립트 (scripts/push-to-ecr.sh)
-```bash
+```*bash*
 #!/bin/bash
 AWS_REGION="ap-northeast-2"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -1907,7 +1688,7 @@ docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:la
 ```
 
 #### EKS 클러스터 생성 (eksctl/cluster.yaml)
-```yaml
+```*yaml*
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
@@ -1967,12 +1748,9 @@ addons:
 - 📅 **EKS 클러스터 프로비저닝** (2025년 8월 예정)
 - 📅 **모니터링 스택 마이그레이션** (2025년 8월 예정)
 
-</details>
+
 
 ## 🎯 기술적 도전과제
-
-<details>
-<summary><strong>⚡ 복잡한 기술적 과제와 해결책</strong></summary>
 
 ### 1. 다중 사용자 가계부 공유 시스템 설계
 **도전**: 여러 사용자가 동시에 하나의 가계부를 편집할 때의 데이터 일관성 보장
@@ -1982,7 +1760,7 @@ addons:
 - **낙관적 락킹**: `@Version` 어노테이션을 사용한 동시성 제어
 - **이벤트 기반 알림**: 가계부 변경 시 실시간 푸시 알림
 
-```java
+```*java*
 @Entity
 public class UserBook {
     @Id
@@ -2010,7 +1788,7 @@ public class UserBook {
 - **배치 처리**: 대량 알림 전송을 위한 비동기 처리
 - **재시도 메커니즘**: 전송 실패 시 자동 재시도 로직
 
-```java
+```*java*
 @Service
 public class FcmSendService {
     public void sendNotificationToUser(Long userId, String title, String body) {
@@ -2123,32 +1901,9 @@ public class FcmSendService {
 - **해결**: providerId + email 조합으로 고유성 보장
 - **결과**: 플랫폼 간 회원 통합 관리
 
-</details>
 
-## 📊 성과 및 지표
-
-<details>
-<summary><strong>📈 프로젝트 성과 및 핵심 지표</strong></summary>
-
-### 🏆 기술적 성과
-
-#### 성능 지표
-- **API 응답 시간**: 평균 156ms → 42ms (73% 개선)
-- **동시 사용자 처리**: 500명 → 1,200명 (140% 증가)
-- **DB 커넥션 사용률**: 85% → 35% (59% 감소)
-- **캐시 히트율**: 평균 85% 이상 달성
-
-#### 인프라 지표  
-- **Docker 이미지 크기**: 1.2GB → 380MB (68% 최적화)
-- **메모리 사용량**: 1.1GB → 1.3GB (Redis 캐싱으로 인한 제어된 증가)
-- **CPU 사용률**: 65% → 28% (57% 감소)
-
-</details>
 
 ## 🔮 향후 개선 계획
-
-<details>
-<summary><strong>🚀 로드맵 및 확장 계획</strong></summary>
 
 ### 단기 계획 (1-3개월)
 - [ ] **실시간 알림 기능 강화**: WebSocket을 통한 실시간 업데이트
@@ -2167,8 +1922,6 @@ public class FcmSendService {
 - [ ] **클라우드 네이티브**: AWS EKS로 마이그레이션
 - [ ] **대용량 데이터 처리**: Apache Kafka를 통한 이벤트 스트리밍
 - [ ] **고급 분석**: 빅데이터 분석 및 예측 모델링
-
-</details>
 
 ## 🤝 기여하기
 
@@ -2204,7 +1957,7 @@ public class FcmSendService {
 #### 해결 방법
 
 ##### 1. @JsonManagedReference와 @JsonBackReference 적용
-```java
+```*java*
 // Book.java
 @OneToMany(mappedBy = "book")
 @JsonManagedReference("book-userBooks")
@@ -2228,7 +1981,7 @@ private Book book;
 ```
 
 ##### 2. Redis 캐시 설정 최적화
-```java
+```*java*
 // RedisConfig.java
 @Bean
 public CacheManager cacheManager(RedisConnectionFactory cf) {
@@ -2250,7 +2003,7 @@ public CacheManager cacheManager(RedisConnectionFactory cf) {
 ```
 
 ##### 3. 캐시 데이터 초기화
-```bash
+```*bash*
 # Redis 캐시 완전 삭제
 docker-compose exec redis redis-cli FLUSHALL
 ```
@@ -2270,7 +2023,7 @@ docker-compose exec redis redis-cli FLUSHALL
 5. **동시성 문제 해결**: 여러 사용자 동시 접근 시 데이터 구분
 
 #### 캐시 키 생성 예시
-```java
+```*java*
 // 사용자별 가계부 목록 캐싱
 @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()")
 public List<Book> findLoggedInUserBooks() {
@@ -2291,11 +2044,7 @@ public List<Book> findLoggedInUserBooks() {
 4. **성능 모니터링**: 캐시 히트율 및 응답 시간 측정
 
 ---
-
 ## 🔍 기술 부채 평가
-
-<details>
-<summary><strong>⚖️ GPT & Claude 기반 종합 코드 품질 평가</strong></summary>
 
 ### GPT & Claude 기반 기술 부채 평가
 
@@ -2318,4 +2067,3 @@ public List<Book> findLoggedInUserBooks() {
 ### 📈 종합 평가
 이 가라부 서버 프로젝트는 **엔터프라이즈급 Spring Boot 개발 기술**을 보여주는 우수한 포트폴리오 작품입니다. 기술적 깊이와 실용적인 소프트웨어 엔지니어링 역량을 모두 갖추고 있으며, 실제 운영 환경을 고려한 설계와 구현이 돋보입니다.
 
-</details>
