@@ -1,13 +1,13 @@
-# # 가라부 (Garabu) 서버 💰
+# 가라부 (Garabu) 서버 💰
 
 > **가계부 관리 백엔드 API 서버**  
 > 다중 사용자 지원, 실시간 WebSocket 통신, 안전한 인증, 포괄적 모니터링을 갖춘 가계부 관리 애플리케이션
 
-![Spring Boot](*https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?style=flat-square&logo=springboot*)
-![Java](*https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java*)
-![MySQL](*https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql*)
-![Redis](*https://img.shields.io/badge/Redis-Cache-red?style=flat-square&logo=redis*)
-![Docker](*https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker*)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?style=flat-square&logo=springboot)
+![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=java)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql)
+![Redis](https://img.shields.io/badge/Redis-Cache-red?style=flat-square&logo=redis)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker)
 
 ## 🎯 프로젝트 개요
 
@@ -42,29 +42,28 @@
 
 ## 📋 목차
 
-- [프로젝트 개요](*#-**프로젝트**-**개요*)
-- [주요 기능](*#-**주요**-**기능*)
-- [기술 스택](*#-**기술**-**스택*)
-- [시스템 아키텍처](*#-**시스템**-**아키텍처*)
-- [데이터베이스 설계](*#-**데이터베이스**-**설계*)
-- [API 문서](*#-api-**문서*)
-- [설치 및 설정](*#-**설치**-**및**-**설정*)
-- [모니터링 및 배포](*#-**모니터링**-**및**-**배포*)
-- [성능 최적화](*#-**성능**-**최적화*)
-- [보안 구현](*#-**보안**-**구현*)
-- [개발 가이드](*#-**개발**-**가이드*)
-- [WebSocket 실시간 동기화](*#-websocket-**실시간**-**동기화*)
-- [테스트](*#-**테스트*)
-- [배포 가이드](*#-**배포**-**가이드*)
-- [AWS 마이그레이션](*#-aws-**마이그레이션*)
-- [기술적 도전과제](*#-**기술적**-**도전과제*)
-- [성과 및 지표](*#-**성과**-**및**-**지표*)
-- [프로젝트 회고](*#-**프로젝트**-**회고*)
-- [향후 개선 계획](*#-**향후**-**개선**-**계획*)
-- [기술 부채 평가](*#-**기술**-**부채**-**평가*)
-- [기여하기](*#-**기여하기*)
-- [라이선스](*#-**라이선스*)
-- [연락처](*#-**연락처*)
+- [프로젝트 개요](#-프로젝트-개요)
+- [주요 기능](#-주요-기능)
+- [기술 스택](#-기술-스택)
+- [시스템 아키텍처](#-시스템-아키텍처)
+- [데이터베이스 설계](#-데이터베이스-설계)
+- [API 문서](#-api-문서)
+- [설치 및 설정](#-설치-및-설정)
+- [모니터링 및 배포](#-모니터링-및-배포)
+- [성능 최적화](#-성능-최적화)
+- [보안 구현](#-보안-구현)
+- [개발 가이드](#-개발-가이드)
+- [테스트](#-테스트)
+- [배포 가이드](#-배포-가이드)
+- [AWS 마이그레이션](#-aws-마이그레이션)
+- [기술적 도전과제](#-기술적-도전과제)
+- [성과 및 지표](#-성과-및-지표)
+- [프로젝트 회고](#-프로젝트-회고)
+- [향후 개선 계획](#-향후-개선-계획)
+- [기술 부채 평가](#-기술-부채-평가)
+- [기여하기](#-기여하기)
+- [라이선스](#-라이선스)
+- [연락처](#-연락처)
 
 ## ✨ 주요 기능
 
@@ -89,7 +88,6 @@
 - **고성능 캐싱**: Redis를 사용한 최적의 응답 시간, Hibernate 직렬화 최적화
 - **보안 데이터베이스 접근**: SSH 터널링을 통한 AWS RDS 연결
 - **실시간 통신**: WebSocket STOMP 서버 구성
-- **실시간 데이터 동기화**: WebSocket 기반 협업 가계부 지원
 - **업무 프로세스 연동**: Slack과 Jira 연동을 통한 자동 배포 및 로그 기반 알림
 - **모니터링/로그 수집**: Slack 알림과 연동된 통합 모니터링 시스템
 
@@ -291,7 +289,7 @@ garabuserver/
 ## 📐 데이터베이스 설계
 
 ### ERD (Entity Relationship Diagram)
-```*mermaid*
+```mermaid
 erDiagram
     Member ||--o{ UserBook : "owns"
     Book ||--o{ UserBook : "shared_with"
@@ -422,7 +420,7 @@ erDiagram
 ### API 사용 예시
 
 #### 가계부 기록 생성
-```*bash*
+```bash
 curl -X POST "http://localhost:8080/api/v2/ledger" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
@@ -440,7 +438,7 @@ curl -X POST "http://localhost:8080/api/v2/ledger" \
 ```
 
 #### 가계부 기록 조회 (필터링)
-```*bash*
+```bash
 curl -X GET "http://localhost:8080/api/v2/ledger/list?startDate=2025-07-01&endDate=2025-07-31&amountType=EXPENSE&page=0&size=20" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
@@ -477,7 +475,7 @@ curl -X GET "http://localhost:8080/api/v2/ledger/list?startDate=2025-07-01&endDa
 - Redis
 
 ### 1. 프로젝트 클론
-```*bash*
+```bash
 git clone <repository-url>
 cd garabuserver
 ```
@@ -485,7 +483,7 @@ cd garabuserver
 ### 2. 환경 설정
 `src/main/resources/application.yml` 파일을 수정하여 데이터베이스 연결 정보를 설정합니다:
 
-```*yaml*
+```yaml
 spring:
   datasource:
     url: jdbc:p6spy:mysql://localhost:3306/garabu?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -511,12 +509,12 @@ jwt:
 ### 3. 로컬 개발 환경 실행
 
 #### Gradle을 사용한 실행
-```*bash*
+```bash
 ./gradlew bootRun
 ```
 
 #### Docker Compose를 사용한 실행 (모니터링 포함)
-```*bash*
+```bash
 # 전체 스택 실행 (ELK, Prometheus, Grafana 포함)
 docker-compose up -d
 
@@ -525,7 +523,7 @@ docker-compose up spring-app
 ```
 
 ### 4. 데이터베이스 초기화
-```*bash*
+```bash
 # MySQL 접속
 mysql -u root -p
 
@@ -559,7 +557,7 @@ FLUSH PRIVILEGES;
 ### 모니터링 설정
 
 #### Prometheus 설정 (`prometheus/prometheus.yml`)
-```*yaml*
+```yaml
 global:
   scrape_interval: 15s
 
@@ -579,7 +577,7 @@ scrape_configs:
 ### 로그 수집 설정
 
 #### Filebeat 설정 (`filebeat/filebeat.yml`)
-```*yaml*
+```yaml
 filebeat.inputs:
 - type: log
   enabled: true
@@ -591,7 +589,7 @@ output.logstash:
 ```
 
 #### Logstash 설정 (`logstash/logstash.conf`)
-```*conf*
+```conf
 input {
   beats {
     port => 5044
@@ -624,7 +622,7 @@ output {
 자주 조회되지만 변경이 거의 없는 데이터에 장기 캐싱 적용
 
 **CategoryService 캐싱:**
-```*java*
+```java
 @Cacheable(value = "categoriesAll", unless = "#result == null or #result.isEmpty()")
 public List<Category> findAllCategories() {
     return categoryJpaRepository.findAll();
@@ -642,7 +640,7 @@ public Long rigistCategory(Category category) {
 ```
 
 **PaymentService 캐싱:**
-```*java*
+```java
 @Cacheable(value = "paymentMethodsAll", unless = "#result == null or #result.isEmpty()")
 public List<PaymentMethod> findAllPayment() {
     return paymentJpaRepository.findAll();
@@ -658,7 +656,7 @@ public PaymentMethod findByPayment(String name) {
 사용자별 데이터로 중간 수준의 캐싱 적용
 
 **BookService 사용자 가계부 목록 캐싱:**
-```*java*
+```java
 @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()", 
            unless = "#result == null or #result.isEmpty()")
 public List<Book> findLoggedInUserBooks() {
@@ -675,7 +673,7 @@ public Book createBook(String title) {
 #### 2. Redis 캐시 설정
 
 **TTL 및 직렬화 설정:**
-```*java*
+```java
 @Bean
 public CacheManager cacheManager(RedisConnectionFactory cf) {
     return RedisCacheManager.builder(cf)
@@ -734,7 +732,7 @@ public CacheManager cacheManager(RedisConnectionFactory cf) {
 ### 🧪 성능 테스트 (k6)
 
 #### 부하 테스트 실행
-```*bash*
+```bash
 # k6 컨테이너 실행
 docker-compose -f docker-compose.k6.yml up -d
 
@@ -746,7 +744,7 @@ docker-compose -f docker-compose.k6.yml down -v
 ```
 
 #### 성능 테스트 스크립트 (`k6-scripts/loadtest.js`)
-```*javascript*
+```javascript
 export const options = {
   vus: 200,                 // 동시 200 가상 사용자 (증가)
   duration: '5m',           // 5분간 지속 (연장)
@@ -774,7 +772,7 @@ export const options = {
 #### **기존 문제점과 개선 사항**
 
 ##### **RDB 기반 토큰 관리 (개선 전)**
-```*java*
+```java
 // 기존: RefreshEntity를 MySQL에 저장
 RefreshEntity refreshEntity = new RefreshEntity();
 refreshEntity.setUsername(username);
@@ -790,7 +788,7 @@ refreshRepository.save(refreshEntity);  // DB 저장
 - **확장성 한계**: 토큰 검증이 DB 성능에 의존
 
 ##### **Redis 기반 토큰 관리 (개선 후)**
-```*java*
+```java
 // 개선: Redis에 자동 TTL과 함께 저장
 @Service
 public class RefreshTokenService {
@@ -831,14 +829,14 @@ public class RefreshTokenService {
 #### **기능적 개선 사항**
 
 ##### **자동 토큰 만료 관리**
-```*java*
+```java
 // Redis TTL 활용 - 자동 만료
 redisTemplate.opsForValue().set(tokenKey, username, 86400000L, TimeUnit.MILLISECONDS);
 // 24시간 후 자동 삭제, 별도 정리 작업 불필요
 ```
 
 ##### **멀티 디바이스 토큰 관리**
-```*java*
+```java
 // 사용자별 단일 토큰 정책 (보안 강화)
 public void saveRefreshToken(String username, String newToken, Long expiredMs) {
     String userKey = "user_tokens:" + username;
@@ -878,7 +876,7 @@ public void saveRefreshToken(String username, String newToken, Long expiredMs) {
 - **메모리 사용량**: 토큰 저장소 효율성 측정
 
 ### 4. JVM 튜닝
-```*bash*
+```bash
 # Docker 실행 시 JVM 옵션 설정
 docker run -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" garabuserver:latest
 ```
@@ -896,7 +894,7 @@ docker run -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" garabuserver:latest
 - **SQL Injection 방지**: JPA와 MyBatis 사용
 
 ### 3. 보안 헤더 설정
-```*java*
+```java
 @Configuration
 public class SecurityConfig {
     @Bean
@@ -915,7 +913,7 @@ public class SecurityConfig {
 ### 4. SSH 터널링
 AWS RDS에 안전하게 접근하기 위한 SSH 터널링 설정:
 
-```*java*
+```java
 @Configuration
 public class SshDataSourceConfig {
     @Value("${ec2.remote_jump_host}")
@@ -931,262 +929,10 @@ public class SshDataSourceConfig {
 }
 ```
 
-## 🔄 WebSocket 실시간 동기화
-
-### 📱 WebSocket 필요성 분석
-
-가라부 프로젝트에서 WebSocket이 **필수적인 이유**:
-
-#### 1. 협업 가계부의 특성
-- **여러 사용자 동시 편집**: 가족이나 팀이 하나의 가계부를 실시간으로 공유
-- **즉시 반영 필요**: 한 사용자의 거래 입력이 다른 사용자에게 즉시 표시되어야 함
-- **데이터 일관성**: 동시 편집 시 충돌 방지 및 최신 상태 유지
-
-#### 2. 실시간 알림 시스템
-```*java*
-// 실시간 이벤트 처리 예시
-@MessageMapping("/book/{bookId}/transaction")
-@SendTo("/topic/book/{bookId}")
-public TransactionUpdateEvent handleTransactionUpdate(
-    @DestinationVariable Long bookId,
-    TransactionUpdateRequest request,
-    Principal principal
-) {
-    // 거래 정보 업데이트
-    Ledger updatedLedger = ledgerService.updateTransaction(request);
-    
-    // 실시간 알림 전송
-    return TransactionUpdateEvent.builder()
-        .type("TRANSACTION_UPDATED")
-        .ledger(updatedLedger)
-        .updatedBy(principal.getName())
-        .timestamp(System.currentTimeMillis())
-        .build();
-}
-```
-
-#### 3. 사용자 경험 최적화
-- **즉시 피드백**: 거래 추가/수정/삭제 시 즉시 UI 업데이트
-- **멤버 활동 알림**: 새 멤버 참여, 권한 변경 등 실시간 알림
-- **오프라인 복구**: 네트워크 재연결 시 누락된 변경사항 동기화
-
-### 🏗️ WebSocket 아키텍처
-
-#### 1. STOMP 프로토콜 구성
-```*java*
-@Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        // 클라이언트 구독용 브로커
-        config.enableSimpleBroker("/topic", "/queue");
-        // 서버 메시지 처리용 접두사
-        config.setApplicationDestinationPrefixes("/app");
-    }
-    
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // WebSocket 엔드포인트 등록
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();  // 브라우저 호환성
-    }
-}
-```
-
-#### 2. JWT 기반 WebSocket 인증
-```*java*
-@Override
-public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(new ChannelInterceptor() {
-        @Override
-        public Message<?> preSend(Message<?> message, MessageChannel channel) {
-            StompHeaderAccessor accessor = MessageHeaderAccessor
-                .getAccessor(message, StompHeaderAccessor.class);
-                
-            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                // JWT 토큰 검증
-                String token = extractTokenFromHeaders(accessor);
-                if (jwtUtil.validateToken(token)) {
-                    // 인증된 사용자 정보 설정
-                    Authentication auth = createAuthentication(token);
-                    accessor.setUser(auth);
-                }
-            }
-            return message;
-        }
-    });
-}
-```
-
-### 📊 WebSocket vs 대안 기술 비교
-
-#### ❌ HTTP 폴링 방식의 문제점
-```*javascript*
-// 비효율적인 폴링 방식
-setInterval(() => {
-    fetch('/api/v2/ledger/list')
-        .then(response => response.json())
-        .then(data => updateUI(data));
-}, 5000); // 5초마다 요청
-```
-
-**문제점:**
-- 배터리 소모: 지속적인 HTTP 요청으로 모바일 배터리 빠른 소모
-- 네트워크 낭비: 변경이 없어도 계속 요청 발생
-- 실시간성 부족: 최대 폴링 간격만큼 지연 발생
-- 서버 부하: 불필요한 요청으로 서버 리소스 낭비
-
-#### ✅ WebSocket의 장점
-```*javascript*
-// 효율적인 WebSocket 방식
-const socket = new SockJS('/ws?token=JWT_TOKEN');
-const stompClient = Stomp.over(socket);
-
-stompClient.connect({}, function(frame) {
-    // 가계부별 실시간 구독
-    stompClient.subscribe('/topic/book/' + bookId, function(message) {
-        const event = JSON.parse(message.body);
-        handleRealTimeUpdate(event);
-    });
-});
-```
-
-**장점:**
-- **실시간성**: 이벤트 발생 즉시 전파 (지연시간 < 100ms)
-- **효율성**: 연결 유지만으로 실시간 통신 (배터리 절약)
-- **양방향 통신**: 클라이언트↔서버 실시간 데이터 교환
-- **확장성**: 다수 사용자 동시 지원
-
-### 🔄 실시간 동기화 시나리오
-
-#### 시나리오 1: 거래 추가 실시간 동기화
-```*mermaid*
-sequenceDiagram
-    participant A as 사용자 A (모바일)
-    participant S as Spring Server
-    participant B as 사용자 B (웹)
-    participant C as 사용자 C (모바일)
-    
-    A->>S: 새 거래 추가 (WebSocket)
-    S->>S: 거래 저장 (DB)
-    S->>B: 실시간 알림 (/topic/book/123)
-    S->>C: 실시간 알림 (/topic/book/123)
-    B->>B: UI 자동 업데이트
-    C->>C: 푸시 알림 + UI 업데이트
-```
-
-#### 시나리오 2: 멤버 권한 변경 알림
-```*java*
-@MessageMapping("/book/{bookId}/member/role")
-@SendTo("/topic/book/{bookId}")
-public MemberRoleChangeEvent updateMemberRole(
-    @DestinationVariable Long bookId,
-    @Payload MemberRoleUpdateRequest request
-) {
-    // 권한 변경 처리
-    UserBook updatedUserBook = userBookService.updateRole(
-        bookId, request.getMemberId(), request.getNewRole()
-    );
-    
-    // 실시간 알림 이벤트 생성
-    return MemberRoleChangeEvent.builder()
-        .type("MEMBER_ROLE_CHANGED")
-        .bookId(bookId)
-        .memberId(request.getMemberId())
-        .oldRole(request.getOldRole())
-        .newRole(request.getNewRole())
-        .changedBy(getCurrentUser().getName())
-        .timestamp(System.*currentTimeMillis*())
-        .build();
-}
-```
-
-### 🛡️ WebSocket 보안 구현
-
-#### 1. JWT 토큰 기반 인증
-- **연결 시 인증**: WebSocket 핸드셰이크 시 JWT 토큰 검증
-- **세션 관리**: 인증된 사용자별 WebSocket 세션 관리
-- **권한 검증**: 가계부별 접근 권한 실시간 확인
-
-#### 2. 가계부별 권한 관리
-```*java*
-@EventListener
-public void handleSessionConnect(SessionConnectEvent event) {
-    StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-    Long bookId = extractBookId(accessor);
-    String username = accessor.getUser().getName();
-    
-    // 가계부 접근 권한 검증
-    if (!userBookService.hasAccessToBook(username, bookId)) {
-        throw new AccessDeniedException("가계부 접근 권한이 없습니다.");
-    }
-}
-```
-
-### 📈 성능 및 확장성
-
-#### 1. 동시 연결 처리 성능
-| 지표 | HTTP 폴링 | WebSocket |
-|------|-----------|-----------|
-| **동시 사용자** | 200명 | 1,000명+ |
-| **응답 지연시간** | 5초 (폴링 간격) | < 100ms |
-| **서버 리소스** | 높음 (지속 요청) | 낮음 (연결 유지) |
-| **배터리 소모** | 높음 | 낮음 |
-
-#### 2. 메모리 및 연결 관리
-```*java*
-@Component
-public class WebSocketSessionManager {
-    private final Map<String, Set<String>> bookSessions = new ConcurrentHashMap<>();
-    
-    @EventListener
-    public void handleSessionDisconnect(SessionDisconnectEvent event) {
-        String sessionId = event.getSessionId();
-        // 연결 해제 시 세션 정리
-        cleanupSession(sessionId);
-    }
-    
-    public void sendToBookMembers(Long bookId, Object message) {
-        Set<String> sessions = bookSessions.get(bookId.toString());
-        if (sessions != null) {
-            sessions.forEach(sessionId -> 
-                messagingTemplate.convertAndSendToUser(sessionId, "/queue/updates", message)
-            );
-        }
-    }
-}
-```
-
-### 🔮 WebSocket 기반 향후 확장 계획
-
-#### 1. 고급 실시간 기능
-- **실시간 협업 편집**: 동시 편집 시 충돌 해결 및 변경사항 병합
-- **커서 위치 공유**: 다른 사용자의 편집 위치 실시간 표시
-- **실시간 댓글 시스템**: 거래별 댓글 및 토론 기능
-
-#### 2. 성능 최적화
-- **Redis Pub/Sub**: 다중 서버 환경에서 WebSocket 메시지 브로드캐스팅
-- **메시지 압축**: 대용량 데이터 전송 시 압축 적용
-- **연결 풀링**: WebSocket 연결 효율적 관리
-
-### 💡 결론: WebSocket의 필수성
-
-가라부 프로젝트에서 WebSocket은 단순한 기술적 선택이 아닌 **협업 가계부 서비스의 핵심 요구사항**을 만족시키는 필수 기술입니다:
-
-1. **실시간 협업**: 여러 사용자가 동시에 가계부를 편집하는 협업 환경
-2. **즉시성**: 변경사항의 즉시 반영으로 일관된 사용자 경험 제공
-3. **효율성**: 폴링 대비 서버 리소스 및 배터리 사용량 최적화
-4. **확장성**: 대규모 동시 사용자 지원 가능한 아키텍처
-
-WebSocket 없이는 진정한 **실시간 협업 가계부 서비스**를 구현할 수 없으며, 이는 가라부 프로젝트의 핵심 가치 제안에 직접적으로 연결되는 기술적 토대입니다.
-
 ## 👨‍💻 개발 가이드
 
 ### 1. 개발 환경 설정
-```*bash*
+```bash
 # IDE 설정 (IntelliJ IDEA 권장)
 # - Java 21 SDK 설정
 # - Gradle 프로젝트 import
@@ -1200,7 +946,7 @@ WebSocket 없이는 진정한 **실시간 협업 가계부 서비스**를 구현
 - **주석**: JavaDoc 형식 사용
 
 ### 3. Git 워크플로우
-```*bash*
+```bash
 # 기능 브랜치 생성
 git checkout -b feature/new-feature
 
@@ -1222,195 +968,27 @@ chore: 빌드 설정 변경
 ## 🧪 테스트
 
 ### 1. 단위 테스트
-```*bash*
-# 전체 테스트 실행
+```bash
+# 테스트 실행
 ./gradlew test
 
 # 특정 테스트 클래스 실행
 ./gradlew test --tests MemberServiceTest
-./gradlew test --tests FcmSendServiceImplTest
-./gradlew test --tests CustomUserDetailsServiceTest
-./gradlew test --tests UserBookServiceTest
 ```
 
-#### 주요 테스트 클래스
-- **MemberServiceTest**: 회원 관리 비즈니스 로직 테스트
-- **FcmSendServiceImplTest**: FCM 푸시 알림 서비스 테스트
-- **CustomUserDetailsServiceTest**: 사용자 인증 서비스 테스트
-- **UserBookServiceTest**: 가계부 공유 권한 관리 테스트
-
 ### 2. 통합 테스트
-```*bash*
-# Spring Boot Test 통합 테스트
+```bash
+# 통합 테스트 실행
 ./gradlew integrationTest
-
-# 특정 통합 테스트 실행
-./gradlew test --tests "*IntegrationTest"
 ```
 
 ### 3. API 테스트
-
-#### Swagger UI를 통한 API 테스트
-- **접속 URL**: http://localhost:8080/swagger-ui/index.html
-- **인증**: JWT Bearer 토큰 필요 (로그인 API 먼저 호출)
-
-#### cURL을 통한 API 테스트
-```*bash*
-# 1. 회원가입
-curl -X POST "http://localhost:8080/api/v2/join" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "password": "password123",
-    "email": "test@example.com",
-    "name": "테스트 사용자"
-  }'
-
-# 2. 로그인 (JWT 토큰 획득)
-curl -X POST "http://localhost:8080/login" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=testuser&password=password123"
-
-# 3. 가계부 목록 조회
-curl -X GET "http://localhost:8080/api/v2/book/mybooks" \
+```bash
+# Postman 컬렉션 사용
+# 또는 curl 명령어로 테스트
+curl -X GET "http://localhost:8080/api/v2/ledger/list" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# 4. 거래 기록 추가
-curl -X POST "http://localhost:8080/api/v2/ledger" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "date": "2025-07-13",
-    "amount": 5000,
-    "description": "점심식사",
-    "amountType": "EXPENSE",
-    "title": "개인 가계부",
-    "payment": "신용카드",
-    "category": "식비"
-  }'
 ```
-
-### 4. 성능 테스트 (k6)
-
-#### k6 테스트 실행
-```*bash*
-# k6 컨테이너로 성능 테스트 실행
-docker-compose -f docker-compose.k6.yml up -d
-
-# 테스트 진행 상황 실시간 모니터링
-docker-compose -f docker-compose.k6.yml logs -f k6
-
-# 테스트 완료 후 정리
-docker-compose -f docker-compose.k6.yml down -v
-```
-
-#### 성능 테스트 시나리오
-- **Smoke Test**: `k6 run k6-scripts/stages/smoke.js`
-- **Load Test**: `k6 run k6-scripts/loadtest.js`
-- **Soak Test**: `k6 run k6-scripts/stages/soak.js`
-
-#### 성능 테스트 결과 예시
-```
-     - [x] status is 200
-     - [x] response time < 500ms
-
-     checks.........................: 100.00% ✓ 24000 ✗ 0
-     data_received..................: 8.4 MB  140 kB/s
-     data_sent......................: 3.2 MB  53 kB/s
-     http_req_duration..............: avg=85ms    min=12ms med=78ms max=445ms p(90)=156ms p(95)=198ms
-     http_req_failed................: 0.00%   ✓ 0    ✗ 12000
-     http_reqs......................: 12000   200/s
-     iteration_duration.............: avg=1s      min=1s   med=1s   max=1.44s p(90)=1.15s p(95)=1.19s
-     iterations.....................: 12000   200/s
-     vus............................: 200     min=200 max=200
-     vus_max........................: 200     min=200 max=200
-```
-
-### 5. WebSocket 테스트
-
-#### WebSocket 연결 테스트
-```*javascript*
-// 브라우저 콘솔에서 WebSocket 테스트
-const socket = new SockJS('http://localhost:8080/ws?token=YOUR_JWT_TOKEN');
-const stompClient = Stomp.over(socket);
-
-stompClient.connect({}, function(frame) {
-    console.log('Connected: ' + frame);
-    
-    // 실시간 알림 구독
-    stompClient.subscribe('/topic/book/1', function(message) {
-        console.log('Received:', JSON.parse(message.body));
-    });
-    
-    // 테스트 메시지 전송
-    stompClient.send('/app/connect', {}, JSON.stringify({
-        message: 'Hello WebSocket!'
-    }));
-});
-```
-
-### 6. 테스트 커버리지
-
-현재 테스트 커버리지: **85%** (목표: 90% 이상)
-
-#### 커버리지 보고서 생성
-```*bash*
-# JaCoCo 커버리지 리포트 생성
-./gradlew jacocoTestReport
-
-# 리포트 확인
-open build/reports/jacoco/test/html/index.html
-```
-
-### 7. 테스트 데이터 관리
-
-#### 테스트용 데이터베이스 설정
-```*yaml*
-# application-test.yml
-spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-  sql:
-    init:
-      mode: embedded
-```
-
-#### 테스트 데이터 초기화
-```*java*
-@TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest
-class MemberServiceTest {
-    
-    @BeforeEach
-    void setUp() {
-        // 테스트 데이터 초기화
-        memberRepository.deleteAll();
-        bookRepository.deleteAll();
-    }
-    
-    @Test
-    @Order(1)
-    void 회원가입_성공_테스트() {
-        // Given
-        Member member = Member.builder()
-            .username("testuser")
-            .email("test@example.com")
-            .password("password123")
-            .name("테스트 사용자")
-            .build();
-            
-        // When
-        Long savedId = memberService.joinMember(member);
-        
-        // Then
-        assertThat(savedId).isNotNull();
-        assertThat(memberRepository.findById(savedId)).isPresent();
-    }
-}
 
 ## 🚀 배포 가이드
 
@@ -1424,7 +1002,7 @@ docker build -t garabuserver:latest .
 ```
 
 ### 2. AWS EC2 배포
-```*bash*
+```bash
 # EC2 인스턴스에 접속
 ssh -i your-key.pem ubuntu@your-ec2-ip
 
@@ -1437,7 +1015,7 @@ docker-compose up -d
 ```
 
 ### 3. Kubernetes 배포
-```*bash*
+```bash
 # Kubernetes 매니페스트 적용
 kubectl apply -f src/main/resources/k8s/
 
@@ -1447,7 +1025,7 @@ kubectl get services
 ```
 
 ### 4. CI/CD 파이프라인 (GitHub Actions)
-```*yaml*
+```yaml
 name: Deploy to AWS
 on:
   push:
@@ -1544,7 +1122,7 @@ AWS EKS Cluster
 ### 📝 주요 설정 파일
 
 #### ECS Task Definition (ecs-task-definition.json)
-```*json*
+```json
 {
   "family": "garabu-app",
   "networkMode": "awsvpc",
@@ -1587,7 +1165,7 @@ AWS EKS Cluster
 ```
 
 #### Kubernetes Deployment (k8s/deployment.yaml)
-```*yaml*
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1638,7 +1216,7 @@ spec:
 ```
 
 #### HorizontalPodAutoscaler (k8s/hpa.yaml)
-```*yaml*
+```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -1669,7 +1247,7 @@ spec:
 ### 🔧 마이그레이션 도구 및 스크립트
 
 #### ECR 푸시 스크립트 (scripts/push-to-ecr.sh)
-```*bash*
+```bash
 #!/bin/bash
 AWS_REGION="ap-northeast-2"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -1688,7 +1266,7 @@ docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:la
 ```
 
 #### EKS 클러스터 생성 (eksctl/cluster.yaml)
-```*yaml*
+```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
@@ -1760,7 +1338,7 @@ addons:
 - **낙관적 락킹**: `@Version` 어노테이션을 사용한 동시성 제어
 - **이벤트 기반 알림**: 가계부 변경 시 실시간 푸시 알림
 
-```*java*
+```java
 @Entity
 public class UserBook {
     @Id
@@ -1788,7 +1366,7 @@ public class UserBook {
 - **배치 처리**: 대량 알림 전송을 위한 비동기 처리
 - **재시도 메커니즘**: 전송 실패 시 자동 재시도 로직
 
-```*java*
+```java
 @Service
 public class FcmSendService {
     public void sendNotificationToUser(Long userId, String title, String body) {
@@ -1957,7 +1535,7 @@ public class FcmSendService {
 #### 해결 방법
 
 ##### 1. @JsonManagedReference와 @JsonBackReference 적용
-```*java*
+```java
 // Book.java
 @OneToMany(mappedBy = "book")
 @JsonManagedReference("book-userBooks")
@@ -1981,7 +1559,7 @@ private Book book;
 ```
 
 ##### 2. Redis 캐시 설정 최적화
-```*java*
+```java
 // RedisConfig.java
 @Bean
 public CacheManager cacheManager(RedisConnectionFactory cf) {
@@ -2003,7 +1581,7 @@ public CacheManager cacheManager(RedisConnectionFactory cf) {
 ```
 
 ##### 3. 캐시 데이터 초기화
-```*bash*
+```bash
 # Redis 캐시 완전 삭제
 docker-compose exec redis redis-cli FLUSHALL
 ```
@@ -2023,7 +1601,7 @@ docker-compose exec redis redis-cli FLUSHALL
 5. **동시성 문제 해결**: 여러 사용자 동시 접근 시 데이터 구분
 
 #### 캐시 키 생성 예시
-```*java*
+```java
 // 사용자별 가계부 목록 캐싱
 @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()")
 public List<Book> findLoggedInUserBooks() {
@@ -2066,4 +1644,3 @@ public List<Book> findLoggedInUserBooks() {
 
 ### 📈 종합 평가
 이 가라부 서버 프로젝트는 **엔터프라이즈급 Spring Boot 개발 기술**을 보여주는 우수한 포트폴리오 작품입니다. 기술적 깊이와 실용적인 소프트웨어 엔지니어링 역량을 모두 갖추고 있으며, 실제 운영 환경을 고려한 설계와 구현이 돋보입니다.
-
