@@ -108,3 +108,4 @@ grafana-agent/data/
 logs/
 
 CLAUDE.md
+.claude
