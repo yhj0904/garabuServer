@@ -8,9 +8,11 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
 @Slf4j
 @Configuration
+@Profile("!prod")  // prod 프로파일이 아닐 때 활성화 (로컬 개발용)
 @RequiredArgsConstructor
 public class SshDataSourceConfig {
 

@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableWebSecurity
@@ -42,6 +43,9 @@ public class SecurityConfig {
     private final RefreshTokenService refreshTokenService;
     private final CustomSuccessHandler customSuccessHandler;
     private final BlacklistService blacklistService;
+    
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:4000,http://localhost:8081}")
+    private List<String> allowedOrigins;
 
     @Autowired
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
@@ -130,14 +134,7 @@ public class SecurityConfig {
 
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOrigins(
-                                List.of("http://localhost:5173",
-                                        "http://localhost:4000",
-                                        "http://192.0.0.2:8081",
-                                        "http://localhost:8081",
-                                        "http://101.1.13.71:8081",
-                                        "http://192.168.10.54:8081")
-                        );
+                        configuration.setAllowedOrigins(allowedOrigins);
                         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));

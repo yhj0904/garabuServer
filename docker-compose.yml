@@ -6,7 +6,7 @@ secrets:
   slack_webhook:
     file: ./secrets/slack-webhook.txt
   ec2_private_key:
-    file: ./secrets/AWSGarabu.pem
+    file: /Users/yoonhyungjoo/Documents/keys/AWSgarabu.pem
 
 volumes:
   elasticsearch_data:
@@ -192,7 +192,7 @@ services:
       elasticsearch:
         condition: service_healthy
     env_file:
-      - ./spring-app.env
+      - ./.env
     environment:
       # Spring Boot 프로파일 설정
       - SPRING_PROFILES_ACTIVE=docker

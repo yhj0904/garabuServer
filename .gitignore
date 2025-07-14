@@ -109,3 +109,6 @@ logs/
 
 CLAUDE.md
 .claude
+
+/deployment
+!/deployment/.env.prod.template
