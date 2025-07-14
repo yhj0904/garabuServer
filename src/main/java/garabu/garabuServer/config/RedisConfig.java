@@ -43,15 +43,19 @@ public class RedisConfig {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
         
-        // 타입 정보 포함 (Redis 직렬화용)
+        // 타입 정보 포함 (Redis 직렬화용) - 더 안전한 방식으로 변경
         objectMapper.activateDefaultTyping(
             LaissezFaireSubTypeValidator.instance,
             ObjectMapper.DefaultTyping.NON_FINAL,
-            JsonTypeInfo.As.PROPERTY
+            JsonTypeInfo.As.WRAPPER_ARRAY  // WRAPPER_ARRAY 방식으로 변경하여 더 안전하게 처리
         );
         
         // Java 8 시간 모듈 등록
         objectMapper.registerModule(new JavaTimeModule());
+        
+        // 추가 안전 설정
+        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        objectMapper.configure(DeserializationFeature.ACCEPT_FLOAT_AS_INT, false);
         
         return objectMapper;
     }
@@ -96,6 +100,21 @@ public class RedisConfig {
                                 .fromSerializer(new StringRedisSerializer()))
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(jsonSerializer)))
+                // Category DTO 캐시 (1시간 TTL - 정적 데이터)
+                .withCacheConfiguration("categoriesAllDto", 
+                    RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofHours(1))
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(jsonSerializer)))
+                .withCacheConfiguration("defaultCategoriesDto", 
+                    RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofHours(1))
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(jsonSerializer)))
                 // Payment 관련 캐시 (1시간 TTL - 정적 데이터)
                 .withCacheConfiguration("paymentMethods", 
                     RedisCacheConfiguration.defaultCacheConfig()
@@ -113,6 +132,28 @@ public class RedisConfig {
                                 .fromSerializer(jsonSerializer)))
                 // 가계부별 카테고리/결제수단 캐시 (30분 TTL)
                 .withCacheConfiguration("categoriesByBook", 
+                    RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(30))
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(jsonSerializer)))
+                // 가계부별 Category DTO 캐시 (30분 TTL)
+                .withCacheConfiguration("categoriesByBookDto", 
+                    RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(30))
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(jsonSerializer)))
+                .withCacheConfiguration("combinedCategoriesDto", 
+                    RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(30))
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(jsonSerializer)))
+                .withCacheConfiguration("userCategoriesDto", 
                     RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofMinutes(30))
                         .serializeKeysWith(RedisSerializationContext.SerializationPair

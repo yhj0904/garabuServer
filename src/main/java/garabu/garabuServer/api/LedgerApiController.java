@@ -3,6 +3,8 @@ package garabu.garabuServer.api;
 import garabu.garabuServer.domain.*;
 import garabu.garabuServer.dto.LedgerDTO;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
+import garabu.garabuServer.dto.CreateLedgerRequest;
+import garabu.garabuServer.dto.CreateLedgerResponse;
 import garabu.garabuServer.event.BookEvent;
 import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.*;
@@ -23,6 +25,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,10 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 가계부 기록(Ledger) 관리 REST 컨트롤러
@@ -67,6 +73,22 @@ public class LedgerApiController {
     private final UserBookService userBookService;
     private final BookEventPublisher bookEventPublisher;
 
+    // ───────────────────────── 테스트 엔드포인트 ─────────────────────────
+    @PostMapping("/test-json")
+    @Operation(summary = "JSON 역직렬화 테스트", description = "JSON 역직렬화가 작동하는지 테스트합니다.")
+    public ResponseEntity<Map<String, Object>> testJson(@RequestBody Map<String, Object> body) {
+        logger.info("=== JSON 테스트 ===");
+        logger.info("Received body: {}", body);
+        logger.info("Body class: {}", body.getClass().getName());
+        logger.info("Body keys: {}", body.keySet());
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("received", body);
+        response.put("timestamp", LocalDateTime.now());
+        
+        return ResponseEntity.ok(response);
+    }
+    
     // ───────────────────────── 기록 생성 ─────────────────────────
     /**
      * 새로운 가계부 기록을 생성합니다.
@@ -101,6 +123,8 @@ public class LedgerApiController {
         logger.info("bookId: {}", request.getBookId());
         logger.info("payment: {}", request.getPayment());
         logger.info("category: {}", request.getCategory());
+        logger.info("memo: {}", request.getMemo());
+        logger.info("spender: {}", request.getSpender());
         logger.info("===========================");
 
         try {
@@ -338,87 +362,7 @@ public class LedgerApiController {
     }
 
 
-    // ───────────────────────── DTO 정의 ─────────────────────────
-    /** Ledger 생성 요청 DTO */
-    @Data
-    @Schema(description = "가계부 기록 생성 요청 DTO")
-    static class CreateLedgerRequest {
-        @NotNull(message = "기록 날짜는 필수입니다")
-        @PastOrPresent(message = "기록 날짜는 현재 또는 과거 날짜여야 합니다")
-        @Schema(description = "기록 날짜", example = "2025-07-08", requiredMode = Schema.RequiredMode.REQUIRED)
-        private LocalDate date;
 
-        @NotNull(message = "금액은 필수입니다")
-        @Positive(message = "금액은 0보다 큰 값이어야 합니다")
-        @Schema(description = "금액(원)", example = "3000000", requiredMode = Schema.RequiredMode.REQUIRED)
-        private Integer amount;
-
-        @NotBlank(message = "상세 내용은 필수입니다")
-        @Schema(description = "상세 내용", example = "7월 월급", requiredMode = Schema.RequiredMode.REQUIRED)
-        private String description;
-
-        @Schema(description = "메모", example = "세후 지급액")
-        private String memo;
-
-        @NotNull(message = "금액 유형은 필수입니다")
-        @Schema(description = "금액 유형(INCOME/EXPENSE/TRANSFER)",
-                example = "INCOME",
-                allowableValues = {"INCOME", "EXPENSE", "TRANSFER"},
-                requiredMode = Schema.RequiredMode.REQUIRED)
-        private AmountType amountType;
-
-        @NotNull(message = "가계부 ID는 필수입니다")
-        @Schema(description = "가계부 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-        private Long bookId;
-
-        @NotBlank(message = "결제 수단은 필수입니다")
-        @Schema(description = "결제 수단", example = "이체", requiredMode = Schema.RequiredMode.REQUIRED)
-        private String payment;
-
-        @NotBlank(message = "카테고리명은 필수입니다")
-        @Schema(description = "카테고리명", example = "급여", requiredMode = Schema.RequiredMode.REQUIRED)
-        private String category;
-
-        @Schema(description = "지출자/수입원", example = "회사")
-        private String spender;
-    }
-
-    /** Ledger 생성 응답 DTO */
-    @Data
-    @Schema(description = "가계부 기록 생성 응답 DTO")
-    static class CreateLedgerResponse {
-        @Schema(description = "생성된 Ledger ID", example = "101")
-        private Long id;
-        
-        @Schema(description = "기록 날짜", example = "2025-07-08")
-        private LocalDate date;
-        
-        @Schema(description = "금액(원)", example = "3000000")
-        private Integer amount;
-        
-        @Schema(description = "상세 내용", example = "7월 월급")
-        private String description;
-        
-        @Schema(description = "금액 유형", example = "INCOME")
-        private AmountType amountType;
-        
-        @Schema(description = "카테고리명", example = "급여")
-        private String category;
-        
-        @Schema(description = "결제 수단", example = "이체")
-        private String payment;
-
-        public CreateLedgerResponse(Long id, LocalDate date, Integer amount, String description, 
-                                  AmountType amountType, String category, String payment) {
-            this.id = id;
-            this.date = date;
-            this.amount = amount;
-            this.description = description;
-            this.amountType = amountType;
-            this.category = category;
-            this.payment = payment;
-        }
-    }
 
     /** Ledger 목록 응답 DTO */
     @Data

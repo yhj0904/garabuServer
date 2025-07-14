@@ -6,6 +6,8 @@ import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.domain.PaymentMethod;
 import garabu.garabuServer.domain.UserBook;
 import garabu.garabuServer.dto.PaymentMethodDto;
+import garabu.garabuServer.exception.BookNotFoundException;
+import garabu.garabuServer.exception.DuplicateResourceException;
 import garabu.garabuServer.service.BookService;
 import garabu.garabuServer.service.PaymentService;
 import garabu.garabuServer.service.UserBookService;
@@ -65,7 +67,6 @@ class PaymentApiControllerTest {
     private Member testMember;
     private PaymentMethod testPayment1;
     private PaymentMethod testPayment2;
-    private List<PaymentMethod> testPayments;
     private List<PaymentMethodDto> testPaymentDtos;
 
     @BeforeEach
@@ -89,7 +90,6 @@ class PaymentApiControllerTest {
         testPayment2.setPayment("카드");
         testPayment2.setBook(testBook);
 
-        testPayments = Arrays.asList(testPayment1, testPayment2);
         testPaymentDtos = Arrays.asList(
             new PaymentMethodDto(1L, "현금", 1L),
             new PaymentMethodDto(2L, "카드", 1L)
@@ -100,27 +100,26 @@ class PaymentApiControllerTest {
     @DisplayName("인증된 사용자가 가계부의 결제 수단 목록을 성공적으로 조회한다")
     @WithMockUser(username = "testuser")
     void listPaymentsByBook_Success() throws Exception {
-        // Given: 사용자가 가계부에 접근 권한이 있고 결제 수단이 존재한다
-        when(bookService.findById(1L)).thenReturn(testBook);
-        doNothing().when(userBookService).validateBookAccess(testBook);
+        // given
+        Long bookId = 1L;
+        when(bookService.findById(bookId)).thenReturn(testBook);
         when(paymentService.findByBookDto(testBook)).thenReturn(testPaymentDtos);
+        doNothing().when(userBookService).validateBookAccess(testBook);
 
-        // When & Then: API 호출이 성공하고 결제 수단 목록이 반환된다
-        mockMvc.perform(get("/api/v2/payment/book/1")
-                .with(csrf()))
+        // when & then
+        mockMvc.perform(get("/api/v2/payment/book/{bookId}", bookId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.payments").isArray())
-                .andExpect(jsonPath("$.payments.length()").value(2))
                 .andExpect(jsonPath("$.payments[0].id").value(1))
                 .andExpect(jsonPath("$.payments[0].payment").value("현금"))
                 .andExpect(jsonPath("$.payments[1].id").value(2))
                 .andExpect(jsonPath("$.payments[1].payment").value("카드"));
 
-        // 서비스 메서드들이 올바르게 호출되었는지 검증
-        verify(bookService).findById(1L);
-        verify(userBookService).validateBookAccess(testBook);
+        // verify
+        verify(bookService).findById(bookId);
         verify(paymentService).findByBookDto(testBook);
+        verify(userBookService).validateBookAccess(testBook);
     }
 
     @Test
@@ -129,17 +128,17 @@ class PaymentApiControllerTest {
     void listPaymentsByBook_AccessDenied() throws Exception {
         // Given: 사용자가 가계부에 접근 권한이 없다
         when(bookService.findById(1L)).thenReturn(testBook);
-        doThrow(new RuntimeException("해당 가계부에 대한 접근 권한이 없습니다."))
+        doThrow(new IllegalArgumentException("해당 가계부에 대한 접근 권한이 없습니다."))
                 .when(userBookService).validateBookAccess(testBook);
 
-        // When & Then: 403 에러가 발생한다
+        // When & Then: 400 에러가 발생한다 (IllegalArgumentException은 400으로 처리됨)
         mockMvc.perform(get("/api/v2/payment/book/1")
                 .with(csrf()))
-                .andExpect(status().isInternalServerError()); // 현재는 500으로 반환되지만 수정 후에는 403이 되어야 함
+                .andExpect(status().isBadRequest());
 
         verify(bookService).findById(1L);
         verify(userBookService).validateBookAccess(testBook);
-        verify(paymentService, never()).findByBook(any());
+        verify(paymentService, never()).findByBookDto(any());
     }
 
     @Test
@@ -147,16 +146,16 @@ class PaymentApiControllerTest {
     @WithMockUser(username = "testuser")
     void listPaymentsByBook_BookNotFound() throws Exception {
         // Given: 존재하지 않는 가계부 ID
-        when(bookService.findById(999L)).thenThrow(new RuntimeException("Book not found"));
+        when(bookService.findById(999L)).thenThrow(new BookNotFoundException(999L));
 
         // When & Then: 404 에러가 발생한다
         mockMvc.perform(get("/api/v2/payment/book/999")
                 .with(csrf()))
-                .andExpect(status().isInternalServerError()); // 현재는 500으로 반환되지만 수정 후에는 404가 되어야 함
+                .andExpect(status().isNotFound());
 
         verify(bookService).findById(999L);
         verify(userBookService, never()).validateBookAccess(any());
-        verify(paymentService, never()).findByBook(any());
+        verify(paymentService, never()).findByBookDto(any());
     }
 
     @Test
@@ -169,7 +168,7 @@ class PaymentApiControllerTest {
         // 서비스 메서드들이 호출되지 않았는지 검증
         verify(bookService, never()).findById(any());
         verify(userBookService, never()).validateBookAccess(any());
-        verify(paymentService, never()).findByBook(any());
+        verify(paymentService, never()).findByBookDto(any());
     }
 
     @Test
@@ -212,12 +211,12 @@ class PaymentApiControllerTest {
         CreatePaymentRequest request = new CreatePaymentRequest("현금");
         String requestJson = objectMapper.writeValueAsString(request);
 
-        // When & Then: 400 에러가 발생한다
+        // When & Then: 409 Conflict 에러가 발생한다 (DuplicateResourceException)
         mockMvc.perform(post("/api/v2/payment/book/1")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
-                .andExpect(status().isInternalServerError()); // 현재는 500으로 반환되지만 수정 후에는 400이 되어야 함
+                .andExpect(status().isConflict());
 
         verify(bookService).findById(1L);
         verify(userBookService).validateBookEditAccess(testBook);

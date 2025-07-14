@@ -2,6 +2,7 @@ package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Category;
+import garabu.garabuServer.dto.CategoryDto;
 import garabu.garabuServer.service.BookService;
 import garabu.garabuServer.service.CategoryService;
 import garabu.garabuServer.service.MemberService;
@@ -123,13 +124,27 @@ public class CategoryApiController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     public ResponseEntity<ListCategoryResponse> listCategories() {
-        List<Category> categories = categoryService.findAllCategories();
+        try {
+            List<CategoryDto> categoryDtos = categoryService.findAllCategoriesDto();
 
-        List<ListCategoryDto> data = categories.stream()
-                .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
-                .collect(Collectors.toList());
+            List<ListCategoryDto> data = categoryDtos.stream()
+                    .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ListCategoryResponse(data));
+            return ResponseEntity.ok(new ListCategoryResponse(data));
+        } catch (ClassCastException e) {
+            logger.error("Redis 캐시 직렬화 오류 발생: {}", e.getMessage());
+            // 캐시 초기화 후 재시도
+            categoryService.clearAllCategoryCaches();
+            
+            List<CategoryDto> categoryDtos = categoryService.findAllCategoriesDto();
+
+            List<ListCategoryDto> data = categoryDtos.stream()
+                    .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new ListCategoryResponse(data));
+        }
     }
 
     // ───────────────────────── 가계부별 카테고리 목록 조회 (기본 + 사용자 정의) ─────────────────────────
@@ -155,19 +170,35 @@ public class CategoryApiController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     public ResponseEntity<ListCategoryResponse> listCategoriesByBook(@PathVariable Long bookId) {
-        Book book = bookService.findById(bookId);
-        
-        // 사용자가 해당 가계부에 접근 권한이 있는지 확인
-        categoryService.validateBookAccess(book);
-        
-        // 기본 카테고리 + 가계부별 사용자 정의 카테고리 조회
-        List<Category> categories = categoryService.findCombinedCategories(book);
+        try {
+            Book book = bookService.findById(bookId);
+            
+            // 사용자가 해당 가계부에 접근 권한이 있는지 확인
+            categoryService.validateBookAccess(book);
+            
+            // 기본 카테고리 + 가계부별 사용자 정의 카테고리 조회 (DTO 캐싱)
+            List<CategoryDto> categoryDtos = categoryService.findCombinedCategoriesDto(book);
 
-        List<ListCategoryDto> data = categories.stream()
-                .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
-                .collect(Collectors.toList());
+            List<ListCategoryDto> data = categoryDtos.stream()
+                    .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ListCategoryResponse(data));
+            return ResponseEntity.ok(new ListCategoryResponse(data));
+        } catch (ClassCastException e) {
+            logger.error("Redis 캐시 직렬화 오류 발생: {}", e.getMessage());
+            // 캐시 초기화 후 재시도
+            categoryService.clearAllCategoryCaches();
+            
+            Book book = bookService.findById(bookId);
+            categoryService.validateBookAccess(book);
+            List<CategoryDto> categoryDtos = categoryService.findCombinedCategoriesDto(book);
+
+            List<ListCategoryDto> data = categoryDtos.stream()
+                    .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new ListCategoryResponse(data));
+        }
     }
     
     // ───────────────────────── 기본 제공 카테고리 목록 조회 ─────────────────────────
@@ -189,13 +220,27 @@ public class CategoryApiController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     public ResponseEntity<ListCategoryResponse> listDefaultCategories() {
-        List<Category> categories = categoryService.findDefaultCategories();
+        try {
+            List<CategoryDto> categoryDtos = categoryService.findDefaultCategoriesDto();
 
-        List<ListCategoryDto> data = categories.stream()
-                .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
-                .collect(Collectors.toList());
+            List<ListCategoryDto> data = categoryDtos.stream()
+                    .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ListCategoryResponse(data));
+            return ResponseEntity.ok(new ListCategoryResponse(data));
+        } catch (ClassCastException e) {
+            logger.error("Redis 캐시 직렬화 오류 발생: {}", e.getMessage());
+            // 캐시 초기화 후 재시도
+            categoryService.clearAllCategoryCaches();
+            
+            List<CategoryDto> categoryDtos = categoryService.findDefaultCategoriesDto();
+
+            List<ListCategoryDto> data = categoryDtos.stream()
+                    .map(c -> new ListCategoryDto(c.getId(), c.getCategory(), c.getEmoji(), c.getIsDefault()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new ListCategoryResponse(data));
+        }
     }
 
     // ───────────────────────── 가계부별 카테고리 생성 ─────────────────────────
@@ -248,6 +293,28 @@ public class CategoryApiController {
         return ResponseEntity
                 .status(201)
                 .body(new CreateCategoryResponse(id, request.getCategory()));
+    }
+
+    // ───────────────────────── 캐시 관리 ─────────────────────────
+    /**
+     * 카테고리 관련 모든 캐시를 초기화합니다.
+     * Redis 직렬화 문제 발생 시 사용합니다.
+     */
+    @PostMapping("/cache/clear")
+    @Operation(
+            summary     = "카테고리 캐시 초기화",
+            description = "카테고리 관련 모든 Redis 캐시를 초기화합니다. 직렬화 문제 발생 시 사용하세요."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "캐시 초기화 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<String> clearCategoryCaches() {
+        logger.info("카테고리 캐시 초기화 요청");
+        categoryService.clearAllCategoryCaches();
+        logger.info("카테고리 캐시 초기화 완료");
+        return ResponseEntity.ok("카테고리 캐시가 성공적으로 초기화되었습니다.");
     }
 
     // ───────────────────────── DTO 정의 ─────────────────────────

@@ -40,16 +40,17 @@ public class PaymentService {
         return paymentJpaRepository.findByPayment(name);
     }
 
-    // 가계부별 결제수단 조회 (DTO 기반 캐싱)
-    @Cacheable(value = "paymentMethodsByBook", key = "#book.id", unless = "#result == null or #result.isEmpty()")
+    // 가계부별 결제수단 조회 (엔티티 캐싱 후 DTO 변환)
     public List<PaymentMethodDto> findByBookDto(Book book) {
-        List<PaymentMethod> entities = paymentJpaRepository.findByBook(book);
+        // 엔티티를 캐싱하고 DTO로 변환은 캐싱 이후에 수행
+        List<PaymentMethod> entities = findByBook(book);
         return entities.stream()
                 .map(PaymentMethodDto::from)
                 .collect(Collectors.toList());
     }
     
-    // 기존 엔티티 반환 메서드 (하위 호환성)
+    // 기존 엔티티 반환 메서드 (캐싱 적용)
+    @Cacheable(value = "paymentMethodsByBook", key = "#book.id", unless = "#result == null or #result.isEmpty()")
     public List<PaymentMethod> findByBook(Book book) {
         return paymentJpaRepository.findByBook(book);
     }
