@@ -39,7 +39,7 @@ public class Ledger {
      * ManyToOne 관계로 여러 기록이 한 가계부에 속할 수 있음
      */
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "title_id")
+    @JoinColumn(name = "book_id")
     private Book book;      // 가계부의 고유 식별자
 
     /**

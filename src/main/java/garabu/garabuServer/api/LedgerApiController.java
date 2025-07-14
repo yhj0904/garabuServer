@@ -13,12 +13,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+//import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -58,7 +59,7 @@ import java.util.Map;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v2/ledger")          // 공통 prefix
+@RequestMapping("/api/v2")          // 공통 prefix
 @Tag(name = "Ledger", description = "가계부 기록 관리 API")
 @SecurityRequirement(name = "bearerAuth")  // Swagger UI Authorize 버튼
 public class LedgerApiController {
@@ -74,7 +75,7 @@ public class LedgerApiController {
     private final BookEventPublisher bookEventPublisher;
 
     // ───────────────────────── 테스트 엔드포인트 ─────────────────────────
-    @PostMapping("/test-json")
+    @PostMapping("/ledger/test-json")
     @Operation(summary = "JSON 역직렬화 테스트", description = "JSON 역직렬화가 작동하는지 테스트합니다.")
     public ResponseEntity<Map<String, Object>> testJson(@RequestBody Map<String, Object> body) {
         logger.info("=== JSON 테스트 ===");
@@ -88,7 +89,7 @@ public class LedgerApiController {
         
         return ResponseEntity.ok(response);
     }
-    
+
     // ───────────────────────── 기록 생성 ─────────────────────────
     /**
      * 새로운 가계부 기록을 생성합니다.
@@ -96,7 +97,7 @@ public class LedgerApiController {
      * @param request Ledger 생성 요청 DTO
      * @return 생성된 Ledger ID
      */
-    @PostMapping("/ledgers")
+    @PostMapping("/ledger/ledgers")
     @Transactional
     @Operation(
             summary     = "가계부 기록 생성",
