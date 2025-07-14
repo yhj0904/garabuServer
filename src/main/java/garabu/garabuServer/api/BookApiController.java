@@ -1,7 +1,11 @@
 package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.Book;
+import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.event.BookEvent;
+import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.BookService;
+import garabu.garabuServer.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +19,8 @@ import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +42,8 @@ import java.util.List;
 public class BookApiController {
 
     private final BookService bookService;
+    private final BookEventPublisher bookEventPublisher;
+    private final MemberService memberService;
 
     // ───────────────────────── 가계부 생성 ─────────────────────────
     /**
@@ -71,7 +79,22 @@ public class BookApiController {
     public ResponseEntity<CreateBookResponse> saveBookV2(
             @Valid @org.springframework.web.bind.annotation.RequestBody CreateBookRequest request) {
 
+        // 현재 사용자 정보 조회
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member currentUser = memberService.findMemberByUsername(auth.getName());
+        
         Book book = bookService.createBook(request.getTitle()); // 로그인 사용자 기반 생성
+        
+        // Redis 이벤트 발행 - 가계부 생성 이벤트
+        BookEvent event = BookEvent.builder()
+                .bookId(book.getId())
+                .eventType("BOOK_CREATED")
+                .data(new CreateBookResponse(book.getId(), book.getTitle()))
+                .userId(currentUser.getId())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        bookEventPublisher.publishBookEvent(event);
+        
         return ResponseEntity
                 .status(201)
                 .body(new CreateBookResponse(book.getId(), book.getTitle()));

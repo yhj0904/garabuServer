@@ -2,8 +2,11 @@ package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.PaymentMethod;
+import garabu.garabuServer.dto.PaymentMethodDto;
+import garabu.garabuServer.exception.DuplicateResourceException;
 import garabu.garabuServer.service.BookService;
 import garabu.garabuServer.service.PaymentService;
+import garabu.garabuServer.service.UserBookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -41,6 +44,7 @@ public class PaymentApiController {
 
     private final PaymentService paymentService;
     private final BookService bookService;
+    private final UserBookService userBookService;
 
     /* ───────────────────────── 결제 수단 생성 ───────────────────────── */
     /**
@@ -134,7 +138,12 @@ public class PaymentApiController {
     })
     public ResponseEntity<ListPaymentResponse> listPaymentsByBook(@PathVariable Long bookId) {
         Book book = bookService.findById(bookId);
-        List<PaymentMethod> payments = paymentService.findByBook(book);
+        
+        // 사용자가 해당 가계부에 접근 권한이 있는지 확인
+        userBookService.validateBookAccess(book);
+        
+        // DTO 기반 캐싱된 결과 사용
+        List<PaymentMethodDto> payments = paymentService.findByBookDto(book);
 
         List<ListPaymentDto> dtoList = payments.stream()
                 .map(p -> new ListPaymentDto(p.getId(), p.getPayment()))
@@ -171,10 +180,13 @@ public class PaymentApiController {
 
         Book book = bookService.findById(bookId);
         
+        // 가계부 편집 권한 확인
+        userBookService.validateBookEditAccess(book);
+        
         // 가계부 내 중복 검사
         PaymentMethod existingPayment = paymentService.findByBookAndPayment(book, request.getPayment());
         if (existingPayment != null) {
-            throw new RuntimeException("이미 존재하는 결제 수단입니다.");
+            throw new DuplicateResourceException("이미 존재하는 결제 수단입니다: " + request.getPayment());
         }
 
         Long id = paymentService.createPaymentForBook(book, request.getPayment());

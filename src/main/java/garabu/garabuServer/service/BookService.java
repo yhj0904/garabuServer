@@ -4,6 +4,7 @@ import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.BookRole;
 import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.domain.UserBook;
+import garabu.garabuServer.exception.BookNotFoundException;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.BookRepository;
 import garabu.garabuServer.repository.MemberJPARepository;
@@ -156,10 +157,10 @@ public class BookService {
      * 
      * @param id 조회할 가계부의 ID
      * @return 조회된 가계부 정보
-     * @throws RuntimeException 가계부를 찾을 수 없는 경우
+     * @throws BookNotFoundException 가계부를 찾을 수 없는 경우
      */
     public Book findById(Long id) {
-        return bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+        return bookRepository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
     }
 
     /**

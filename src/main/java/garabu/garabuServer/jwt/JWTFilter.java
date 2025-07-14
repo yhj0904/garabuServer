@@ -31,11 +31,11 @@ public class JWTFilter extends OncePerRequestFilter {
         String requestUri = request.getRequestURI();
         String accessToken = null;
         
-        // WebSocket 연결인 경우 쿼리 파라미터에서 토큰 추출
-        if (requestUri.startsWith("/ws")) {
+        // SSE 연결인 경우 쿼리 파라미터에서 토큰 추출
+        if (requestUri.contains("/api/v2/sse/")) {
             accessToken = request.getParameter("token");
             if (accessToken == null) {
-                // SockJS fallback - 쿼리 파라미터에서 토큰 확인
+                // SSE는 헤더 제한이 있으므로 쿼리 파라미터로 토큰 전달
                 String queryString = request.getQueryString();
                 if (queryString != null && queryString.contains("token=")) {
                     String[] params = queryString.split("&");

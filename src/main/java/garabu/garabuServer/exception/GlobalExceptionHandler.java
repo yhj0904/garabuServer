@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -111,19 +112,66 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 가계부 조회 실패 예외 처리
+     */
+    @ExceptionHandler(BookNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleBookNotFoundException(BookNotFoundException e, WebRequest request) {
+        log.warn("가계부 조회 실패: {}", e.getMessage());
+        
+        Map<String, Object> errorResponse = createErrorResponse(
+            HttpStatus.NOT_FOUND, 
+            "Book Not Found", 
+            e.getMessage(),
+            request.getDescription(false).replace("uri=", "")
+        );
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * 중복 리소스 생성 예외 처리
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateResourceException(DuplicateResourceException e, WebRequest request) {
+        log.warn("중복 리소스 생성 시도: {}", e.getMessage());
+        
+        Map<String, Object> errorResponse = createErrorResponse(
+            HttpStatus.CONFLICT, 
+            "Duplicate Resource", 
+            e.getMessage(),
+            request.getDescription(false).replace("uri=", "")
+        );
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
      * 기타 예외 처리
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception e) {
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception e, WebRequest request) {
         log.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
         
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        errorResponse.put("error", "Internal Server Error");
-        errorResponse.put("message", "서버 내부 오류가 발생했습니다.");
-        errorResponse.put("path", "/api/v2/category");
+        Map<String, Object> errorResponse = createErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR, 
+            "Internal Server Error", 
+            "서버 내부 오류가 발생했습니다.",
+            request.getDescription(false).replace("uri=", "")
+        );
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+    
+    /**
+     * 공통 에러 응답 생성 헬퍼 메서드
+     */
+    private Map<String, Object> createErrorResponse(HttpStatus status, String error, String message, String path) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", status.value());
+        errorResponse.put("error", error);
+        errorResponse.put("message", message);
+        errorResponse.put("path", path);
+        return errorResponse;
     }
 }

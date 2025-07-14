@@ -3,6 +3,8 @@ package garabu.garabuServer.api;
 import garabu.garabuServer.domain.*;
 import garabu.garabuServer.dto.LedgerDTO;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
+import garabu.garabuServer.event.BookEvent;
+import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -63,6 +65,7 @@ public class LedgerApiController {
     private final LedgerService   ledgerService;
     private final MemberService   memberService;
     private final UserBookService userBookService;
+    private final BookEventPublisher bookEventPublisher;
 
     // ───────────────────────── 기록 생성 ─────────────────────────
     /**
@@ -164,17 +167,28 @@ public class LedgerApiController {
             /* ────── 6. 생성된 기록 조회하여 상세 정보 반환 ────── */
             Ledger createdLedger = ledgerService.findById(id);
             
-            return ResponseEntity
-                    .status(201)
-                    .body(new CreateLedgerResponse(
-                        createdLedger.getId(),
-                        createdLedger.getDate(),
-                        createdLedger.getAmount(),
-                        createdLedger.getDescription(),
-                        createdLedger.getAmountType(),
-                        createdLedger.getCategory().getCategory(),
-                        createdLedger.getPaymentMethod().getPayment()
-                    ));
+            /* ────── 7. Redis 이벤트 발행 (SSE로 실시간 전송) ────── */
+            CreateLedgerResponse response = new CreateLedgerResponse(
+                createdLedger.getId(),
+                createdLedger.getDate(),
+                createdLedger.getAmount(),
+                createdLedger.getDescription(),
+                createdLedger.getAmountType(),
+                createdLedger.getCategory().getCategory(),
+                createdLedger.getPaymentMethod().getPayment()
+            );
+            
+            // Redis Pub/Sub으로 이벤트 발행
+            BookEvent bookEvent = BookEvent.ledgerCreated(
+                book.getId(), 
+                currentMember.getId(), 
+                response
+            );
+            bookEventPublisher.publishBookEvent(bookEvent);
+            
+            logger.info("가계부 이벤트 발행 완료 - 타입: LEDGER_CREATED, 가계부: {}", book.getId());
+            
+            return ResponseEntity.status(201).body(response);
 
         } catch (Exception e) {
             logger.error("Error saving ledger", e);

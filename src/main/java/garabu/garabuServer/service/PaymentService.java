@@ -3,6 +3,7 @@ package garabu.garabuServer.service;
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Category;
 import garabu.garabuServer.domain.PaymentMethod;
+import garabu.garabuServer.dto.PaymentMethodDto;
 import garabu.garabuServer.repository.PaymentJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -10,6 +11,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +40,16 @@ public class PaymentService {
         return paymentJpaRepository.findByPayment(name);
     }
 
-    // 가계부별 결제수단 조회
+    // 가계부별 결제수단 조회 (DTO 기반 캐싱)
     @Cacheable(value = "paymentMethodsByBook", key = "#book.id", unless = "#result == null or #result.isEmpty()")
+    public List<PaymentMethodDto> findByBookDto(Book book) {
+        List<PaymentMethod> entities = paymentJpaRepository.findByBook(book);
+        return entities.stream()
+                .map(PaymentMethodDto::from)
+                .collect(Collectors.toList());
+    }
+    
+    // 기존 엔티티 반환 메서드 (하위 호환성)
     public List<PaymentMethod> findByBook(Book book) {
         return paymentJpaRepository.findByBook(book);
     }

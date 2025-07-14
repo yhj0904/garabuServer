@@ -77,6 +77,28 @@ public class UserBookService {
     }
     
     /**
+     * 현재 로그인한 사용자가 가계부에 접근할 수 있는지 확인 (읽기 권한)
+     */
+    public void validateBookAccess(Book book) {
+        Member currentUser = getCurrentUser();
+        validateBookAccess(currentUser, book);
+    }
+    
+    /**
+     * 현재 로그인한 사용자가 가계부를 편집할 수 있는지 확인 (편집 권한)
+     */
+    public void validateBookEditAccess(Book book) {
+        Member currentUser = getCurrentUser();
+        UserBook userBook = userBookJpaRepository.findByBookIdAndMemberId(book.getId(), currentUser.getId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 가계부에 대한 접근 권한이 없습니다."));
+        
+        // VIEWER는 편집 권한이 없음
+        if (userBook.getBookRole() == BookRole.VIEWER) {
+            throw new IllegalArgumentException("편집하려면 OWNER 또는 EDITOR 권한이 필요합니다.");
+        }
+    }
+    
+    /**
      * 사용자가 가계부의 소유자인지 확인
      */
     private void validateOwnership(Long bookId, Member currentUser) {
