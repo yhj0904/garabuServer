@@ -31,11 +31,12 @@ import java.util.List;
 public class LedgerService {
 
     private final LedgerJpaRepository ledgerJpaRepository;
-
     private final LedgerMapper ledgerMapper;
+    private final UserBookService userBookService;
 
     /**
      * 가계부별 기본 목록 조회 (JPA 사용)
+     * 권한 확인은 컨트롤러에서 이미 처리됨
      */
     public Page<Ledger> findLedgersByBook(Book book, Pageable pageable) {
         return ledgerJpaRepository.findByBookWithAuthorization(book, pageable);
@@ -43,6 +44,7 @@ public class LedgerService {
     
     /**
      * 검색 조건이 있는 경우 동적 검색 (MyBatis 사용)
+     * 권한 확인은 컨트롤러에서 이미 처리됨
      */
     public Page<Ledger> searchLedgers(LedgerSearchConditionDTO cond,
                                      Pageable pageable) {
@@ -79,6 +81,7 @@ public class LedgerService {
      * @param ledger 등록할 가계부 기록 정보
      * @return 등록된 가계부 기록의 ID
      */
+    @Transactional
     public Long registLedger (Ledger ledger){
         ledgerJpaRepository.save(ledger);
         return ledger.getId();

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,7 +70,25 @@ public class InviteCodeService {
      */
     public BookInviteData getBookInviteData(String code) {
         String key = BOOK_INVITE_PREFIX + code;
-        return (BookInviteData) redisTemplate.opsForValue().get(key);
+        Object result = redisTemplate.opsForValue().get(key);
+        
+        if (result == null) {
+            return null;
+        }
+        
+        if (result instanceof BookInviteData) {
+            return (BookInviteData) result;
+        }
+        
+        if (result instanceof LinkedHashMap) {
+            LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) result;
+            return BookInviteData.builder()
+                    .bookId(((Number) map.get("bookId")).longValue())
+                    .role((String) map.get("role"))
+                    .build();
+        }
+        
+        throw new IllegalStateException("Unexpected Redis value type: " + result.getClass().getName());
     }
     
     /**

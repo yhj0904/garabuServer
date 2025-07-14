@@ -78,9 +78,9 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
-    // 가계부별 카테고리명으로 조회
+    // 가계부별 카테고리명으로 조회 (기본 카테고리 포함)
     public Category findByBookAndCategory(Book book, String category) {
-        return categoryJpaRepository.findByBookAndCategory(book, category);
+        return categoryJpaRepository.findByBookAndCategoryIncludingDefault(book, category);
     }
 
     // 가계부별 카테고리 생성

@@ -30,4 +30,12 @@ public interface CategoryJpaRepository extends JpaRepository<Category, Long> {
     // 기본 카테고리 + 특정 가계부의 사용자 정의 카테고리 조회
     @Query("SELECT c FROM Category c WHERE c.isDefault = true OR (c.book = :book AND c.isDefault = false)")
     List<Category> findDefaultAndBookCategories(@Param("book") Book book);
+    
+    // 기본 카테고리 또는 가계부별 카테고리에서 카테고리명으로 조회
+    @Query("SELECT c FROM Category c WHERE c.category = :category AND " +
+           "(c.isDefault = true OR (c.book = :book AND c.isDefault = false))")
+    Category findByBookAndCategoryIncludingDefault(@Param("book") Book book, @Param("category") String category);
+    
+    // 기본 카테고리에서 카테고리명으로 조회
+    Category findByCategoryAndIsDefaultTrue(String category);
 }

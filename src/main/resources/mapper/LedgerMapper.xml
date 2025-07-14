@@ -8,7 +8,7 @@
     <select id="countSearchLedgers" parameterType="LedgerSearchCondition" resultType="long">
         SELECT COUNT(*)
         FROM Ledger l
-        WHERE l.title_id = #{c.bookId}
+        WHERE l.book_id = #{c.bookId}
         <if test="c.startDate != null">
             AND l.date &gt;= #{c.startDate}
         </if>
@@ -19,10 +19,18 @@
             AND l.amount_type = #{c.amountType}
         </if>
         <if test="c.category != null and c.category != ''">
-            AND l.category = #{c.category}
+            AND EXISTS (
+                SELECT 1 FROM Category c 
+                WHERE c.category_id = l.category_id 
+                AND c.category = #{c.category}
+            )
         </if>
         <if test="c.payment != null and c.payment != ''">
-            AND l.payment_method = #{c.payment}
+            AND EXISTS (
+                SELECT 1 FROM PaymentMethod p 
+                WHERE p.payment_id = l.payment_id 
+                AND p.payment = #{c.payment}
+            )
         </if>
     </select>
 
@@ -31,9 +39,9 @@
         SELECT
         l.ledger_id as id, l.date, l.amount, l.description, l.memo,
         l.amount_type as amountType, l.spender,
-        l.title_id, l.member_id, l.category_id, l.payment_id
+        l.book_id, l.member_id, l.category_id, l.payment_id
         FROM Ledger l
-        WHERE l.title_id = #{c.bookId}
+        WHERE l.book_id = #{c.bookId}
         <if test="c.startDate != null">
             AND l.date &gt;= #{c.startDate}
         </if>
@@ -44,10 +52,18 @@
             AND l.amount_type = #{c.amountType}
         </if>
         <if test="c.category != null and c.category != ''">
-            AND l.category = #{c.category}
+            AND EXISTS (
+                SELECT 1 FROM Category c 
+                WHERE c.category_id = l.category_id 
+                AND c.category = #{c.category}
+            )
         </if>
         <if test="c.payment != null and c.payment != ''">
-            AND l.payment_method = #{c.payment}
+            AND EXISTS (
+                SELECT 1 FROM PaymentMethod p 
+                WHERE p.payment_id = l.payment_id 
+                AND p.payment = #{c.payment}
+            )
         </if>
         <!-- 정렬 (컨트롤러에서 pageable.getSort() 파싱) -->
         <if test="orderBy != null and orderBy != ''">

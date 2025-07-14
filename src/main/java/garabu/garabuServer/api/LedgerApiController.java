@@ -59,7 +59,7 @@ import java.util.Map;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v2")          // 공통 prefix
+@RequestMapping("/api/v2/ledger")          // 공통 prefix
 @Tag(name = "Ledger", description = "가계부 기록 관리 API")
 @SecurityRequirement(name = "bearerAuth")  // Swagger UI Authorize 버튼
 public class LedgerApiController {
@@ -75,7 +75,7 @@ public class LedgerApiController {
     private final BookEventPublisher bookEventPublisher;
 
     // ───────────────────────── 테스트 엔드포인트 ─────────────────────────
-    @PostMapping("/ledger/test-json")
+    @PostMapping("/test-json")
     @Operation(summary = "JSON 역직렬화 테스트", description = "JSON 역직렬화가 작동하는지 테스트합니다.")
     public ResponseEntity<Map<String, Object>> testJson(@RequestBody Map<String, Object> body) {
         logger.info("=== JSON 테스트 ===");
@@ -97,7 +97,7 @@ public class LedgerApiController {
      * @param request Ledger 생성 요청 DTO
      * @return 생성된 Ledger ID
      */
-    @PostMapping("/ledger/ledgers")
+    @PostMapping("/ledgers")
     @Transactional
     @Operation(
             summary     = "가계부 기록 생성",
@@ -390,19 +390,43 @@ public class LedgerApiController {
         @Schema(description = "금액(원)", example = "3000000")
         private Integer amount;
 
-        @Schema(description = "카테고리명", example = "급여")
-        private String category;
+        @Schema(description = "상세 내용", example = "7월 월급")
+        private String description;
+
+        @Schema(description = "메모", example = "세후 지급액")
+        private String memo;
 
         @Schema(description = "금액 유형", example = "INCOME")
         private AmountType amountType;
+
+        @Schema(description = "지출자", example = "홍길동")
+        private String spender;
+
+        @Schema(description = "회원 ID", example = "1")
+        private Long memberId;
+
+        @Schema(description = "가계부 ID", example = "1")
+        private Long bookId;
+
+        @Schema(description = "카테고리 ID", example = "1")
+        private Long categoryId;
+
+        @Schema(description = "결제 수단 ID", example = "1")
+        private Long paymentId;
 
         public static LedgerDto from(Ledger ledger) {
             LedgerDto dto = new LedgerDto();
             dto.id         = ledger.getId();
             dto.date       = ledger.getDate();
             dto.amount     = ledger.getAmount();
-            dto.category   = ledger.getCategory().getCategory();
+            dto.description = ledger.getDescription();
+            dto.memo       = ledger.getMemo();
             dto.amountType = ledger.getAmountType();
+            dto.spender    = ledger.getSpender();
+            dto.memberId   = ledger.getMember() != null ? ledger.getMember().getId() : null;
+            dto.bookId     = ledger.getBook() != null ? ledger.getBook().getId() : null;
+            dto.categoryId = ledger.getCategory() != null ? ledger.getCategory().getId() : null;
+            dto.paymentId  = ledger.getPaymentMethod() != null ? ledger.getPaymentMethod().getId() : null;
             return dto;
         }
     }

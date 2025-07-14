@@ -28,6 +28,7 @@ public class BookInviteService {
     private final MemberService memberService;
     private final InviteCodeService inviteCodeService;
     private final BookSharingNotificationService notificationService;
+    private final BookService bookService;
     
     /**
      * 가계부 초대 코드 생성 (OWNER만 가능)
@@ -128,6 +129,9 @@ public class BookInviteService {
         userBook.setMember(request.getMember());
         userBook.setBookRole(request.getRequestedRole());
         userBookRepository.save(userBook);
+        
+        // 캐시 무효화 - 가계부 목록 캐시 초기화
+        bookService.clearUserBooksCache();
         
         // 요청 상태 업데이트
         request.setStatus(RequestStatus.ACCEPTED);
