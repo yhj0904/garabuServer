@@ -57,6 +57,7 @@ application-local.yml
 application-dev.yml
 application-prod.yml
 application.yml
+application-eb.yml
 
 .DS_Store
 
@@ -112,3 +113,7 @@ CLAUDE.md
 
 /deployment
 !/deployment/.env.prod.template
+
+.ebextensions/environment.config
+
+/eb-deploy

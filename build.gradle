@@ -60,3 +60,44 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// Elastic Beanstalk 배포용 JAR 생성
+task buildForEB(type: Copy, dependsOn: build) {
+	description = 'Build JAR for Elastic Beanstalk deployment'
+	from "build/libs"
+	into "eb-deploy"
+	include "*.jar"
+	rename { filename ->
+		filename.replace("-${version}", "")  // 버전 제거
+	}
+	
+	doLast {
+		println "✅ Elastic Beanstalk 배포용 JAR 생성 완료: eb-deploy/"
+		println "📁 업로드할 파일: eb-deploy/garabuserver.jar"
+	}
+}
+
+// 프로덕션 빌드 (SSH 터널링 비활성화)
+task buildProd {
+	description = 'Build for production without SSH tunneling'
+	group = 'build'
+	
+	doFirst {
+		println "🚀 프로덕션 빌드 시작 (SSH 터널링 비활성화)"
+		println "📋 프로파일: eb (Elastic Beanstalk)"
+	}
+	
+	dependsOn clean, build, buildForEB
+	
+	doLast {
+		println ""
+		println "🎉 Elastic Beanstalk 배포 준비 완료!"
+		println "📦 배포 파일: eb-deploy/garabuserver.jar"
+		println ""
+		println "📋 다음 단계:"
+		println "1. AWS Console → Elastic Beanstalk"
+		println "2. Create Application → Java platform"
+		println "3. Upload eb-deploy/garabuserver.jar"
+		println "4. 환경변수는 .ebextensions/environment.config에 설정됨"
+	}
+}
