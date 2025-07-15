@@ -38,4 +38,7 @@ public interface CategoryJpaRepository extends JpaRepository<Category, Long> {
     
     // 기본 카테고리에서 카테고리명으로 조회
     Category findByCategoryAndIsDefaultTrue(String category);
+    
+    // 기본 카테고리 존재 여부 확인
+    boolean existsByIsDefaultTrue();
 }

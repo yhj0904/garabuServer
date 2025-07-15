@@ -3,9 +3,13 @@ package garabu.garabuServer.service;
 import garabu.garabuServer.domain.Ledger;
 import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.domain.Book;
+import garabu.garabuServer.domain.Asset;
+import garabu.garabuServer.domain.AmountType;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
+import garabu.garabuServer.dto.request.CreateTransferRequest;
 import garabu.garabuServer.mapper.LedgerMapper;
 import garabu.garabuServer.repository.LedgerJpaRepository;
+import garabu.garabuServer.repository.AssetJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 가계부 기록 관리 서비스 클래스
@@ -33,6 +38,7 @@ public class LedgerService {
     private final LedgerJpaRepository ledgerJpaRepository;
     private final LedgerMapper ledgerMapper;
     private final UserBookService userBookService;
+    private final AssetJpaRepository assetJpaRepository;
 
     /**
      * 가계부별 기본 목록 조회 (JPA 사용)
@@ -134,5 +140,79 @@ public class LedgerService {
         return ledgerJpaRepository.existsByDateAndAmountAndDescriptionAndMemberIdAndBookId(
             date, amount, description, memberId, bookId
         );
+    }
+
+    /**
+     * 이체 기록 생성
+     * 출금 자산과 입금 자산 간의 이체를 처리합니다.
+     * 
+     * @param request 이체 요청 정보
+     * @param member 요청한 사용자
+     * @return 생성된 이체 기록 목록 (출금, 입금 2개)
+     */
+    @Transactional
+    public List<Ledger> createTransfer(CreateTransferRequest request, Member member) {
+        // 자산 유효성 검사
+        Asset fromAsset = assetJpaRepository.findById(request.getFromAssetId())
+            .orElseThrow(() -> new IllegalArgumentException("출금 자산을 찾을 수 없습니다."));
+        
+        Asset toAsset = assetJpaRepository.findById(request.getToAssetId())
+            .orElseThrow(() -> new IllegalArgumentException("입금 자산을 찾을 수 없습니다."));
+
+        // 같은 자산 간 이체 방지
+        if (fromAsset.getId().equals(toAsset.getId())) {
+            throw new IllegalArgumentException("동일한 자산 간 이체는 불가능합니다.");
+        }
+
+        // 두 자산이 같은 가계부에 속하는지 확인
+        if (!fromAsset.getBook().getId().equals(toAsset.getBook().getId()) ||
+            !fromAsset.getBook().getId().equals(request.getBookId())) {
+            throw new IllegalArgumentException("다른 가계부의 자산 간 이체는 불가능합니다.");
+        }
+
+        // 출금 자산 잔액 확인
+        if (fromAsset.getBalance() < request.getAmount()) {
+            throw new IllegalArgumentException("출금 자산의 잔액이 부족합니다.");
+        }
+
+        // 자산 잔액 업데이트
+        fromAsset.updateBalance(request.getAmount(), "SUBTRACT");
+        toAsset.updateBalance(request.getAmount(), "ADD");
+
+        // 이체 기록 생성 (출금 기록)
+        Ledger withdrawalLedger = new Ledger();
+        withdrawalLedger.setDate(request.getDate());
+        withdrawalLedger.setAmount(request.getAmount().intValue());
+        withdrawalLedger.setDescription(request.getDescription() + " (출금)");
+        withdrawalLedger.setMemo(request.getMemo());
+        withdrawalLedger.setAmountType(AmountType.TRANSFER);
+        withdrawalLedger.setMember(member);
+        withdrawalLedger.setBook(fromAsset.getBook());
+        withdrawalLedger.setSpender(request.getTransferer());
+        
+        // 이체 기록 생성 (입금 기록)
+        Ledger depositLedger = new Ledger();
+        depositLedger.setDate(request.getDate());
+        depositLedger.setAmount(request.getAmount().intValue());
+        depositLedger.setDescription(request.getDescription() + " (입금)");
+        depositLedger.setMemo(request.getMemo());
+        depositLedger.setAmountType(AmountType.TRANSFER);
+        depositLedger.setMember(member);
+        depositLedger.setBook(toAsset.getBook());
+        depositLedger.setSpender(request.getTransferer());
+
+        // 자산 저장
+        assetJpaRepository.save(fromAsset);
+        assetJpaRepository.save(toAsset);
+
+        // 이체 기록 저장
+        Ledger savedWithdrawal = ledgerJpaRepository.save(withdrawalLedger);
+        Ledger savedDeposit = ledgerJpaRepository.save(depositLedger);
+
+        List<Ledger> result = new ArrayList<>();
+        result.add(savedWithdrawal);
+        result.add(savedDeposit);
+
+        return result;
     }
 }

@@ -19,6 +19,8 @@ public interface LedgerJpaRepository extends JpaRepository<Ledger, Long> {
 
     List<Ledger> findByMember(Member member);
     
+    List<Ledger> findByBook(Book book);
+    
     Page<Ledger> findByBookOrderByDateDesc(Book book, Pageable pageable);
     
      /**

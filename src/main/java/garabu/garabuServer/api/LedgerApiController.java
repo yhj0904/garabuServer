@@ -5,6 +5,7 @@ import garabu.garabuServer.dto.LedgerDTO;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
 import garabu.garabuServer.dto.CreateLedgerRequest;
 import garabu.garabuServer.dto.CreateLedgerResponse;
+import garabu.garabuServer.dto.request.CreateTransferRequest;
 import garabu.garabuServer.event.BookEvent;
 import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.*;
@@ -362,8 +363,83 @@ public class LedgerApiController {
         return ResponseEntity.ok(new ListLedgerResponse(dtoList, page.getTotalElements()));
     }
 
+    // ───────────────────────── 이체 기록 생성 ─────────────────────────
+    /**
+     * 이체 기록을 생성합니다.
+     * 
+     * @param request 이체 요청 DTO
+     * @return 생성된 이체 기록 목록 (출금, 입금)
+     */
+    @PostMapping("/transfers")
+    @Transactional
+    @Operation(
+            summary = "이체 기록 생성",
+            description = "출금 자산과 입금 자산 간의 이체 기록을 생성합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "이체 기록 생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<Map<String, Object>> createTransfer(
+            @Valid @RequestBody CreateTransferRequest request
+    ) {
+        logger.info("=== 이체 기록 생성 요청 수신 ===");
+        logger.info("Request: {}", request);
 
+        try {
+            // 1. 로그인 사용자 확인
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Member currentMember = memberService.findMemberByUsername(auth.getName());
 
+            // 2. 가계부 권한 확인
+            Book book = bookService.findById(request.getBookId());
+            
+            UserBook userBook = userBookService.findByBookIdAndMemberId(book.getId(), currentMember.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 가계부에 접근 권한이 없습니다."));
+            
+            if (userBook.getBookRole() == BookRole.VIEWER) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "조회 권한만 있습니다. 이체 기록을 작성할 수 없습니다.");
+            }
+
+            // 3. 이체 기록 생성
+            List<Ledger> transferLedgers = ledgerService.createTransfer(request, currentMember);
+            
+            logger.info("이체 기록 생성 완료 - 생성된 기록 수: {}", transferLedgers.size());
+            
+            // 4. 응답 데이터 구성
+            Map<String, Object> response = new HashMap<>();
+            response.put("transferId", transferLedgers.get(0).getId() + "-" + transferLedgers.get(1).getId());
+            response.put("withdrawalLedger", createLedgerResponse(transferLedgers.get(0)));
+            response.put("depositLedger", createLedgerResponse(transferLedgers.get(1)));
+            response.put("message", "이체 기록이 성공적으로 생성되었습니다.");
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (IllegalArgumentException e) {
+            logger.error("이체 기록 생성 실패: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            logger.error("이체 기록 생성 중 오류 발생", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이체 기록 생성 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    /**
+     * Ledger 엔티티를 응답 DTO로 변환
+     */
+    private Map<String, Object> createLedgerResponse(Ledger ledger) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", ledger.getId());
+        response.put("date", ledger.getDate());
+        response.put("amount", ledger.getAmount());
+        response.put("description", ledger.getDescription());
+        response.put("memo", ledger.getMemo());
+        response.put("amountType", ledger.getAmountType());
+        response.put("spender", ledger.getSpender());
+        return response;
+    }
 
     /** Ledger 목록 응답 DTO */
     @Data
