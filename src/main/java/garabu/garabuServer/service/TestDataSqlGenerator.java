@@ -296,28 +296,11 @@ public class TestDataSqlGenerator {
             writer.write("SET unique_checks = 0;\n");
             writer.write("SET foreign_key_checks = 0;\n\n");
             
-            // 테스트 Member 데이터
-            generateTestMemberData(writer);
-            
-            // 테스트 Book 데이터
-            generateTestBookData(writer);
-            
-            // 테스트 UserBook 데이터
-            generateTestUserBookData(writer);
-            
             // 설정 복원 및 커밋
             writer.write("SET foreign_key_checks = 1;\n");
             writer.write("SET unique_checks = 1;\n");
             writer.write("SET autocommit = 1;\n");
             writer.write("COMMIT;\n\n");
-            
-            // 생성된 데이터 확인 쿼리
-            writer.write("-- 생성된 데이터 확인\n");
-            writer.write("SELECT 'Members' as 테이블, COUNT(*) as 개수 FROM member\n");
-            writer.write("UNION ALL\n");
-            writer.write("SELECT 'Books' as 테이블, COUNT(*) as 개수 FROM book\n");
-            writer.write("UNION ALL\n");
-            writer.write("SELECT 'UserBooks' as 테이블, COUNT(*) as 개수 FROM user_book;\n");
             
             log.info("완전한 테스트 데이터 SQL 스크립트 생성 완료: {}", outputPath);
             
@@ -325,48 +308,5 @@ public class TestDataSqlGenerator {
             log.error("완전한 테스트 데이터 SQL 스크립트 생성 실패", e);
             throw new RuntimeException("SQL 스크립트 생성에 실패했습니다", e);
         }
-    }
-    
-    /**
-     * 테스트 Member 데이터 생성
-     */
-    private void generateTestMemberData(BufferedWriter writer) throws IOException {
-        writer.write("-- 테스트 Member 데이터\n");
-        writer.write("INSERT INTO member (username, email, name, system_role, oauth_id, provider) VALUES\n");
-        writer.write("('testuser1', 'test1@garabu.com', '테스트유저1', 'USER', 'test1', 'LOCAL'),\n");
-        writer.write("('testuser2', 'test2@garabu.com', '테스트유저2', 'USER', 'test2', 'LOCAL'),\n");
-        writer.write("('testuser3', 'test3@garabu.com', '테스트유저3', 'USER', 'test3', 'LOCAL'),\n");
-        writer.write("('testuser4', 'test4@garabu.com', '테스트유저4', 'USER', 'test4', 'LOCAL'),\n");
-        writer.write("('testuser5', 'test5@garabu.com', '테스트유저5', 'USER', 'test5', 'LOCAL');\n\n");
-    }
-    
-    /**
-     * 테스트 Book 데이터 생성
-     */
-    private void generateTestBookData(BufferedWriter writer) throws IOException {
-        writer.write("-- 테스트 Book 데이터\n");
-        writer.write("INSERT INTO book (title, owner_id) VALUES\n");
-        writer.write("('김가네 가계부', 1),\n");
-        writer.write("('이가네 가계부', 2),\n");
-        writer.write("('박가네 가계부', 3),\n");
-        writer.write("('최가네 가계부', 4),\n");
-        writer.write("('정가네 가계부', 5);\n\n");
-    }
-    
-    /**
-     * 테스트 UserBook 데이터 생성
-     */
-    private void generateTestUserBookData(BufferedWriter writer) throws IOException {
-        writer.write("-- 테스트 UserBook 데이터\n");
-        writer.write("INSERT INTO user_book (book_id, member_id, book_role) VALUES\n");
-        writer.write("(1, 1, 'OWNER'),\n");
-        writer.write("(2, 2, 'OWNER'),\n");
-        writer.write("(3, 3, 'OWNER'),\n");
-        writer.write("(4, 4, 'OWNER'),\n");
-        writer.write("(5, 5, 'OWNER'),\n");
-        writer.write("(1, 2, 'EDITOR'),\n");
-        writer.write("(1, 3, 'VIEWER'),\n");
-        writer.write("(2, 1, 'EDITOR'),\n");
-        writer.write("(3, 1, 'VIEWER');\n\n");
     }
 }

@@ -38,6 +38,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
         }
+        else if (registrationId.equals("apple")) {
+
+            oAuth2Response = new AppleResponse(oAuth2User.getAttributes());
+        }
+        else if (registrationId.equals("kakao")) {
+
+            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
+        }
         else {
 
             return null;

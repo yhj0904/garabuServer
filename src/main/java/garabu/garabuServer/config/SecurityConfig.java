@@ -111,6 +111,7 @@ public class SecurityConfig {
                                 "/login", "/"
                                 ,"/api/v2/join"
                                 , "/join"
+                                , "/api/v2/mobile-oauth/**"  // 모바일 OAuth 엔드포인트 허용
 ).permitAll()  // 더 이상 WebSocket을 사용하지 않음
                         .requestMatchers("/api/v2/sse/**").hasAnyRole("USER", "ADMIN")  // SSE는 인증 필요
                         .requestMatchers("/admin/**").hasRole("ADMIN")  // ADMIN 권한 필요
