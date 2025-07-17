@@ -1,0 +1,70 @@
+# Multi-stage build for production
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+# Install dependencies
+RUN apk add --no-cache bash
+
+# Set working directory
+WORKDIR /build
+
+# Copy gradle files
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+
+# Download dependencies
+RUN ./gradlew dependencies --no-daemon
+
+# Copy source code
+COPY src src
+
+# Build application
+RUN ./gradlew clean build -x test --no-daemon
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+# Install dependencies for health checks
+RUN apk add --no-cache curl
+
+# Create non-root user
+RUN addgroup -g 1000 spring && \
+    adduser -u 1000 -G spring -s /bin/sh -D spring
+
+# Set working directory
+WORKDIR /app
+
+# Copy JAR from builder
+COPY --from=builder /build/build/libs/*.jar app.jar
+
+# Copy Firebase config (will be mounted from secret)
+RUN mkdir -p /app/config/firebase
+
+# Change ownership
+RUN chown -R spring:spring /app
+
+# Switch to non-root user
+USER spring:spring
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# JVM options for container environment
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+  -XX:MaxRAMPercentage=75.0 \
+  -XX:InitialRAMPercentage=50.0 \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=200 \
+  -Djava.security.egd=file:/dev/./urandom \
+  -Dspring.profiles.active=prod"
+
+# Firebase config path
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/config/firebase/firebase-adminsdk.json"
+
+# Run application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

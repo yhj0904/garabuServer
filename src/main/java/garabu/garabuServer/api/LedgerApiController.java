@@ -9,6 +9,7 @@ import garabu.garabuServer.dto.request.CreateTransferRequest;
 import garabu.garabuServer.event.BookEvent;
 import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.*;
+import garabu.garabuServer.service.PushNotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -73,6 +74,7 @@ public class LedgerApiController {
     private final LedgerService   ledgerService;
     private final MemberService   memberService;
     private final UserBookService userBookService;
+    private final PushNotificationService pushNotificationService;
     private final BookEventPublisher bookEventPublisher;
 
     // ───────────────────────── 테스트 엔드포인트 ─────────────────────────
@@ -213,6 +215,15 @@ public class LedgerApiController {
             bookEventPublisher.publishBookEvent(bookEvent);
             
             logger.info("가계부 이벤트 발행 완료 - 타입: LEDGER_CREATED, 가계부: {}", book.getId());
+            
+            // 푸시 알림 발송 (새 거래 내역 추가)
+            try {
+                pushNotificationService.sendNewTransactionNotification(createdLedger, currentMember);
+                logger.info("새 거래 내역 푸시 알림 발송 완료 - LedgerId: {}", createdLedger.getId());
+            } catch (Exception e) {
+                logger.error("푸시 알림 발송 실패 - LedgerId: {}", createdLedger.getId(), e);
+                // 푸시 알림 실패는 전체 트랜잭션에 영향을 주지 않음
+            }
             
             return ResponseEntity.status(201).body(response);
 

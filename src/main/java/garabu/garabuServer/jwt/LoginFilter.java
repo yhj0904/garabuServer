@@ -82,7 +82,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         //응답 설정
         response.setHeader("access", access);
-        response.addCookie(createCookie("refresh", refresh));
+        response.setHeader("refresh", refresh);  // 모바일 앱을 위해 헤더로도 반환
+        response.addCookie(createCookie("refresh", refresh));  // 웹을 위해 쿠키도 유지
         response.setStatus(HttpStatus.OK.value());
     }
 

@@ -79,6 +79,14 @@ public class RefreshTokenService {
             local maxTokens = tonumber(ARGV[2])
             local ttl = tonumber(ARGV[3])
             
+            -- 입력값 검증
+            if not maxTokens then
+                maxTokens = 5  -- 기본값
+            end
+            if not ttl or ttl <= 0 then
+                ttl = 86400  -- 기본값 1일
+            end
+            
             redis.call('lpush', userKey, newToken)
             local count = redis.call('llen', userKey)
             
@@ -94,11 +102,15 @@ public class RefreshTokenService {
         """;
         
         RedisScript<Long> script = RedisScript.of(luaScript, Long.class);
+        
+        // TTL 계산 안전하게 처리
+        long ttlSeconds = Math.min(expiredMs / 1000, Integer.MAX_VALUE);
+        
         Long count = redisTemplate.execute(script, 
             Collections.singletonList(userKey),
             newToken, 
             String.valueOf(JWTConstants.MAX_ACTIVE_TOKENS_PER_USER),
-            String.valueOf(expiredMs / 1000));
+            String.valueOf(ttlSeconds));
             
         log.debug("User {} has {} active tokens", username, count);
     }

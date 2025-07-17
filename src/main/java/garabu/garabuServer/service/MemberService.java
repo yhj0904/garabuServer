@@ -178,4 +178,16 @@ public class MemberService{
 
         return member;
     }
+
+    /**
+     * ID로 회원을 조회합니다. (JPA 방식)
+     * 
+     * @param memberId 조회할 회원의 ID
+     * @return 조회된 회원 정보
+     * @throws UsernameNotFoundException 사용자를 찾을 수 없는 경우
+     */
+    public Member findById(Long memberId) {
+        return memberJPARepository.findById(memberId)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + memberId));
+    }
 }

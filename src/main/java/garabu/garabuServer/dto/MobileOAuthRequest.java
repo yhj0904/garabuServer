@@ -15,9 +15,9 @@ public class MobileOAuthRequest {
     private String provider; // google, apple, naver, kakao
     
     @NotBlank(message = "Access Token은 필수입니다")
-    private String accessToken;
+    private String accessToken;  // 일반적인 OAuth access token (Apple의 경우 identityToken)
     
-    private String refreshToken; // 선택사항
+    private String refreshToken; // 선택사항 (Apple의 경우 authorizationCode)
     
-    private String idToken; // Apple의 경우 Identity Token
+    private String idToken; // Google의 ID Token 또는 Apple의 Identity Token
 }

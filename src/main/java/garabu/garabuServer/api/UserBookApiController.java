@@ -7,6 +7,7 @@ import garabu.garabuServer.event.BookEvent;
 import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.MemberService;
 import garabu.garabuServer.service.UserBookService;
+import garabu.garabuServer.service.PushNotificationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -50,6 +51,7 @@ public class UserBookApiController {
     private final UserBookService userBookService;
     private final BookEventPublisher bookEventPublisher;
     private final MemberService memberService;
+    private final PushNotificationService pushNotificationService;
 
     /* ───────────────────────── 가계부 소유자 목록 조회 ───────────────────────── */
     /**
@@ -144,13 +146,21 @@ public class UserBookApiController {
         
         // 현재 사용자 정보 조회
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long currentUserId = memberService.findMemberByUsername(auth.getName()).getId();
+        Member currentUser = memberService.findMemberByUsername(auth.getName());
+        Member removedMember = memberService.findById(memberId);
         
         userBookService.removeMember(bookId, memberId);
         
         // Redis 이벤트 발행
-        BookEvent event = BookEvent.memberRemoved(bookId, currentUserId, memberId);
+        BookEvent event = BookEvent.memberRemoved(bookId, currentUser.getId(), memberId);
         bookEventPublisher.publishBookEvent(event);
+        
+        // 푸시 알림 발송 (멤버 제거)
+        try {
+            pushNotificationService.sendMemberRemovedNotification(bookId, removedMember, currentUser);
+        } catch (Exception e) {
+            // 푸시 알림 실패는 전체 작업에 영향을 주지 않음
+        }
         
         return ResponseEntity.ok(new RemoveMemberResponse("멤버가 성공적으로 제거되었습니다."));
     }
@@ -182,7 +192,8 @@ public class UserBookApiController {
         
         // 현재 사용자 정보 조회
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long currentUserId = memberService.findMemberByUsername(auth.getName()).getId();
+        Member currentUser = memberService.findMemberByUsername(auth.getName());
+        Member targetMember = memberService.findById(memberId);
         
         userBookService.changeRole(bookId, memberId, request.getRole());
         
@@ -196,10 +207,17 @@ public class UserBookApiController {
                 .bookId(bookId)
                 .eventType("MEMBER_UPDATED")
                 .data(eventData)
-                .userId(currentUserId)
+                .userId(currentUser.getId())
                 .timestamp(System.currentTimeMillis())
                 .build();
         bookEventPublisher.publishBookEvent(event);
+        
+        // 푸시 알림 발송 (권한 변경)
+        try {
+            pushNotificationService.sendRoleChangedNotification(bookId, targetMember, currentUser, request.getRole().name());
+        } catch (Exception e) {
+            // 푸시 알림 실패는 전체 작업에 영향을 주지 않음
+        }
         
         return ResponseEntity.ok(new ChangeRoleResponse("권한이 성공적으로 변경되었습니다."));
     }
@@ -234,6 +252,13 @@ public class UserBookApiController {
         // Redis 이벤트 발행 - 멤버 제거 이벤트
         BookEvent event = BookEvent.memberRemoved(bookId, currentUserId, currentUserId);
         bookEventPublisher.publishBookEvent(event);
+        
+        // 푸시 알림 발송 (멤버 탈퇴 - 다른 멤버들에게)
+        try {
+            pushNotificationService.sendMemberLeftNotification(bookId, currentUser);
+        } catch (Exception e) {
+            // 푸시 알림 실패는 전체 작업에 영향을 주지 않음
+        }
         
         return ResponseEntity.ok(new LeaveBookResponse("가계부에서 성공적으로 나갔습니다."));
     }

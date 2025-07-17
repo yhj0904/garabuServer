@@ -56,4 +56,19 @@ public class FcmTokenServiceImpl implements FcmTokenService {
         }
     }
 
+    @Override
+    public void registerFcmToken(FcmTokenRegisterDTO dto) {
+        registerOrUpdate(dto);
+    }
+
+    @Override
+    public void deleteFcmToken(String userId, String deviceId) {
+        FcmTokenDeleteDTO deleteDTO = FcmTokenDeleteDTO.builder()
+                .appId("garabu-app")
+                .userId(userId)
+                .deviceId(deviceId)
+                .build();
+        deleteByAppIdAndUserIdAndDeviceId(deleteDTO);
+    }
+
 }
