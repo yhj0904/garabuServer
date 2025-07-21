@@ -193,7 +193,7 @@ public class LedgerApiController {
             logger.info("Ledger registered with id={} by user={}", id, currentMember.getUsername());
 
             /* ────── 6. 생성된 기록 조회하여 상세 정보 반환 ────── */
-            Ledger createdLedger = ledgerService.findById(id);
+            LedgerDTO createdLedger = ledgerService.findByIdAsDTO(id);
             
             /* ────── 7. Redis 이벤트 발행 (SSE로 실시간 전송) ────── */
             CreateLedgerResponse response = new CreateLedgerResponse(
@@ -202,8 +202,8 @@ public class LedgerApiController {
                 createdLedger.getAmount(),
                 createdLedger.getDescription(),
                 createdLedger.getAmountType(),
-                createdLedger.getCategory().getCategory(),
-                createdLedger.getPaymentMethod().getPayment()
+                createdLedger.getCategory() != null ? createdLedger.getCategory().getCategory() : null,
+                createdLedger.getPaymentMethod() != null ? createdLedger.getPaymentMethod().getPayment() : null
             );
             
             // Redis Pub/Sub으로 이벤트 발행
@@ -218,7 +218,9 @@ public class LedgerApiController {
             
             // 푸시 알림 발송 (새 거래 내역 추가)
             try {
-                pushNotificationService.sendNewTransactionNotification(createdLedger, currentMember);
+                // 알림을 위해서는 실제 엔티티가 필요하므로 엔티티를 가져옴
+                Ledger ledgerEntity = ledgerService.findById(id);
+                pushNotificationService.sendNewTransactionNotification(ledgerEntity, currentMember);
                 logger.info("새 거래 내역 푸시 알림 발송 완료 - LedgerId: {}", createdLedger.getId());
             } catch (Exception e) {
                 logger.error("푸시 알림 발송 실패 - LedgerId: {}", createdLedger.getId(), e);
@@ -305,10 +307,10 @@ public class LedgerApiController {
         // 가계부 접근 권한 확인
         userBookService.validateBookAccess(currentMember, book);
         
-        Page<Ledger> page = ledgerService.findLedgersByBook(book, pageable);
+        Page<LedgerDTO> page = ledgerService.findLedgersByBook(book, pageable);
 
         List<LedgerDto> dtoList = page.getContent().stream()
-                .map(LedgerDto::from)
+                .map(LedgerDto::fromDTO)
                 .toList();
 
         return ResponseEntity.ok(new ListLedgerResponse(dtoList, page.getTotalElements()));
@@ -365,10 +367,10 @@ public class LedgerApiController {
                 bookId, startDate, endDate, amountType, category, payment
         );
 
-        Page<Ledger> page = ledgerService.searchLedgers(cond, pageable);
+        Page<LedgerDTO> page = ledgerService.searchLedgers(cond, pageable);
 
         List<LedgerDto> dtoList = page.getContent().stream()
-                .map(LedgerDto::from)
+                .map(LedgerDto::fromDTO)
                 .toList();
 
         return ResponseEntity.ok(new ListLedgerResponse(dtoList, page.getTotalElements()));
@@ -415,15 +417,15 @@ public class LedgerApiController {
             }
 
             // 3. 이체 기록 생성
-            List<Ledger> transferLedgers = ledgerService.createTransfer(request, currentMember);
+            List<LedgerDTO> transferLedgers = ledgerService.createTransfer(request, currentMember);
             
             logger.info("이체 기록 생성 완료 - 생성된 기록 수: {}", transferLedgers.size());
             
             // 4. 응답 데이터 구성
             Map<String, Object> response = new HashMap<>();
             response.put("transferId", transferLedgers.get(0).getId() + "-" + transferLedgers.get(1).getId());
-            response.put("withdrawalLedger", createLedgerResponse(transferLedgers.get(0)));
-            response.put("depositLedger", createLedgerResponse(transferLedgers.get(1)));
+            response.put("withdrawalLedger", createLedgerResponseFromDTO(transferLedgers.get(0)));
+            response.put("depositLedger", createLedgerResponseFromDTO(transferLedgers.get(1)));
             response.put("message", "이체 기록이 성공적으로 생성되었습니다.");
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -449,6 +451,21 @@ public class LedgerApiController {
         response.put("memo", ledger.getMemo());
         response.put("amountType", ledger.getAmountType());
         response.put("spender", ledger.getSpender());
+        return response;
+    }
+    
+    /**
+     * LedgerDTO를 응답 DTO로 변환
+     */
+    private Map<String, Object> createLedgerResponseFromDTO(LedgerDTO ledgerDTO) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", ledgerDTO.getId());
+        response.put("date", ledgerDTO.getDate());
+        response.put("amount", ledgerDTO.getAmount());
+        response.put("description", ledgerDTO.getDescription());
+        response.put("memo", ledgerDTO.getMemo());
+        response.put("amountType", ledgerDTO.getAmountType());
+        response.put("spender", ledgerDTO.getSpender());
         return response;
     }
 
@@ -514,6 +531,22 @@ public class LedgerApiController {
             dto.bookId     = ledger.getBook() != null ? ledger.getBook().getId() : null;
             dto.categoryId = ledger.getCategory() != null ? ledger.getCategory().getId() : null;
             dto.paymentId  = ledger.getPaymentMethod() != null ? ledger.getPaymentMethod().getId() : null;
+            return dto;
+        }
+        
+        public static LedgerDto fromDTO(LedgerDTO ledgerDTO) {
+            LedgerDto dto = new LedgerDto();
+            dto.id         = ledgerDTO.getId();
+            dto.date       = ledgerDTO.getDate();
+            dto.amount     = ledgerDTO.getAmount();
+            dto.description = ledgerDTO.getDescription();
+            dto.memo       = ledgerDTO.getMemo();
+            dto.amountType = ledgerDTO.getAmountType();
+            dto.spender    = ledgerDTO.getSpender();
+            dto.memberId   = ledgerDTO.getMember() != null ? ledgerDTO.getMember().getId() : null;
+            dto.bookId     = ledgerDTO.getBook() != null ? ledgerDTO.getBook().getId() : null;
+            dto.categoryId = ledgerDTO.getCategory() != null ? ledgerDTO.getCategory().getId() : null;
+            dto.paymentId  = ledgerDTO.getPaymentMethod() != null ? ledgerDTO.getPaymentMethod().getId() : null;
             return dto;
         }
     }

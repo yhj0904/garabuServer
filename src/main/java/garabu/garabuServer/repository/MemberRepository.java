@@ -26,4 +26,11 @@ public class MemberRepository {
                 .setParameter("username", name)
                 .getResultList();
     }
+    
+    public java.util.Optional<Member> findByEmail(String email) {
+        List<Member> results = em.createQuery("select m from Member m where m.email = :email", Member.class)
+                .setParameter("email", email)
+                .getResultList();
+        return results.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(results.get(0));
+    }
 }

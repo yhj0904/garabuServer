@@ -39,4 +39,11 @@ public interface UserBookJpaRepository extends JpaRepository<UserBook, Long> {
      */
     @EntityGraph(attributePaths = {"book"})
     List<UserBook> findByMember(garabu.garabuServer.domain.Member member);
+    
+    /**
+     * 특정 멤버가 참여한 모든 가계부와 소유자 정보를 함께 조회
+     * LazyInitializationException 방지를 위한 fetch join
+     */
+    @EntityGraph(attributePaths = {"book", "book.owner"})
+    List<UserBook> findAllByMember(garabu.garabuServer.domain.Member member);
 }

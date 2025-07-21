@@ -22,22 +22,41 @@ public class FcmTokenServiceImpl implements FcmTokenService {
     @Transactional
     @Override
     public void registerOrUpdate(FcmTokenRegisterDTO dto) {
+        try {
+            log.info("FCM 토큰 등록/업데이트 시작: userId={}, deviceId={}", dto.getUserId(), dto.getDeviceId());
+            
+            // 필수 필드 검증
+            if (dto.getUserId() == null || dto.getUserId().trim().isEmpty()) {
+                throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+            }
+            if (dto.getDeviceId() == null || dto.getDeviceId().trim().isEmpty()) {
+                throw new IllegalArgumentException("디바이스 ID는 필수입니다.");
+            }
+            if (dto.getFcmToken() == null || dto.getFcmToken().trim().isEmpty()) {
+                throw new IllegalArgumentException("FCM 토큰은 필수입니다.");
+            }
 
-        FcmUserToken token = tokenRepository
-                .findTopByAppIdAndUserIdAndDeviceIdOrderByTokenIdDesc(dto.getAppId(), dto.getUserId(), dto.getDeviceId())
-                .orElseGet(() -> FcmUserToken.builder()
-                        .appId(dto.getAppId())
-                        .userId(dto.getUserId())
-                        .deviceId(dto.getDeviceId())
-                        .regDt(LocalDateTime.now())
-                        .build());
+            FcmUserToken token = tokenRepository
+                    .findTopByAppIdAndUserIdAndDeviceIdOrderByTokenIdDesc(dto.getAppId(), dto.getUserId(), dto.getDeviceId())
+                    .orElseGet(() -> FcmUserToken.builder()
+                            .appId(dto.getAppId())
+                            .userId(dto.getUserId())
+                            .deviceId(dto.getDeviceId())
+                            .regDt(LocalDateTime.now())
+                            .build());
 
-        token.setFcmToken(dto.getFcmToken());
-        token.setUseAt("Y");
-        token.setRegDt(LocalDateTime.now());
+            token.setFcmToken(dto.getFcmToken());
+            token.setUseAt("Y");
+            token.setRegDt(LocalDateTime.now());
 
-        tokenRepository.save(token);
-        log.info("FCM 토큰 등록 또는 갱신 완료: {}", token.getFcmToken());
+            tokenRepository.save(token);
+            log.info("FCM 토큰 등록 또는 갱신 완료: userId={}, deviceId={}, token={}", 
+                    dto.getUserId(), dto.getDeviceId(), dto.getFcmToken());
+        } catch (Exception e) {
+            log.error("FCM 토큰 등록/업데이트 실패: userId={}, deviceId={}, error={}", 
+                    dto.getUserId(), dto.getDeviceId(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     public void deleteByAppIdAndUserIdAndDeviceId(FcmTokenDeleteDTO dto) {

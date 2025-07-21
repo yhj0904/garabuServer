@@ -2,6 +2,7 @@ package garabu.garabuServer.api;
 
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.dto.BookDTO;
 import garabu.garabuServer.event.BookEvent;
 import garabu.garabuServer.event.BookEventPublisher;
 import garabu.garabuServer.service.BookService;
@@ -114,15 +115,52 @@ public class BookApiController {
     @ApiResponses({
             @ApiResponse(responseCode = "200",
                     description  = "가계부 목록 조회 성공",
-                    content      = @Content(schema = @Schema(implementation = Book.class))),
+                    content      = @Content(schema = @Schema(implementation = BookDTO.class))),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
-    public ResponseEntity<List<Book>> getMyBooks() {
-        // Redis 캐시 오류 발생 시 캐시 초기화 후 재시도
-        bookService.clearUserBooksCache();
-        List<Book> books = bookService.findLoggedInUserBooks();
+    public ResponseEntity<List<BookDTO>> getMyBooks() {
+        List<BookDTO> books = bookService.findLoggedInUserBooks();
         return ResponseEntity.ok(books);
+    }
+
+    // ───────────────────────── 가계부 삭제 ─────────────────────────
+    /**
+     * 가계부를 삭제합니다.
+     * 소유자만 가계부를 삭제할 수 있습니다.
+     *
+     * @param bookId 삭제할 가계부의 ID
+     * @return 삭제 결과
+     */
+    @DeleteMapping("/{bookId}")
+    @Operation(
+            summary     = "가계부 삭제",
+            description = "가계부를 삭제합니다. 소유자만 삭제할 수 있으며, 모든 관련 데이터가 함께 삭제됩니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "가계부 삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 삭제 가능)"),
+            @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<Void> deleteBook(@PathVariable Long bookId) {
+        // 현재 사용자 정보 조회
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member currentUser = memberService.findMemberByUsername(auth.getName());
+        
+        bookService.deleteBook(bookId, currentUser);
+        
+        // Redis 이벤트 발행 - 가계부 삭제 이벤트
+        BookEvent event = BookEvent.builder()
+                .bookId(bookId)
+                .eventType("BOOK_DELETED")
+                .userId(currentUser.getId())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        bookEventPublisher.publishBookEvent(event);
+        
+        return ResponseEntity.noContent().build();
     }
 
     // ───────────────────────── DTO 정의 ─────────────────────────

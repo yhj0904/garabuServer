@@ -41,6 +41,7 @@ public class UserBookGroup {
     private LocalDateTime createdDate;
     
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<UserBookGroupMember> groupMembers = new ArrayList<>();
     
     @PrePersist

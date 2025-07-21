@@ -10,6 +10,7 @@ import garabu.garabuServer.repository.UserBookJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +38,7 @@ public class PushNotificationService {
      * @param ledger 새로 추가된 거래 내역
      * @param author 거래를 추가한 사용자
      */
+    @Transactional(readOnly = true)
     public void sendNewTransactionNotification(Ledger ledger, Member author) {
         try {
             Book book = bookRepository.findById(ledger.getBook().getId())

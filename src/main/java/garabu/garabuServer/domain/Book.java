@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,4 +42,43 @@ public class Book {
     @Schema(description = "가계부에 속한 사용자 목록")
     private List<UserBook> userBooks = new ArrayList<>();
 
+    @Column(length = 3, nullable = false)
+    @Schema(description = "기본 통화 코드", example = "KRW")
+    private String defaultCurrency = "KRW";
+    
+    @Column(nullable = false)
+    @Schema(description = "다중 통화 사용 여부")
+    private Boolean useMultiCurrency = false;
+    
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    // 비즈니스 메서드
+    public boolean hasMember(Member member) {
+        if (member == null) return false;
+        
+        // 소유자인 경우
+        if (owner != null && owner.equals(member)) {
+            return true;
+        }
+        
+        // UserBook을 통해 연결된 멤버인 경우
+        return userBooks.stream()
+                .anyMatch(ub -> ub.getMember() != null && ub.getMember().equals(member));
+    }
 }

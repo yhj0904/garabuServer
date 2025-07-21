@@ -140,6 +140,7 @@ public class UserBookApiController {
             @ApiResponse(responseCode = "403", description = "권한 없음 (소유자만 제거 가능)"),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
+    @Deprecated
     public ResponseEntity<RemoveMemberResponse> removeMember(
             @PathVariable Long bookId,
             @PathVariable Long memberId) {

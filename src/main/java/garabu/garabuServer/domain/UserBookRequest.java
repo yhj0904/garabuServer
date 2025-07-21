@@ -32,10 +32,12 @@ public class UserBookRequest {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private RequestStatus status = RequestStatus.PENDING;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private BookRole requestedRole = BookRole.VIEWER;
     
     @Column(name = "request_date", nullable = false)

@@ -14,12 +14,13 @@ import org.springframework.validation.annotation.Validated;
 
 @Slf4j
 @Component
-@Profile("!prod")  // prod 프로파일이 아닐 때 활성화 (로컬 개발용)
+@Profile({"default", "local"})  // default와 local 프로파일에서 활성화
 @ConfigurationProperties(prefix = "ec2")
 @Validated
 @Setter
 public class SshTunnelInit {
 
+    private boolean enabled = false;  // SSH 터널링 활성화 여부
     private String remoteJumpHost;
     private int sshPort;
     private String user;
@@ -36,6 +37,11 @@ public class SshTunnelInit {
     }
 
     public Integer buildSshConnection() {
+        if (!enabled) {
+            log.info("SSH 터널링이 비활성화되어 있습니다. ec2.enabled=false");
+            return null;
+        }
+
         Integer forwardPort = null;
 
         try {

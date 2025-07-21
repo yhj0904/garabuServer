@@ -4,11 +4,15 @@ import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.BookRole;
 import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.domain.UserBook;
+import garabu.garabuServer.domain.AssetType;
+import garabu.garabuServer.dto.BookDTO;
+import garabu.garabuServer.dto.request.CreateAssetRequest;
 import garabu.garabuServer.exception.BookNotFoundException;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.BookRepository;
 import garabu.garabuServer.repository.MemberJPARepository;
 import garabu.garabuServer.repository.UserBookJpaRepository;
+import garabu.garabuServer.repository.LedgerJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -36,6 +40,8 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MemberJPARepository memberRepository;
     private final UserBookJpaRepository userBookJpaRepository;
+    private final AssetService assetService;
+    private final LedgerJpaRepository ledgerJpaRepository;
 
     /**
      * 새로운 가계부를 생성합니다.
@@ -70,6 +76,8 @@ public class BookService {
         Book book = new Book();
         book.setOwner(owner);
         book.setTitle(title);
+        book.setDefaultCurrency("KRW"); // 기본 통화를 원화로 설정
+        book.setUseMultiCurrency(false); // 기본적으로 단일 통화 사용
         bookRepository.save(book);
         System.out.println("가계부 생성 완료 - ID: " + book.getId());
         
@@ -80,6 +88,15 @@ public class BookService {
         userBook.setBookRole(BookRole.OWNER);
         userBookJpaRepository.save(userBook);
         System.out.println("UserBook 생성 완료 - ID: " + userBook.getId());
+        
+        // 3. 기본 자산 생성
+        try {
+            createDefaultAssets(book);
+            System.out.println("기본 자산 생성 완료");
+        } catch (Exception e) {
+            System.err.println("기본 자산 생성 실패: " + e.getMessage());
+            // 기본 자산 생성 실패해도 가계부 생성은 계속 진행
+        }
         
         System.out.println("=== 가계부 생성 완료 ===");
         return book;
@@ -107,7 +124,8 @@ public class BookService {
     }
 
     @Cacheable(value = "userBooks", key = "#root.methodName + '_' + @bookService.getCurrentUserCacheKey()", unless = "#result == null or #result.isEmpty()")
-    public List<Book> findLoggedInUserBooks() {
+    @Transactional(readOnly = true)
+    public List<BookDTO> findLoggedInUserBooks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
@@ -127,18 +145,22 @@ public class BookService {
         System.out.println("사용자 이메일: " + currentMember.getEmail());
         
         // 사용자가 소유한 가계부와 공유받은 가계부 모두 조회
-        List<UserBook> userBooks = userBookJpaRepository.findByMember(currentMember);
+        List<UserBook> userBooks = userBookJpaRepository.findAllByMember(currentMember);
         System.out.println("참여한 가계부 수: " + userBooks.size());
         
-        List<Book> books = userBooks.stream()
-                .map(UserBook::getBook)
+        List<BookDTO> bookDTOs = userBooks.stream()
+                .map(userBook -> {
+                    Book book = userBook.getBook();
+                    BookRole role = userBook.getBookRole();
+                    return BookDTO.from(book, role);
+                })
                 .distinct()
                 .toList();
         
-        System.out.println("반환할 가계부 수: " + books.size());
+        System.out.println("반환할 가계부 수: " + bookDTOs.size());
         System.out.println("=== 가계부 목록 조회 완료 ===");
         
-        return books;
+        return bookDTOs;
     }
     
     /**
@@ -171,6 +193,91 @@ public class BookService {
      */
     public Book findByTitle(String title) {
         return bookRepository.findByTitle(title);
+    }
+    
+    /**
+     * 가계부를 삭제합니다.
+     * 소유자만 가계부를 삭제할 수 있으며, 모든 관련 데이터가 함께 삭제됩니다.
+     * 
+     * @param bookId 삭제할 가계부의 ID
+     * @param currentUser 현재 로그인한 사용자
+     * @throws IllegalArgumentException 소유자가 아닌 경우
+     * @throws BookNotFoundException 가계부를 찾을 수 없는 경우
+     */
+    @Transactional
+    @CacheEvict(value = "userBooks", allEntries = true)
+    public void deleteBook(Long bookId, Member currentUser) {
+        // 가계부 조회
+        Book book = findById(bookId);
+        
+        // 소유자 권한 확인
+        UserBook userBook = userBookJpaRepository.findByBookIdAndMemberId(bookId, currentUser.getId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 가계부에 접근할 수 없습니다."));
+        
+        if (userBook.getBookRole() != BookRole.OWNER) {
+            throw new IllegalArgumentException("소유자만 가계부를 삭제할 수 있습니다.");
+        }
+        
+        System.out.println("=== 가계부 삭제 시작 ===");
+        System.out.println("삭제할 가계부 ID: " + bookId);
+        System.out.println("삭제한 사용자: " + currentUser.getUsername());
+        
+        // 가계부와 관련된 모든 데이터 삭제 (순서 중요)
+        
+        // 1. 가계부 내역 삭제 (이미 구현된 메서드 사용)
+        ledgerJpaRepository.deleteAllByBook(book);
+        System.out.println("가계부 내역 삭제 완료");
+        
+        // 2. UserBook 관계 삭제 (가계부에 참여한 모든 멤버)
+        List<UserBook> userBooks = userBookJpaRepository.findByBookId(bookId);
+        userBookJpaRepository.deleteAll(userBooks);
+        System.out.println("UserBook 관계 삭제 완료");
+        
+        // 3. 가계부 삭제 (나머지 관련 데이터는 DB 제약조건으로 처리)
+        bookRepository.delete(book);
+        System.out.println("가계부 삭제 완료");
+        
+        System.out.println("=== 가계부 삭제 완료 ===");
+    }
+    
+    /**
+     * 가계부 생성 시 기본 자산을 자동으로 생성합니다.
+     * 모든 기본 자산은 0원으로 시작합니다.
+     * 
+     * @param book 자산을 생성할 가계부
+     */
+    private void createDefaultAssets(Book book) {
+        // 현금 자산 생성
+        CreateAssetRequest cashRequest = new CreateAssetRequest();
+        cashRequest.setName("현금");
+        cashRequest.setAssetType(AssetType.CASH);
+        cashRequest.setBalance(0L);
+        cashRequest.setDescription("현금 자산");
+        assetService.createAsset(book.getId(), cashRequest);
+        
+        // 체크카드 자산 생성
+        CreateAssetRequest debitCardRequest = new CreateAssetRequest();
+        debitCardRequest.setName("체크카드");
+        debitCardRequest.setAssetType(AssetType.DEBIT_CARD);
+        debitCardRequest.setBalance(0L);
+        debitCardRequest.setDescription("체크카드 자산");
+        assetService.createAsset(book.getId(), debitCardRequest);
+        
+        // 신용카드 자산 생성
+        CreateAssetRequest creditCardRequest = new CreateAssetRequest();
+        creditCardRequest.setName("신용카드");
+        creditCardRequest.setAssetType(AssetType.CREDIT_CARD);
+        creditCardRequest.setBalance(0L);
+        creditCardRequest.setDescription("신용카드 자산");
+        assetService.createAsset(book.getId(), creditCardRequest);
+        
+        // 저축예금 자산 생성
+        CreateAssetRequest savingsRequest = new CreateAssetRequest();
+        savingsRequest.setName("저축예금");
+        savingsRequest.setAssetType(AssetType.SAVINGS_ACCOUNT);
+        savingsRequest.setBalance(0L);
+        savingsRequest.setDescription("저축예금 계좌");
+        assetService.createAsset(book.getId(), savingsRequest);
     }
     
     //book. 가계부를 커플, 개인, 모임용으로 나누기 위해.

@@ -1,11 +1,13 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.domain.NotificationPreference;
 import garabu.garabuServer.dto.CustomOAuth2User;
 import garabu.garabuServer.dto.LoginUserDTO;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.MemberJPARepository;
 import garabu.garabuServer.repository.MemberRepository;
+import garabu.garabuServer.repository.NotificationPreferenceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +38,7 @@ public class MemberService{
 
     private final MemberRepository memberRepository;
     private final MemberJPARepository memberJPARepository;
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
 
     /**
      * 새로운 회원을 등록합니다.
@@ -46,7 +49,8 @@ public class MemberService{
      */
     @Transactional
     public Long join (Member member) {
-        validateDuplicateMember(member);
+        // username 중복 체크 (name은 동명이인 허용)
+        validateDuplicateUsername(member);
         validateDuplicateEmail(member);
         
         // 기본 권한 설정 (회원가입 시 기본적으로 USER 권한 부여)
@@ -55,6 +59,11 @@ public class MemberService{
         }
         
         memberRepository.save(member);
+        
+        // 회원가입 시 기본 알림 설정 생성
+        NotificationPreference notificationPreference = new NotificationPreference(member);
+        notificationPreferenceRepository.save(notificationPreference);
+        
         return member.getId();
     }
 
@@ -102,16 +111,16 @@ public class MemberService{
     }
 
     /**
-     * 사용자명 중복 검증을 수행합니다.
+     * 사용자명(username) 중복 검증을 수행합니다.
+     * 실제 이름(name)은 동명이인을 허용하므로 중복 체크하지 않습니다.
      * 
      * @param member 검증할 회원 정보
      * @throws IllegalStateException 이미 존재하는 사용자명인 경우
      */
-    private void validateDuplicateMember(Member member) {
-
-        List<Member> findMembers = memberRepository.findByName(member.getUsername());
-        if (!findMembers.isEmpty()) {
-            throw new IllegalStateException("이미 존재하는 이름 입니다");
+    private void validateDuplicateUsername(Member member) {
+        Member findMember = memberJPARepository.findByUsername(member.getUsername());
+        if (findMember != null) {
+            throw new IllegalStateException("이미 존재하는 사용자명(ID) 입니다");
         }
     }
 

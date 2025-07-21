@@ -92,7 +92,7 @@
     <logger name="org.eclipse.jetty" level="INFO"/>
 
     <!-- 애플리케이션 패키지 로그 설정 -->
-    <logger name="g.g" level="${LOG_LEVEL_APP}" additivity="false">
+    <logger name="garabu.garabuServer" level="${LOG_LEVEL_APP}" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
         <appender-ref ref="ERROR_FILE"/>
@@ -114,5 +114,34 @@
         <appender-ref ref="FILE"/>
         <appender-ref ref="ERROR_FILE"/>
     </root>
+
+    <!-- Logstash Appender for ELK Integration -->
+    <springProfile name="docker,prod">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${LOGSTASH_HOST:-logstash}:${LOGSTASH_PORT:-5000}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"app_name":"garabu-server","environment":"${SPRING_PROFILES_ACTIVE}"}</customFields>
+            </encoder>
+            <keepAliveDuration>5 minutes</keepAliveDuration>
+        </appender>
+        
+        <!-- Async wrapper for Logstash to prevent blocking -->
+        <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="LOGSTASH"/>
+            <queueSize>512</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>true</includeCallerData>
+        </appender>
+    </springProfile>
+
+    <!-- Add ASYNC_LOGSTASH to root logger for docker/prod profiles -->
+    <springProfile name="docker,prod">
+        <root level="${LOG_LEVEL_ROOT}">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+            <appender-ref ref="ASYNC_LOGSTASH"/>
+        </root>
+    </springProfile>
 
 </configuration>

@@ -29,6 +29,24 @@ public interface LedgerJpaRepository extends JpaRepository<Ledger, Long> {
     @Query("SELECT l FROM Ledger l WHERE l.book = :book ORDER BY l.date DESC, l.id DESC")
     Page<Ledger> findByBookWithAuthorization(@Param("book") Book book, Pageable pageable);
     
+    /**
+     * 특정 가계부의 장부 ID 목록 조회
+     */
+    @Query("SELECT l.id FROM Ledger l WHERE l.book = :book ORDER BY l.date DESC, l.id DESC")
+    Page<Long> findIdsByBook(@Param("book") Book book, Pageable pageable);
+    
+    /**
+     * ID 목록으로 장부 조회 (연관 엔티티 포함)
+     */
+    @Query("SELECT DISTINCT l FROM Ledger l " +
+           "LEFT JOIN FETCH l.member " +
+           "LEFT JOIN FETCH l.book " +
+           "LEFT JOIN FETCH l.category " +
+           "LEFT JOIN FETCH l.paymentMethod " +
+           "WHERE l.id IN :ids " +
+           "ORDER BY l.date DESC, l.id DESC")
+    List<Ledger> findByIdsWithFetch(@Param("ids") List<Long> ids);
+    
     boolean existsByDateAndAmountAndDescriptionAndMemberIdAndBookId(
         LocalDate date, Integer amount, String description, Long memberId, Long bookId);
     

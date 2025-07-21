@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import static jakarta.persistence.FetchType.LAZY;
 
@@ -71,4 +73,29 @@ public class Ledger {
     private String description; //상세내용
     private String memo;            // 메모
 
+    /**
+     * 태그들
+     * ManyToMany 관계로 여러 태그를 가질 수 있음
+     */
+    @ManyToMany
+    @JoinTable(
+        name = "ledger_tags",
+        joinColumns = @JoinColumn(name = "ledger_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
+
+    // 태그 관련 메서드
+    public void addTag(Tag tag) {
+        if (this.tags == null) {
+            this.tags = new HashSet<>();
+        }
+        this.tags.add(tag);
+    }
+    
+    public void removeTag(Tag tag) {
+        if (this.tags != null) {
+            this.tags.remove(tag);
+        }
+    }
 }

@@ -1,8 +1,10 @@
 package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.domain.NotificationPreference;
 import garabu.garabuServer.dto.*;
 import garabu.garabuServer.repository.MemberJPARepository;
+import garabu.garabuServer.repository.NotificationPreferenceRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -16,10 +18,12 @@ import java.util.Optional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberJPARepository memberJPARepository;
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
 
-    public CustomOAuth2UserService(MemberJPARepository memberJPARepository) {
-
+    public CustomOAuth2UserService(MemberJPARepository memberJPARepository, 
+                                 NotificationPreferenceRepository notificationPreferenceRepository) {
         this.memberJPARepository = memberJPARepository;
+        this.notificationPreferenceRepository = notificationPreferenceRepository;
     }
 
     @Override
@@ -72,6 +76,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             userEntity.setProviderId(providerId);
 
             memberJPARepository.save(userEntity);
+            
+            // 소셜 로그인으로 회원가입 시 기본 알림 설정 생성
+            NotificationPreference notificationPreference = new NotificationPreference(userEntity);
+            notificationPreferenceRepository.save(notificationPreference);
 
             UserDTO userDTO = new UserDTO();
             userDTO.setUsername(username);

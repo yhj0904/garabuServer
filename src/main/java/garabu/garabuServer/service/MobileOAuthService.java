@@ -155,12 +155,8 @@ public class MobileOAuthService {
             return appleOAuthService.extractUserInfoFromIdentityToken(identityToken);
         } catch (Exception e) {
             log.error("Apple 사용자 정보 추출 실패: {}", e.getMessage(), e);
-            // Apple 토큰 파싱 실패 시 기본 정보 반환
-            Map<String, Object> defaultInfo = new HashMap<>();
-            defaultInfo.put("sub", "apple_user_" + System.currentTimeMillis());
-            defaultInfo.put("email", "apple@example.com");
-            defaultInfo.put("email_verified", true);
-            return defaultInfo;
+            // 🔒 보안 수정: 토큰 검증 실패 시 예외 던지기 (가짜 정보 반환 금지)
+            throw new RuntimeException("Apple 토큰 검증 실패", e);
         }
     }
 
@@ -218,10 +214,25 @@ public class MobileOAuthService {
         String email = oAuth2Response.getEmail();
         String providerId = oAuth2Response.getProviderId();
 
+        // 🔒 보안 강화: 이메일 유효성 검증
+        if (email == null || email.trim().isEmpty()) {
+            log.error("OAuth 로그인 시도 - 이메일 정보 없음: provider={}, providerId={}", 
+                oAuth2Response.getProvider(), providerId);
+            throw new RuntimeException("OAuth 제공자로부터 이메일 정보를 가져올 수 없습니다.");
+        }
+
+        // 🔒 보안 강화: 로그 기록
+        log.info("OAuth 로그인 시도 - provider={}, email={}, providerId={}", 
+            oAuth2Response.getProvider(), email, providerId);
+
         Optional<Member> optionalMember = memberJPARepository.findByProviderIdAndEmail(providerId, email);
         Member existData = optionalMember.orElse(null);
 
         if (existData == null) {
+            // 🔒 보안 강화: 새 회원 생성 시 추가 로깅
+            log.info("새 OAuth 회원 생성 - provider={}, email={}, name={}", 
+                oAuth2Response.getProvider(), email, oAuth2Response.getName());
+            
             // 새 회원 생성
             Member newMember = new Member();
             newMember.setUsername(username);
@@ -232,6 +243,10 @@ public class MobileOAuthService {
             
             return memberJPARepository.save(newMember);
         } else {
+            // 🔒 보안 강화: 기존 회원 로그인 로깅
+            log.info("기존 OAuth 회원 로그인 - provider={}, email={}, memberId={}", 
+                oAuth2Response.getProvider(), email, existData.getId());
+            
             // 기존 회원 정보 업데이트
             existData.setEmail(oAuth2Response.getEmail());
             existData.setUsername(username);

@@ -8,6 +8,9 @@ import garabu.garabuServer.oauth2.CustomSuccessHandler;
 import garabu.garabuServer.service.CustomOAuth2UserService;
 import garabu.garabuServer.service.RefreshTokenService;
 import garabu.garabuServer.service.BlacklistService;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,9 +35,26 @@ import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.filter.OncePerRequestFilter;
+import java.io.IOException;
+
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final AuthenticationConfiguration authenticationConfiguration;
@@ -72,6 +92,55 @@ public class SecurityConfig {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
 
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public OncePerRequestFilter rateLimitFilter() {
+        return new RateLimitFilter();
+    }
+
+    // Rate Limiting Filter 내부 클래스
+    public static class RateLimitFilter extends OncePerRequestFilter {
+        
+        private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+        private static final int CAPACITY = 60; // 분당 60개 요청
+        private static final Duration DURATION = Duration.ofMinutes(1);
+        
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, 
+                                      HttpServletResponse response, 
+                                      FilterChain filterChain) throws ServletException, IOException {
+            
+            String ip = getClientIP(request);
+            Bucket bucket = cache.computeIfAbsent(ip, k -> createNewBucket());
+            
+            if (bucket.tryConsume(1)) {
+                filterChain.doFilter(request, response);
+            } else {
+                response.setStatus(429); // Too Many Requests
+                response.getWriter().write("Too many requests. Please try again later.");
+                log.warn("Rate limit exceeded for IP: {}", ip);
+            }
+        }
+        
+        private Bucket createNewBucket() {
+            Bandwidth limit = Bandwidth.classic(CAPACITY, Refill.intervally(CAPACITY, DURATION));
+            return Bucket.builder()
+                    .addLimit(limit)
+                    .build();
+        }
+        
+        private String getClientIP(HttpServletRequest request) {
+            String xfHeader = request.getHeader("X-Forwarded-For");
+            if (xfHeader != null) {
+                return xfHeader.split(",")[0];
+            }
+            String xRealIP = request.getHeader("X-Real-IP");
+            if (xRealIP != null) {
+                return xRealIP;
+            }
+            return request.getRemoteAddr();
+        }
     }
 
     @Bean
@@ -147,6 +216,10 @@ public class SecurityConfig {
                         return configuration;
                     }
                 }));
+
+        // Rate Limit Filter 추가
+        http
+                .addFilterBefore(rateLimitFilter(), BasicAuthenticationFilter.class);
 
 
         return http.build();

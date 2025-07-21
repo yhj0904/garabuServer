@@ -31,15 +31,15 @@ public class CategoryService {
     private final MemberService memberService;
     private final UserBookJpaRepository userBookJpaRepository;
 
-    @CacheEvict(value = {"categories", "categoriesAll", "categoriesByBook", "combinedCategories", 
-                         "categoriesAllDto", "categoriesByBookDto", "combinedCategoriesDto", "userCategoriesDto"}, allEntries = true)
+    @CacheEvict(value = {"categoriesAllDto", "categoriesByBookDto", "combinedCategoriesDto", "userCategoriesDto"}, allEntries = true)
     public Long rigistCategory(Category category){
         // 중복 검사는 Controller에서 처리
         categoryJpaRepository.save(category);
         return category.getId();
     }
 
-    @Cacheable(value = "categoriesAll", unless = "#result == null or #result.isEmpty()")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
+    // Use findAllCategoriesDto() instead
     public List<Category> findAllCategories() {
         return categoryJpaRepository.findAll();
     }
@@ -53,18 +53,19 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(value = "categories", key = "#id", unless = "#result == null")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
     public Category findById(Long id) {
         return categoryJpaRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    @Cacheable(value = "categories", key = "#category", unless = "#result == null")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
     public Category findByCategory(String category) {
         return categoryJpaRepository.findByCategory(category);
     }
 
     // 가계부별 카테고리 조회
-    @Cacheable(value = "categoriesByBook", key = "#book.id", unless = "#result == null or #result.isEmpty()")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
+    // Use findByBookDto() instead
     public List<Category> findByBook(Book book) {
         return categoryJpaRepository.findByBook(book);
     }
@@ -84,8 +85,7 @@ public class CategoryService {
     }
 
     // 가계부별 카테고리 생성
-    @CacheEvict(value = {"categoriesByBook", "combinedCategories", "categoriesByBookDto", 
-                         "combinedCategoriesDto", "userCategoriesDto"}, allEntries = true)
+    @CacheEvict(value = {"categoriesByBookDto", "combinedCategoriesDto", "userCategoriesDto"}, allEntries = true)
     public Long createCategoryForBook(Book book, String categoryName) {
         Member currentMember = memberService.getCurrentMember();
         Category category = new Category();
@@ -98,7 +98,8 @@ public class CategoryService {
     }
     
     // 기본 제공 카테고리 조회
-    @Cacheable(value = "defaultCategories", unless = "#result == null or #result.isEmpty()")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
+    // Use findDefaultCategoriesDto() instead
     public List<Category> findDefaultCategories() {
         return categoryJpaRepository.findByIsDefaultTrue();
     }
@@ -113,7 +114,8 @@ public class CategoryService {
     }
     
     // 기본 카테고리 + 가계부별 사용자 정의 카테고리 조회
-    @Cacheable(value = "combinedCategories", key = "#book.id", unless = "#result == null or #result.isEmpty()")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
+    // Use findCombinedCategoriesDto() instead
     public List<Category> findCombinedCategories(Book book) {
         return categoryJpaRepository.findDefaultAndBookCategories(book);
     }
@@ -128,8 +130,7 @@ public class CategoryService {
     }
     
     // 기본 카테고리 초기화 (애플리케이션 시작 시 호출)
-    @CacheEvict(value = {"defaultCategories", "combinedCategories", "defaultCategoriesDto", 
-                         "combinedCategoriesDto", "categoriesAllDto", "categoriesByBookDto", "userCategoriesDto"}, allEntries = true)
+    @CacheEvict(value = {"defaultCategoriesDto", "combinedCategoriesDto", "categoriesAllDto", "categoriesByBookDto", "userCategoriesDto"}, allEntries = true)
     public void initializeDefaultCategories() {
         // 기본 카테고리가 이미 존재하는지 확인
         List<Category> existingDefaults = categoryJpaRepository.findByIsDefaultTrue();
@@ -153,7 +154,7 @@ public class CategoryService {
     }
     
     // 가계부별 사용자 정의 카테고리만 조회
-    @Cacheable(value = "userCategories", key = "#book.id", unless = "#result == null or #result.isEmpty()")
+    // Deprecated: Entity caching removed to prevent LazyInitializationException
     public List<Category> findUserCategoriesByBook(Book book) {
         return categoryJpaRepository.findByBookAndIsDefaultFalse(book);
     }

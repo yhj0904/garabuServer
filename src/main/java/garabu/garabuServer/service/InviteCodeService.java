@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,12 +28,20 @@ public class InviteCodeService {
     private static final long CODE_TTL_MINUTES = 30;
     
     /**
-     * 가계부 초대 코드 생성
+     * 가계부 초대 코드 생성 또는 기존 코드 반환
      * @param bookId 가계부 ID
      * @param role 부여할 권한
      * @return 8자리 초대 코드
      */
     public String generateBookInviteCode(Long bookId, String role) {
+        // 기존에 유효한 코드가 있는지 확인
+        String existingCode = findExistingInviteCode(bookId, role);
+        if (existingCode != null) {
+            log.info("기존 가계부 초대 코드 재사용: {} (bookId: {}, role: {})", existingCode, bookId, role);
+            return existingCode;
+        }
+        
+        // 새 코드 생성
         String code = generateUniqueCode();
         String key = BOOK_INVITE_PREFIX + code;
         
@@ -43,7 +52,7 @@ public class InviteCodeService {
                 .build();
         
         redisTemplate.opsForValue().set(key, inviteData, CODE_TTL_MINUTES, TimeUnit.MINUTES);
-        log.info("가계부 초대 코드 생성: {} (bookId: {}, role: {})", code, bookId, role);
+        log.info("새 가계부 초대 코드 생성: {} (bookId: {}, role: {})", code, bookId, role);
         
         return code;
     }
@@ -159,6 +168,63 @@ public class InviteCodeService {
         
         return Boolean.TRUE.equals(redisTemplate.hasKey(bookKey)) || 
                Boolean.TRUE.equals(redisTemplate.hasKey(userKey));
+    }
+    
+    /**
+     * 기존 유효한 초대 코드 찾기
+     * @param bookId 가계부 ID
+     * @param role 권한
+     * @return 유효한 코드 또는 null
+     */
+    private String findExistingInviteCode(Long bookId, String role) {
+        // Redis에서 BOOK_INVITE:* 패턴의 모든 키 조회
+        Set<String> keys = redisTemplate.keys(BOOK_INVITE_PREFIX + "*");
+        if (keys == null || keys.isEmpty()) {
+            return null;
+        }
+        
+        for (String key : keys) {
+            BookInviteData data = getBookInviteDataByKey(key);
+            if (data != null && 
+                data.getBookId().equals(bookId) && 
+                data.getRole().equals(role)) {
+                // TTL이 5분 이상 남은 경우에만 재사용
+                Long ttl = redisTemplate.getExpire(key, TimeUnit.MINUTES);
+                if (ttl != null && ttl > 5) {
+                    String code = key.substring(BOOK_INVITE_PREFIX.length());
+                    return code;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Redis 키로 BookInviteData 조회
+     * @param key Redis 키
+     * @return BookInviteData 또는 null
+     */
+    private BookInviteData getBookInviteDataByKey(String key) {
+        Object result = redisTemplate.opsForValue().get(key);
+        
+        if (result == null) {
+            return null;
+        }
+        
+        if (result instanceof BookInviteData) {
+            return (BookInviteData) result;
+        }
+        
+        if (result instanceof LinkedHashMap) {
+            LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) result;
+            return BookInviteData.builder()
+                    .bookId(((Number) map.get("bookId")).longValue())
+                    .role((String) map.get("role"))
+                    .build();
+        }
+        
+        return null;
     }
     
     /**

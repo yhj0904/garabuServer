@@ -41,12 +41,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 	implementation 'com.google.firebase:firebase-admin:9.4.3'
-	implementation 'com.github.hlspablo:expo-server-sdk-java:v3.1.2'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	// WebSocket 제거됨 - SSE로 대체
 	// implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'com.mysql:mysql-connector-j'
 	implementation 'com.github.mwiede:jsch:0.2.16'
+	// Logstash appender for ELK integration
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -57,6 +58,9 @@ dependencies {
 	}
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	//runtimeOnly 'com.h2database:h2'
+
+    // Rate Limiting
+    implementation 'com.bucket4j:bucket4j-core:8.7.0'
 }
 
 

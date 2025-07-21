@@ -13,8 +13,14 @@ public interface UserBookRequestRepository extends JpaRepository<UserBookRequest
     // 특정 가계부의 대기중인 요청 조회
     List<UserBookRequest> findByBookAndStatus(Book book, RequestStatus status);
     
-    // 특정 사용자의 모든 요청 조회
-    List<UserBookRequest> findByMemberOrderByRequestDateDesc(Member member);
+    // 특정 사용자의 모든 요청 조회 - Book과 함께 fetch
+    @Query("SELECT r FROM UserBookRequest r " +
+           "JOIN FETCH r.member " +
+           "JOIN FETCH r.book " +
+           "LEFT JOIN FETCH r.respondedBy " +
+           "WHERE r.member = :member " +
+           "ORDER BY r.requestDate DESC")
+    List<UserBookRequest> findByMemberOrderByRequestDateDesc(@Param("member") Member member);
     
     // 특정 사용자가 특정 가계부에 대한 대기중인 요청이 있는지 확인
     boolean existsByBookAndMemberAndStatus(Book book, Member member, RequestStatus status);
@@ -22,8 +28,12 @@ public interface UserBookRequestRepository extends JpaRepository<UserBookRequest
     // 초대 코드로 요청 찾기
     Optional<UserBookRequest> findByInviteCodeAndStatus(String inviteCode, RequestStatus status);
     
-    // 특정 가계부의 모든 요청 조회 (상태별 정렬)
-    @Query("SELECT r FROM UserBookRequest r WHERE r.book = :book ORDER BY " +
+    // 특정 가계부의 모든 요청 조회 (상태별 정렬) - Member와 Book을 함께 fetch
+    @Query("SELECT r FROM UserBookRequest r " +
+           "JOIN FETCH r.member " +
+           "JOIN FETCH r.book " +
+           "LEFT JOIN FETCH r.respondedBy " +
+           "WHERE r.book = :book ORDER BY " +
            "CASE r.status " +
            "WHEN 'PENDING' THEN 1 " +
            "WHEN 'ACCEPTED' THEN 2 " +

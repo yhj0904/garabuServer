@@ -1,61 +1,118 @@
 # Git
 .git
 .gitignore
+.gitattributes
 
-# IDE 설정 파일
-.idea
+# Build artifacts
+build/
+!build/libs/*.jar
+target/
+out/
+*.class
+
+# IDE
+.idea/
 *.iml
 *.ipr
 *.iws
+.vscode/
+.settings/
+.project
+.classpath
 
-# VS Code
-.vscode
-
-# Build output
-#build/*
-#build/libs/
-#build/libs/*.jar
-
-# OS 및 임시 파일
-*.DS_Store
-*.log
-*.tmp
-*.bak
+# OS
+.DS_Store
+Thumbs.db
 *.swp
+*~
 
-# Docker 관련
-docker-compose.override.yml
+# Logs
+logs/
+*.log
+*.log.*
+
+# Documentation
+docs/
+*.md
+!README.md
+note/
+
+# Environment files
+.env
+.env.*
+env-*
+!.env.example
+
+# Test
+src/test/
+k6-scripts/
+jmeter/
+*.jmx
+
+# Gradle (일부만 제외)
+.gradle/
+gradlew.bat
+
+# Scripts
+scripts/
+*.sh
+
+# Kubernetes
+k8s/
+
+# Docker
+docker-compose*.yml
+Dockerfile.*
 .dockerignore
 
-# IntelliJ 캐시
-*.class
+# Monitoring configs
+prometheus/
+grafana/
+logstash/
+elasticsearch/
+kibana/
+filebeat/
+alertmanager/
 
-# 인증 및 민감 정보
+# Data directories
+*-data/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Secrets and certificates
 *.pem
 *.key
 *.crt
-*.env
 *.jks
 *.p12
 *.der
-
-# Firebase 키
+secrets/
+src/main/resources/keys/
 src/main/resources/firebase/firebase-service-account.json
 
-# Spring 설정 파일
-#src/main/resources/application.yml
+# AWS
+.aws/
+aws-credentials
+iam-policy.json
+load-balancer-controller-trust-policy.json
+
+# Node modules (if any)
+node_modules/
+
+# Python (if any)
+__pycache__/
+*.pyc
+.python-version
+
+# Archives
+*.zip
+*.tar
+*.gz
+
+# Local Spring configs (but keep production configs)
 application-local.yml
 application-dev.yml
-application-prod.yml
-#application.yml
-
-# Local key 폴더
-src/main/resources/keys/
-
-# Grafana/Prometheus etc
-grafana-data/
-prometheus-data/
-alertmanager-data/
-grafana/
-prometheus/
-alertmanager/

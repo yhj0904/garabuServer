@@ -1,50 +1,14 @@
+# This is the root kustomization file
+# Use overlays/production/kustomization.yaml for production deployment
+# Use overlays/development/kustomization.yaml for development deployment
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: garabu
-
 resources:
   - namespace.yaml
-  - serviceaccount.yaml
-  - configmap.yaml
-  - secret.yaml
-  - firebase-secret.yaml
-  - application-prod.yaml
-  - deployment.yaml
-  - service.yaml
-  - ingress.yaml
-  - hpa.yaml
-  - pdb.yaml
   - networkpolicy.yaml
 
-images:
-  - name: your-ecr-uri/garabu-server
-    newTag: latest
-
-configMapGenerator:
-  - name: garabu-config
-    behavior: merge
-    envs:
-      - config.env
-
-secretGenerator:
-  - name: garabu-secret
-    behavior: merge
-    envs:
-      - secret.env
-
-patchesStrategicMerge:
-  - |-
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: garabu-server
-      namespace: garabu
-    spec:
-      template:
-        spec:
-          containers:
-          - name: garabu-server
-            env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: prod
+# Use the appropriate overlay for your environment:
+# kubectl apply -k overlays/production/
+# kubectl apply -k overlays/development/

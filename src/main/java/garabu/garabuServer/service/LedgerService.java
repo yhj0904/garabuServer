@@ -5,6 +5,7 @@ import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Asset;
 import garabu.garabuServer.domain.AmountType;
+import garabu.garabuServer.dto.LedgerDTO;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
 import garabu.garabuServer.dto.request.CreateTransferRequest;
 import garabu.garabuServer.mapper.LedgerMapper;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * 가계부 기록 관리 서비스 클래스
@@ -43,16 +45,34 @@ public class LedgerService {
     /**
      * 가계부별 기본 목록 조회 (JPA 사용)
      * 권한 확인은 컨트롤러에서 이미 처리됨
+     * LazyInitializationException 방지를 위해 연관 엔티티 fetch
      */
-    public Page<Ledger> findLedgersByBook(Book book, Pageable pageable) {
-        return ledgerJpaRepository.findByBookWithAuthorization(book, pageable);
+    public Page<LedgerDTO> findLedgersByBook(Book book, Pageable pageable) {
+        // 먼저 ID만 조회하여 페이징 처리
+        Page<Long> idPage = ledgerJpaRepository.findIdsByBook(book, pageable);
+        
+        // ID가 비어있으면 빈 페이지 반환
+        if (idPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        
+        // ID 목록으로 실제 데이터를 fetch join하여 조회
+        List<Ledger> ledgers = ledgerJpaRepository.findByIdsWithFetch(idPage.getContent());
+        
+        // DTO로 변환
+        List<LedgerDTO> dtos = ledgers.stream()
+                .map(LedgerDTO::from)
+                .collect(Collectors.toList());
+        
+        // Page 객체로 재구성
+        return new PageImpl<>(dtos, pageable, idPage.getTotalElements());
     }
     
     /**
      * 검색 조건이 있는 경우 동적 검색 (MyBatis 사용)
      * 권한 확인은 컨트롤러에서 이미 처리됨
      */
-    public Page<Ledger> searchLedgers(LedgerSearchConditionDTO cond,
+    public Page<LedgerDTO> searchLedgers(LedgerSearchConditionDTO cond,
                                      Pageable pageable) {
 
         long total = ledgerMapper.countSearchLedgers(cond);
@@ -77,8 +97,9 @@ public class LedgerService {
         long limit  = pageable.getPageSize();
 
         List<Ledger> content = ledgerMapper.searchLedgers(cond, orderBy, offset, limit);
+        List<LedgerDTO> dtoContent = LedgerDTO.from(content);
 
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(dtoContent, pageable, total);
     }
 
     /**
@@ -99,8 +120,9 @@ public class LedgerService {
      * @param member 조회할 회원 정보
      * @return 해당 회원의 가계부 기록 목록
      */
-    public List<Ledger> findAllLedgersByMember(Member member) {
-        return ledgerJpaRepository.findByMember(member);
+    public List<LedgerDTO> findAllLedgersByMember(Member member) {
+        List<Ledger> ledgers = ledgerJpaRepository.findByMember(member);
+        return LedgerDTO.from(ledgers);
     }
 
     /**
@@ -108,8 +130,9 @@ public class LedgerService {
      * 
      * @return 전체 가계부 기록 목록
      */
-    public List<Ledger> findAllLedgers() {
-         return ledgerJpaRepository.findAll();
+    public List<LedgerDTO> findAllLedgers() {
+        List<Ledger> ledgers = ledgerJpaRepository.findAll();
+        return LedgerDTO.from(ledgers);
     }
     
     /**
@@ -121,6 +144,17 @@ public class LedgerService {
     public Ledger findById(Long id) {
         return ledgerJpaRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("가계부 기록을 찾을 수 없습니다: " + id));
+    }
+    
+    /**
+     * ID로 가계부 기록을 DTO로 조회합니다.
+     * 
+     * @param id 가계부 기록 ID
+     * @return 가계부 기록 DTO
+     */
+    public LedgerDTO findByIdAsDTO(Long id) {
+        Ledger ledger = findById(id);
+        return LedgerDTO.from(ledger);
     }
     
     /**
@@ -151,7 +185,7 @@ public class LedgerService {
      * @return 생성된 이체 기록 목록 (출금, 입금 2개)
      */
     @Transactional
-    public List<Ledger> createTransfer(CreateTransferRequest request, Member member) {
+    public List<LedgerDTO> createTransfer(CreateTransferRequest request, Member member) {
         // 자산 유효성 검사
         Asset fromAsset = assetJpaRepository.findById(request.getFromAssetId())
             .orElseThrow(() -> new IllegalArgumentException("출금 자산을 찾을 수 없습니다."));
@@ -209,9 +243,9 @@ public class LedgerService {
         Ledger savedWithdrawal = ledgerJpaRepository.save(withdrawalLedger);
         Ledger savedDeposit = ledgerJpaRepository.save(depositLedger);
 
-        List<Ledger> result = new ArrayList<>();
-        result.add(savedWithdrawal);
-        result.add(savedDeposit);
+        List<LedgerDTO> result = new ArrayList<>();
+        result.add(LedgerDTO.from(savedWithdrawal));
+        result.add(LedgerDTO.from(savedDeposit));
 
         return result;
     }

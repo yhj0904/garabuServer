@@ -1,9 +1,45 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs
+hs_err_pid*
+replay_pid*
+
+### Spring Boot ###
 HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Gradle ###
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
 
 ### STS ###
 .apt_generated
@@ -36,37 +72,89 @@ out/
 ### VS Code ###
 .vscode/
 
-# 환경 설정 및 비밀 키
+### Eclipse ###
+.metadata
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+.externalToolBuilders/
+*.launch
+.cproject
+.buildpath
+.target
+
+### Environment & Security ###
+# Environment variables
 *.env
+.env
+.env.*
+!.env.example
+!.env.prod.example
+!.env.template
+!.env.*.template
+
+# Application properties with sensitive data
+application-local.yml
+application-local.yaml
+application-local.properties
+application-dev.yml
+application-dev.yaml
+application-dev.properties
+application-prod.yml
+application-prod.yaml
+application-prod.properties
+application-eb.yml
+application-eb.yaml
+application-eb.properties
+src/main/resources/application.yml
+!src/main/resources/application.yml.example
+application-aws.yml
+application-docker.yml
+application-ssl.yml
+
+
+# Security keys and certificates
 *.key
 *.pem
 *.crt
 *.jks
+*.p12
+*.pfx
+*.keystore
+!debug.keystore
 
-# Firebase 키 파일
-src/main/resources/firebase/firebase-service-account.json
+# Firebase
+src/main/resources/firebase/
+**/firebase-service-account.json
+**/garabu-firebase-service-account.json
+**/*firebase*service*account*.json
+serviceAccountKey.json
+firebase-adminsdk-*.json
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
 
-# 기타
-*.bak
-*.swp
-*.tmp
-
-src/main/resources/application.yml
-
-application-local.yml
-application-dev.yml
-application-prod.yml
-application.yml
-application-eb.yml
-
-.DS_Store
-
+# Keys directory
 src/main/resources/keys/
-!src/main/resources/keys/README.md  # 폴더 유지용
+!src/main/resources/keys/README.md
 
+### Logging ###
 logs/
 *.log
+*.log.*
+*.log.gz
 
+### Database ###
+*.db
+*.sqlite
+*.sqlite3
+
+### Monitoring & DevOps ###
 # Prometheus
 /prometheus/data/
 prometheus.yml.bak
@@ -94,26 +182,137 @@ alertmanager/
 # Node Exporter
 node_exporter.log
 
-#Redis
+# Redis
 /redis-data
-
-# 기타 모니터링 툴
 *.rdb
+dump.rdb
+
+# k6 WAL / Grafana Agent data
+grafana-agent/data/
+
+# General monitoring
 *.data
 *.snapshot
 
-# k6 WAL / Grafana Agent 데이터
-grafana-agent/data/
-# IDE, log 등
-.idea/
-logs/
-
-CLAUDE.md
-.claude
-
+### Deployment ###
 /deployment
 !/deployment/.env.prod.template
-
+!/deployment/.env.*.template
 .ebextensions/environment.config
-
 /eb-deploy
+
+### Docker ###
+.dockerignore
+*.swp
+*~
+.dockercfg
+
+### Kubernetes ###
+*.kubeconfig
+kubeconfig
+
+### OS Files ###
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+### Application specific ###
+/uploads
+/temp
+/tmp
+/cache
+*.cache
+
+# Backup files
+*.backup
+*.old
+
+### Maven (if used) ###
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+### Node.js (for frontend projects) ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.yarn-integrity
+
+### Testing ###
+/coverage
+*.lcov
+.nyc_output
+
+### Miscellaneous ###
+*.orig
+.venv
+.python-version
+
+docs
+
+deployment
+eb-deploy
+scripts
+k6-scripts
+k8s
+.claude
+.ebextensions
+gradle
+CLAUDE.md
+.env-prod
+.env.example
+Dockerfile.simple
+Dockerfile.eks
+README-DEV.md
+mysql-data
+init.sql
+grafana-agent
+logstash
+filebeat
+prometheus

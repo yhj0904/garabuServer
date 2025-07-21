@@ -1,0 +1,45 @@
+name: AWS Resource Check
+
+on:
+  pull_request:
+    paths:
+      - 'k8s/**/*.yaml'
+      - 'k8s/**/*.yml'
+      - 'scripts/*.sh'
+  workflow_dispatch:
+
+jobs:
+  check-aws-resources:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check for AWS resource creation
+      run: |
+        echo "🔍 Checking for AWS resource creation patterns..."
+        
+        # Check for new AWS resources in k8s manifests
+        if grep -r "kind: Ingress" k8s/ | grep -v "^#"; then
+          echo "⚠️ WARNING: Ingress resources found (creates ALB - costs money!)"
+          echo "Please ensure this is necessary for production."
+        fi
+        
+        # Check for certificate requests
+        if grep -r "cert-manager\|certificate\|acm" k8s/ | grep -v "^#"; then
+          echo "⚠️ WARNING: Certificate configuration found"
+          echo "Please reuse existing certificates instead of creating new ones."
+        fi
+        
+        # Check for S3 bucket creation
+        if grep -r "aws s3 mb\|create-bucket" scripts/ | grep -v "^#"; then
+          echo "⚠️ WARNING: S3 bucket creation found"
+          echo "Please ensure bucket doesn't already exist."
+        fi
+        
+        # Check for ECR repository creation
+        if grep -r "create-repository" scripts/ | grep -v "^#" | grep -v "ERROR"; then
+          echo "⚠️ WARNING: ECR repository creation found"
+          echo "This has been disabled. Create manually if needed."
+        fi
+        
+        echo "✅ AWS resource check completed"

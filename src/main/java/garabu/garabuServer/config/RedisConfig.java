@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -26,9 +28,35 @@ import java.time.Duration;
 @EnableCaching  // 캐시 기능 활성화
 public class RedisConfig {
 
+    @Value("${spring.data.redis.host:localhost}")
+    private String redisHost;
+    
+    @Value("${spring.data.redis.port:6379}")
+    private int redisPort;
+    
+    @Value("${spring.data.redis.password:}")
+    private String redisPassword;
+
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(); // 기본은 localhost:6379
+    public LettuceConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
+        
+        // 프로덕션 환경 (K8S)에서는 환경변수로 설정된 값을 사용
+        // 로컬 환경에서는 기본값 사용
+        redisConfig.setHostName(redisHost);
+        redisConfig.setPort(redisPort);
+        
+        // 비밀번호가 설정된 경우에만 적용
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            redisConfig.setPassword(redisPassword);
+        }
+        
+        // 로컬 개발 환경 설정 (주석 처리)
+        // redisConfig.setHostName("127.0.0.1");
+        // redisConfig.setPort(6379);
+        // redisConfig.setPassword("1234");
+        
+        return new LettuceConnectionFactory(redisConfig);
     }
 
     /**

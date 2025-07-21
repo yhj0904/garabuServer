@@ -93,7 +93,8 @@ public class MemberApiController {
                             name  = "가입 예시",
                             value = "{\n"
                                     + "  \"email\": \"user@example.com\",\n"
-                                    + "  \"username\": \"홍길동\",\n"
+                                    + "  \"username\": \"hong123\",\n"
+                                    + "  \"name\": \"홍길동\",\n"
                                     + "  \"password\": \"password123\"\n"
                                     + "}"
                     )
@@ -111,6 +112,7 @@ public class MemberApiController {
 
         Member member = new Member();
         member.setUsername(request.getUsername());
+        member.setName(request.getName());
         member.setEmail(request.getEmail());
         member.setPassword(passwordEncoder.encode(request.getPassword()));
 
@@ -175,8 +177,11 @@ public class MemberApiController {
         @Email
         private String email;
 
-        @Schema(description = "사용자명", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "사용자명 (아이디)", example = "hong123", requiredMode = Schema.RequiredMode.REQUIRED)
         private String username;
+        
+        @Schema(description = "실제 이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
+        private String name;
 
         @Schema(description = "비밀번호", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
         private String password;
