@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -143,6 +144,39 @@ public class GlobalExceptionHandler {
         );
         
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * 리소스를 찾을 수 없는 예외 처리 (잘못된 경로 포함)
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFoundException(NoResourceFoundException e, WebRequest request) {
+        String requestedPath = e.getResourcePath();
+        log.warn("리소스를 찾을 수 없음: {}", requestedPath);
+        
+        // 중복된 /api/v2 경로 감지
+        if (requestedPath != null && requestedPath.contains("/api/v2/api/v2")) {
+            String correctPath = requestedPath.replace("/api/v2/api/v2", "/api/v2");
+            String message = String.format("잘못된 경로입니다. 올바른 경로: %s (클라이언트에서 기본 경로와 엔드포인트 경로가 중복되었습니다)", correctPath);
+            
+            Map<String, Object> errorResponse = createErrorResponse(
+                HttpStatus.BAD_REQUEST, 
+                "Invalid Path", 
+                message,
+                requestedPath
+            );
+            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+        
+        Map<String, Object> errorResponse = createErrorResponse(
+            HttpStatus.NOT_FOUND, 
+            "Resource Not Found", 
+            "요청한 리소스를 찾을 수 없습니다: " + requestedPath,
+            request.getDescription(false).replace("uri=", "")
+        );
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     /**

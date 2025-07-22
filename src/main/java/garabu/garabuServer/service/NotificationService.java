@@ -138,8 +138,10 @@ public class NotificationService {
     // 반복거래 알림 메서드 추가
     public void sendRecurringTransactionNotification(Long memberId, String transactionName, Integer amount) {
         try {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+            Member member = memberRepository.findOne(memberId);
+            if (member == null) {
+                throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+            }
             
             NotificationPreference preference = notificationPreferenceRepository.findByMember(member)
                     .orElseGet(() -> new NotificationPreference(member));
@@ -162,8 +164,10 @@ public class NotificationService {
     
     public void sendRecurringTransactionReminder(Long memberId, String transactionName, Integer amount) {
         try {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+            Member member = memberRepository.findOne(memberId);
+            if (member == null) {
+                throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+            }
             
             NotificationPreference preference = notificationPreferenceRepository.findByMember(member)
                     .orElseGet(() -> new NotificationPreference(member));
