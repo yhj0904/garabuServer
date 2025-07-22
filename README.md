@@ -791,31 +791,3 @@ chore: 의존성 업데이트
 ## 📄 라이선스
 
 이 프로젝트는 MIT 라이선스에 따라 라이선스가 부여됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-## 📞 연락처
-
-<table>
-<tr>
-<td align="center">
-<img src="https://github.com/yourusername.png" width="100px;" alt=""/>
-<br />
-<sub><b>윤형주</b></sub>
-<br />
-<sub>Backend Developer</sub>
-<br />
-<a href="https://github.com/yourusername">GitHub</a> • <a href="https://linkedin.com/in/yourusername">LinkedIn</a>
-</td>
-</tr>
-</table>
-
----
-
-<div align="center">
-  <p>
-    <a href="https://garabu.com">🌐 Website</a> •
-    <a href="https://api.garabu.com/docs">📚 API Docs</a> •
-    <a href="https://status.garabu.com">📊 Status Page</a>
-  </p>
-  
-  **Built with ❤️ and ☕ by Garabu Team**
-</div>
