@@ -22,9 +22,11 @@ public class NotificationService {
     private final BudgetAlertRepository budgetAlertRepository;
     private final BudgetRepository budgetRepository;
     
-    public NotificationPreferenceResponse getNotificationPreferences(String email) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public NotificationPreferenceResponse getNotificationPreferences(String username) {
+        Member member = memberRepository.findByUsername(username);
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
         
         NotificationPreference preference = notificationPreferenceRepository.findByMember(member)
                 .orElseGet(() -> {
@@ -36,9 +38,11 @@ public class NotificationService {
     }
     
     @Transactional
-    public NotificationPreferenceResponse updateNotificationPreferences(String email, NotificationPreferenceRequest request) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public NotificationPreferenceResponse updateNotificationPreferences(String username, NotificationPreferenceRequest request) {
+        Member member = memberRepository.findByUsername(username);
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
         
         NotificationPreference preference = notificationPreferenceRepository.findByMember(member)
                 .orElseGet(() -> new NotificationPreference(member));
@@ -61,9 +65,11 @@ public class NotificationService {
         return NotificationPreferenceResponse.fromEntity(saved);
     }
     
-    public List<BudgetAlertResponse> getBudgetAlerts(String email) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public List<BudgetAlertResponse> getBudgetAlerts(String username) {
+        Member member = memberRepository.findByUsername(username);
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
         
         List<BudgetAlert> alerts = budgetAlertRepository.findByMemberOrderByCreatedAtDesc(member);
         
@@ -73,9 +79,11 @@ public class NotificationService {
     }
     
     @Transactional
-    public BudgetAlertResponse createBudgetAlert(String email, BudgetAlertRequest request) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public BudgetAlertResponse createBudgetAlert(String username, BudgetAlertRequest request) {
+        Member member = memberRepository.findByUsername(username);
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
         
         Budget budget = budgetRepository.findById(request.getBudgetId())
                 .orElseThrow(() -> new IllegalArgumentException("예산을 찾을 수 없습니다."));
@@ -99,9 +107,11 @@ public class NotificationService {
     }
     
     @Transactional
-    public BudgetAlertResponse updateBudgetAlert(String email, Long alertId, BudgetAlertRequest request) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public BudgetAlertResponse updateBudgetAlert(String username, Long alertId, BudgetAlertRequest request) {
+        Member member = memberRepository.findByUsername(username);
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
         
         BudgetAlert alert = budgetAlertRepository.findById(alertId)
                 .orElseThrow(() -> new IllegalArgumentException("예산 알림을 찾을 수 없습니다."));
@@ -120,9 +130,11 @@ public class NotificationService {
     }
     
     @Transactional
-    public void deleteBudgetAlert(String email, Long alertId) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public void deleteBudgetAlert(String username, Long alertId) {
+        Member member = memberRepository.findByUsername(username);
+        if (member == null) {
+            throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+        }
         
         BudgetAlert alert = budgetAlertRepository.findById(alertId)
                 .orElseThrow(() -> new IllegalArgumentException("예산 알림을 찾을 수 없습니다."));

@@ -35,7 +35,7 @@ public class CreateLedgerRequest {
     @Positive(message = "금액은 0보다 큰 값이어야 합니다")
     @JsonProperty("amount")
     @Schema(description = "금액(원)", example = "3000000", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Integer amount;
+    private Long amount;
 
     @NotBlank(message = "상세 내용은 필수입니다")
     @JsonProperty("description")

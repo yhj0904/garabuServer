@@ -124,8 +124,8 @@ public class BudgetService {
         Budget budget = optionalBudget.get();
 
         // 해당 월의 실제 수입/지출 계산
-        int actualIncome = calculateActualAmount(book, budgetMonth, AmountType.INCOME);
-        int actualExpense = calculateActualAmount(book, budgetMonth, AmountType.EXPENSE);
+        long actualIncome = calculateActualAmount(book, budgetMonth, AmountType.INCOME);
+        long actualExpense = calculateActualAmount(book, budgetMonth, AmountType.EXPENSE);
 
         // 달성률 계산
         double incomeAchievementRate = budget.getIncomeBudget() != null && budget.getIncomeBudget() > 0 
@@ -134,8 +134,8 @@ public class BudgetService {
                 ? (double) actualExpense / budget.getExpenseBudget() * 100 : 0;
 
         // 차이 계산
-        int incomeDifference = budget.getIncomeBudget() != null ? actualIncome - budget.getIncomeBudget() : 0;
-        int expenseDifference = budget.getExpenseBudget() != null ? actualExpense - budget.getExpenseBudget() : 0;
+        long incomeDifference = budget.getIncomeBudget() != null ? actualIncome - budget.getIncomeBudget() : 0;
+        long expenseDifference = budget.getExpenseBudget() != null ? actualExpense - budget.getExpenseBudget() : 0;
 
         BudgetSummaryResponse response = new BudgetSummaryResponse();
         response.setId(budget.getId());
@@ -183,7 +183,7 @@ public class BudgetService {
     /**
      * 해당 월의 실제 수입/지출 계산
      */
-    private int calculateActualAmount(Book book, String budgetMonth, AmountType amountType) {
+    private long calculateActualAmount(Book book, String budgetMonth, AmountType amountType) {
         // budgetMonth를 파싱하여 시작일과 종료일 계산
         String[] parts = budgetMonth.split("-");
         int year = Integer.parseInt(parts[0]);
@@ -198,7 +198,7 @@ public class BudgetService {
         return ledgers.stream()
                 .filter(ledger -> ledger.getAmountType() == amountType)
                 .filter(ledger -> !ledger.getDate().isBefore(startDate) && !ledger.getDate().isAfter(endDate))
-                .mapToInt(Ledger::getAmount)
+                .mapToLong(Ledger::getAmount)
                 .sum();
     }
 } 

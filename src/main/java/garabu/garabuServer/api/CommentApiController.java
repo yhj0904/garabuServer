@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v2/comments")
 @RequiredArgsConstructor
-@Tag(name = "Comment", description = "댓글 API")
+@Tag(name = "Comment", description = "거래 내역 댓글 API")
 @SecurityRequirement(name = "bearerAuth")
 public class CommentApiController {
     
@@ -45,41 +45,6 @@ public class CommentApiController {
     private final BookRepository bookRepository;
     private final LedgerJpaRepository ledgerRepository;
     private final MemberService memberService;
-    
-    @PostMapping("/book/{bookId}")
-    @Operation(summary = "가계부 댓글 작성", description = "가계부에 댓글을 작성합니다. 인증된 사용자만 댓글을 작성할 수 있습니다.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "댓글 작성 성공",
-            content = @Content(schema = @Schema(implementation = CommentResponse.class))),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-        @ApiResponse(responseCode = "401", description = "인증 실패"),
-        @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음")
-    })
-    @Transactional
-    public ResponseEntity<CommentResponse> createBookComment(
-            @Parameter(description = "가계부 ID", required = true) @PathVariable Long bookId,
-            @Parameter(description = "댓글 생성 요청", required = true) @Valid @RequestBody CreateCommentRequest request) {
-        
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Member currentUser = memberService.findMemberByUsername(auth.getName());
-        
-        Book book = bookRepository.findById(bookId)
-            .orElseThrow(() -> new IllegalArgumentException("가계부를 찾을 수 없습니다."));
-        
-        Comment comment = new Comment();
-        comment.setAuthor(currentUser);
-        comment.setBook(book);
-        comment.setCommentType(CommentType.BOOK);
-        comment.setContent(request.getContent());
-        
-        Comment savedComment = commentRepository.save(comment);
-        
-        return ResponseEntity.ok(new CommentResponse(
-            savedComment.getId(),
-            "댓글이 작성되었습니다.",
-            LocalDateTime.now()
-        ));
-    }
     
     @PostMapping("/ledger/{ledgerId}")
     @Operation(summary = "가계부 내역 댓글 작성", description = "가계부 거래내역에 댓글을 작성합니다. 인증된 사용자만 댓글을 작성할 수 있습니다.")
@@ -114,35 +79,6 @@ public class CommentApiController {
             savedComment.getId(),
             "댓글이 작성되었습니다.",
             LocalDateTime.now()
-        ));
-    }
-    
-    @GetMapping("/book/{bookId}")
-    @Operation(summary = "가계부 댓글 목록 조회", description = "가계부의 댓글 목록을 페이지 단위로 조회합니다. 삭제된 댓글도 포함되며, deleted 필드로 확인할 수 있습니다.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "댓글 목록 조회 성공",
-            content = @Content(schema = @Schema(implementation = CommentListResponse.class))),
-        @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없음")
-    })
-    public ResponseEntity<CommentListResponse> getBookComments(
-            @Parameter(description = "가계부 ID", required = true) @PathVariable Long bookId,
-            @Parameter(description = "페이지네이션 정보") @PageableDefault(size = 20) Pageable pageable) {
-        
-        Book book = bookRepository.findById(bookId)
-            .orElseThrow(() -> new IllegalArgumentException("가계부를 찾을 수 없습니다."));
-        
-        Page<Comment> comments = commentRepository.findByBookAndCommentType(book, CommentType.BOOK, pageable);
-        
-        List<CommentDto> commentDtos = comments.getContent().stream()
-            .map(this::convertToCommentDto)
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(new CommentListResponse(
-            commentDtos,
-            comments.getTotalElements(),
-            comments.getTotalPages(),
-            comments.getNumber(),
-            comments.getSize()
         ));
     }
     

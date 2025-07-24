@@ -14,11 +14,13 @@ import static jakarta.persistence.FetchType.LAZY;
 /**
  * 댓글 엔티티
  * 
- * 가계부 및 가계부 내역에 대한 댓글을 관리하는 JPA 엔티티입니다.
+ * 가계부 거래 내역에 대한 댓글을 관리하는 JPA 엔티티입니다.
+ * 가계부 전체에 대한 메모는 Memo 엔티티를 사용합니다.
  */
 @Entity
+@Table(name = "Comment")
 @Getter @Setter
-@Schema(description = "댓글 엔티티")
+@Schema(description = "거래 내역 댓글 엔티티")
 public class Comment {
     
     @Id

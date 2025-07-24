@@ -25,6 +25,7 @@ public class InviteCodeService {
     
     private static final String BOOK_INVITE_PREFIX = "BOOK_INVITE:";
     private static final String USER_ID_PREFIX = "USER_ID:";
+    private static final String FRIEND_INVITE_PREFIX = "FRIEND_INVITE:";
     private static final long CODE_TTL_MINUTES = 30;
     
     /**
@@ -73,6 +74,28 @@ public class InviteCodeService {
     }
     
     /**
+     * 친구 초대 코드 생성
+     * @param userId 사용자 ID
+     * @return 8자리 친구 초대 코드
+     */
+    public String generateFriendInviteCode(Long userId) {
+        // 기존에 유효한 친구 초대 코드가 있는지 확인
+        String existingCode = findExistingFriendInviteCode(userId);
+        if (existingCode != null) {
+            log.info("기존 친구 초대 코드 재사용: {} (userId: {})", existingCode, userId);
+            return existingCode;
+        }
+        
+        String code = generateUniqueCode();
+        String key = FRIEND_INVITE_PREFIX + code;
+        
+        redisTemplate.opsForValue().set(key, userId, CODE_TTL_MINUTES, TimeUnit.MINUTES);
+        log.info("새 친구 초대 코드 생성: {} (userId: {})", code, userId);
+        
+        return code;
+    }
+    
+    /**
      * 가계부 초대 코드 조회
      * @param code 초대 코드
      * @return 초대 정보 (없으면 null)
@@ -111,13 +134,38 @@ public class InviteCodeService {
     }
     
     /**
+     * 친구 초대 코드로 사용자 ID 조회
+     * @param code 친구 초대 코드
+     * @return 사용자 ID (없으면 null)
+     */
+    public Long getUserIdByFriendInviteCode(String code) {
+        String key = FRIEND_INVITE_PREFIX + code;
+        return (Long) redisTemplate.opsForValue().get(key);
+    }
+    
+    /**
      * 코드 만료 시간 조회 (초 단위)
      * @param code 코드
-     * @param isBookInvite true: 가계부 초대 코드, false: 사용자 식별 코드
+     * @param codeType 코드 타입: "BOOK", "USER", "FRIEND"
      * @return 남은 시간(초), 만료되었거나 없으면 -1
      */
-    public long getCodeTTL(String code, boolean isBookInvite) {
-        String key = (isBookInvite ? BOOK_INVITE_PREFIX : USER_ID_PREFIX) + code;
+    public long getCodeTTL(String code, String codeType) {
+        String prefix;
+        switch (codeType.toUpperCase()) {
+            case "BOOK":
+                prefix = BOOK_INVITE_PREFIX;
+                break;
+            case "USER":
+                prefix = USER_ID_PREFIX;
+                break;
+            case "FRIEND":
+                prefix = FRIEND_INVITE_PREFIX;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid code type: " + codeType);
+        }
+        
+        String key = prefix + code;
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
         return ttl != null ? ttl : -1;
     }
@@ -125,10 +173,25 @@ public class InviteCodeService {
     /**
      * 코드 삭제
      * @param code 코드
-     * @param isBookInvite true: 가계부 초대 코드, false: 사용자 식별 코드
+     * @param codeType 코드 타입: "BOOK", "USER", "FRIEND"
      */
-    public void deleteCode(String code, boolean isBookInvite) {
-        String key = (isBookInvite ? BOOK_INVITE_PREFIX : USER_ID_PREFIX) + code;
+    public void deleteCode(String code, String codeType) {
+        String prefix;
+        switch (codeType.toUpperCase()) {
+            case "BOOK":
+                prefix = BOOK_INVITE_PREFIX;
+                break;
+            case "USER":
+                prefix = USER_ID_PREFIX;
+                break;
+            case "FRIEND":
+                prefix = FRIEND_INVITE_PREFIX;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid code type: " + codeType);
+        }
+        
+        String key = prefix + code;
         redisTemplate.delete(key);
         log.info("코드 삭제: {}", key);
     }
@@ -165,9 +228,11 @@ public class InviteCodeService {
     private boolean isCodeExists(String code) {
         String bookKey = BOOK_INVITE_PREFIX + code;
         String userKey = USER_ID_PREFIX + code;
+        String friendKey = FRIEND_INVITE_PREFIX + code;
         
         return Boolean.TRUE.equals(redisTemplate.hasKey(bookKey)) || 
-               Boolean.TRUE.equals(redisTemplate.hasKey(userKey));
+               Boolean.TRUE.equals(redisTemplate.hasKey(userKey)) ||
+               Boolean.TRUE.equals(redisTemplate.hasKey(friendKey));
     }
     
     /**
@@ -222,6 +287,39 @@ public class InviteCodeService {
                     .bookId(((Number) map.get("bookId")).longValue())
                     .role((String) map.get("role"))
                     .build();
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 기존 유효한 친구 초대 코드 찾기
+     * @param userId 사용자 ID
+     * @return 유효한 코드 또는 null
+     */
+    private String findExistingFriendInviteCode(Long userId) {
+        // Redis에서 FRIEND_INVITE:* 패턴의 모든 키 조회
+        Set<String> keys = redisTemplate.keys(FRIEND_INVITE_PREFIX + "*");
+        if (keys == null || keys.isEmpty()) {
+            return null;
+        }
+        
+        for (String key : keys) {
+            Object storedUserIdObj = redisTemplate.opsForValue().get(key);
+            Long storedUserId = null;
+            if (storedUserIdObj instanceof Integer) {
+                storedUserId = ((Integer) storedUserIdObj).longValue();
+            } else if (storedUserIdObj instanceof Long) {
+                storedUserId = (Long) storedUserIdObj;
+            }
+            if (storedUserId != null && storedUserId.equals(userId)) {
+                // TTL이 5분 이상 남은 경우에만 재사용
+                Long ttl = redisTemplate.getExpire(key, TimeUnit.MINUTES);
+                if (ttl != null && ttl > 5) {
+                    String code = key.substring(FRIEND_INVITE_PREFIX.length());
+                    return code;
+                }
+            }
         }
         
         return null;

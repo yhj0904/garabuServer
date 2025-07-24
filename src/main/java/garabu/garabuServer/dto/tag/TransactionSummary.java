@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class TransactionSummary {
     private Long id;
     private LocalDate date;
-    private Integer amount;
+    private Long amount;
     private String description;
     private AmountType amountType;
     private String categoryName;

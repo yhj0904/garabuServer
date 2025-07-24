@@ -2,7 +2,10 @@ package garabu.garabuServer.service;
 
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.BookRole;
+import garabu.garabuServer.domain.Category;
+import garabu.garabuServer.domain.DefaultCategory;
 import garabu.garabuServer.domain.Member;
+import garabu.garabuServer.domain.PaymentMethod;
 import garabu.garabuServer.domain.UserBook;
 import garabu.garabuServer.domain.AssetType;
 import garabu.garabuServer.dto.BookDTO;
@@ -10,9 +13,13 @@ import garabu.garabuServer.dto.request.CreateAssetRequest;
 import garabu.garabuServer.exception.BookNotFoundException;
 import garabu.garabuServer.jwt.CustomUserDetails;
 import garabu.garabuServer.repository.BookRepository;
+import garabu.garabuServer.repository.CategoryJpaRepository;
 import garabu.garabuServer.repository.MemberJPARepository;
+import garabu.garabuServer.repository.PaymentJpaRepository;
 import garabu.garabuServer.repository.UserBookJpaRepository;
 import garabu.garabuServer.repository.LedgerJpaRepository;
+import garabu.garabuServer.repository.AssetJpaRepository;
+import garabu.garabuServer.repository.BudgetJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -40,8 +47,12 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MemberJPARepository memberRepository;
     private final UserBookJpaRepository userBookJpaRepository;
+    private final CategoryJpaRepository categoryJpaRepository;
+    private final PaymentJpaRepository paymentJpaRepository;
     private final AssetService assetService;
     private final LedgerJpaRepository ledgerJpaRepository;
+    private final AssetJpaRepository assetJpaRepository;
+    private final BudgetJpaRepository budgetJpaRepository;
 
     /**
      * 새로운 가계부를 생성합니다.
@@ -89,13 +100,23 @@ public class BookService {
         userBookJpaRepository.save(userBook);
         System.out.println("UserBook 생성 완료 - ID: " + userBook.getId());
         
-        // 3. 기본 자산 생성
+        // 3. 기본 자산 및 결제수단 생성
         try {
             createDefaultAssets(book);
-            System.out.println("기본 자산 생성 완료");
+            createDefaultPaymentMethods(book);
+            System.out.println("기본 자산 및 결제수단 생성 완료");
         } catch (Exception e) {
-            System.err.println("기본 자산 생성 실패: " + e.getMessage());
+            System.err.println("기본 자산 및 결제수단 생성 실패: " + e.getMessage());
             // 기본 자산 생성 실패해도 가계부 생성은 계속 진행
+        }
+        
+        // 4. 기본 카테고리 생성
+        try {
+            createDefaultCategories(book, owner);
+            System.out.println("기본 카테고리 생성 완료");
+        } catch (Exception e) {
+            System.err.println("기본 카테고리 생성 실패: " + e.getMessage());
+            // 기본 카테고리 생성 실패해도 가계부 생성은 계속 진행
         }
         
         System.out.println("=== 가계부 생성 완료 ===");
@@ -218,6 +239,12 @@ public class BookService {
             throw new IllegalArgumentException("소유자만 가계부를 삭제할 수 있습니다.");
         }
         
+        // 사용자가 소유한 가계부가 1개 이상인지 확인
+        long ownedBooksCount = userBookJpaRepository.countByMemberAndBookRole(currentUser, BookRole.OWNER);
+        if (ownedBooksCount <= 1) {
+            throw new IllegalArgumentException("최소 1개의 가계부는 유지되어야 합니다.");
+        }
+        
         System.out.println("=== 가계부 삭제 시작 ===");
         System.out.println("삭제할 가계부 ID: " + bookId);
         System.out.println("삭제한 사용자: " + currentUser.getUsername());
@@ -228,12 +255,45 @@ public class BookService {
         ledgerJpaRepository.deleteAllByBook(book);
         System.out.println("가계부 내역 삭제 완료");
         
-        // 2. UserBook 관계 삭제 (가계부에 참여한 모든 멤버)
+        // 2. 관련 데이터 삭제
+        try {
+            // 카테고리 삭제 (기본 카테고리가 아닌 사용자 정의 카테고리만)
+            categoryJpaRepository.deleteByBookAndIsDefaultFalse(book);
+            System.out.println("사용자 정의 카테고리 삭제 완료");
+        } catch (Exception e) {
+            System.out.println("카테고리 삭제 중 오류: " + e.getMessage());
+        }
+        
+        try {
+            // 결제수단 삭제
+            paymentJpaRepository.deleteByBook(book);
+            System.out.println("결제수단 삭제 완료");
+        } catch (Exception e) {
+            System.out.println("결제수단 삭제 중 오류: " + e.getMessage());
+        }
+        
+        try {
+            // 자산 삭제
+            assetJpaRepository.deleteByBook(book);
+            System.out.println("자산 삭제 완료");
+        } catch (Exception e) {
+            System.out.println("자산 삭제 중 오류: " + e.getMessage());
+        }
+        
+        try {
+            // 예산 삭제
+            budgetJpaRepository.deleteByBook(book);
+            System.out.println("예산 삭제 완료");
+        } catch (Exception e) {
+            System.out.println("예산 삭제 중 오류: " + e.getMessage());
+        }
+        
+        // 3. UserBook 관계 삭제 (가계부에 참여한 모든 멤버)
         List<UserBook> userBooks = userBookJpaRepository.findByBookId(bookId);
         userBookJpaRepository.deleteAll(userBooks);
         System.out.println("UserBook 관계 삭제 완료");
         
-        // 3. 가계부 삭제 (나머지 관련 데이터는 DB 제약조건으로 처리)
+        // 4. 가계부 삭제
         bookRepository.delete(book);
         System.out.println("가계부 삭제 완료");
         
@@ -278,6 +338,56 @@ public class BookService {
         savingsRequest.setBalance(0L);
         savingsRequest.setDescription("저축예금 계좌");
         assetService.createAsset(book.getId(), savingsRequest);
+    }
+    
+    /**
+     * 가계부별 기본 카테고리를 생성합니다.
+     * 
+     * @param book 가계부
+     * @param owner 가계부 소유자
+     */
+    private void createDefaultCategories(Book book, Member owner) {
+        System.out.println("가계부별 기본 카테고리 생성 시작 - 가계부 ID: " + book.getId());
+        
+        // DefaultCategory enum의 모든 카테고리를 해당 가계부용으로 생성
+        for (DefaultCategory defaultCat : DefaultCategory.values()) {
+            Category category = new Category();
+            category.setCategory(defaultCat.getDisplayName());
+            category.setEmoji(defaultCat.getEmoji());
+            category.setIsDefault(true);  // 기본 카테고리임을 표시
+            category.setBook(book);       // 특정 가계부에 속함
+            category.setMember(owner);    // 가계부 소유자가 생성한 것으로 설정
+            
+            categoryJpaRepository.save(category);
+            System.out.println("기본 카테고리 생성: " + defaultCat.getDisplayName());
+        }
+        
+        System.out.println("가계부별 기본 카테고리 생성 완료 - 총 " + DefaultCategory.values().length + "개");
+    }
+    
+    /**
+     * 가계부별 기본 결제수단을 생성합니다.
+     * 자산과 동일한 이름으로 결제수단을 생성하여 연동합니다.
+     * 클라이언트에서 사용하는 이름과 매칭되도록 "주카드"도 포함합니다.
+     * 
+     * @param book 가계부
+     */
+    private void createDefaultPaymentMethods(Book book) {
+        System.out.println("가계부별 기본 결제수단 생성 시작 - 가계부 ID: " + book.getId());
+        
+        // 기본 결제수단 목록 (자산과 매칭, 클라이언트 이름 포함)
+        String[] defaultPaymentNames = {"현금", "체크카드", "신용카드", "저축예금", "주카드", "주거래 계좌", "적금 계좌"};
+        
+        for (String paymentName : defaultPaymentNames) {
+            PaymentMethod paymentMethod = new PaymentMethod();
+            paymentMethod.setPayment(paymentName);
+            paymentMethod.setBook(book);
+            
+            paymentJpaRepository.save(paymentMethod);
+            System.out.println("기본 결제수단 생성: " + paymentName);
+        }
+        
+        System.out.println("가계부별 기본 결제수단 생성 완료 - 총 " + defaultPaymentNames.length + "개");
     }
     
     //book. 가계부를 커플, 개인, 모임용으로 나누기 위해.

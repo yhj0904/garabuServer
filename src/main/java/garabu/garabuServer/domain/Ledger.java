@@ -69,7 +69,7 @@ public class Ledger {
     //add for user
     private String spender; // 자금 사용자
     private LocalDate date;  // 날짜
-    private Integer amount;  // 금액
+    private Long amount;  // 금액
     private String description; //상세내용
     private String memo;            // 메모
 

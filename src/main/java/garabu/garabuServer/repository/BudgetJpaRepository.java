@@ -37,4 +37,9 @@ public interface BudgetJpaRepository extends JpaRepository<Budget, Long> {
      */
     @Query("SELECT b FROM Budget b WHERE b.book = :book ORDER BY b.budgetMonth DESC LIMIT :limit")
     List<Budget> findRecentBudgets(@Param("book") Book book, @Param("limit") int limit);
+    
+    /**
+     * 가계부별 예산 삭제
+     */
+    void deleteByBook(Book book);
 } 

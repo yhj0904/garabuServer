@@ -259,7 +259,7 @@ public class RecurringTransactionService {
         ledger.setPaymentMethod(transaction.getPaymentMethod());
         ledger.setAmountType(transaction.getAmountType());
         ledger.setDate(date);
-        ledger.setAmount(transaction.getAmount().intValue());
+        ledger.setAmount(transaction.getAmount().longValue());
         ledger.setDescription(transaction.getName());
         ledger.setMemo("반복 거래: " + transaction.getDescription());
         ledger.setSpender(member.getUsername());

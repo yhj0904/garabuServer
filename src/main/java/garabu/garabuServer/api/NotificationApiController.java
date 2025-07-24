@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import garabu.garabuServer.jwt.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class NotificationApiController {
     @PostMapping("/token")
     @Operation(summary = "FCM 토큰 등록/업데이트")
     public ResponseEntity<Void> registerFcmToken(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody FcmTokenRegisterDTO request) {
         
         // 사용자 ID 설정
@@ -46,7 +46,7 @@ public class NotificationApiController {
     @DeleteMapping("/token/{deviceId}")
     @Operation(summary = "FCM 토큰 삭제")
     public ResponseEntity<Void> deleteFcmToken(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String deviceId) {
         
         fcmTokenService.deleteFcmToken(userDetails.getUsername(), deviceId);
@@ -56,7 +56,7 @@ public class NotificationApiController {
     @GetMapping("/preferences")
     @Operation(summary = "알림 설정 조회")
     public ResponseEntity<NotificationPreferenceResponse> getNotificationPreferences(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         NotificationPreferenceResponse response = notificationService.getNotificationPreferences(userDetails.getUsername());
         return ResponseEntity.ok(response);
     }
@@ -64,7 +64,7 @@ public class NotificationApiController {
     @PutMapping("/preferences")
     @Operation(summary = "알림 설정 수정")
     public ResponseEntity<NotificationPreferenceResponse> updateNotificationPreferences(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody NotificationPreferenceRequest request) {
         NotificationPreferenceResponse response = notificationService.updateNotificationPreferences(userDetails.getUsername(), request);
         return ResponseEntity.ok(response);
@@ -73,7 +73,7 @@ public class NotificationApiController {
     @GetMapping("/budget-alerts")
     @Operation(summary = "예산 알림 목록 조회")
     public ResponseEntity<List<BudgetAlertResponse>> getBudgetAlerts(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<BudgetAlertResponse> response = notificationService.getBudgetAlerts(userDetails.getUsername());
         return ResponseEntity.ok(response);
     }
@@ -81,7 +81,7 @@ public class NotificationApiController {
     @PostMapping("/budget-alerts")
     @Operation(summary = "예산 알림 생성")
     public ResponseEntity<BudgetAlertResponse> createBudgetAlert(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BudgetAlertRequest request) {
         BudgetAlertResponse response = notificationService.createBudgetAlert(userDetails.getUsername(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -90,7 +90,7 @@ public class NotificationApiController {
     @PutMapping("/budget-alerts/{alertId}")
     @Operation(summary = "예산 알림 수정")
     public ResponseEntity<BudgetAlertResponse> updateBudgetAlert(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long alertId,
             @Valid @RequestBody BudgetAlertRequest request) {
         BudgetAlertResponse response = notificationService.updateBudgetAlert(userDetails.getUsername(), alertId, request);
@@ -100,7 +100,7 @@ public class NotificationApiController {
     @DeleteMapping("/budget-alerts/{alertId}")
     @Operation(summary = "예산 알림 삭제")
     public ResponseEntity<Void> deleteBudgetAlert(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long alertId) {
         notificationService.deleteBudgetAlert(userDetails.getUsername(), alertId);
         return ResponseEntity.ok().build();

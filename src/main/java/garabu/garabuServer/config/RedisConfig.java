@@ -71,11 +71,11 @@ public class RedisConfig {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
         
-        // 타입 정보 포함 (Redis 직렬화용) - 더 안전한 방식으로 변경
+        // 타입 정보 포함 (Redis 직렬화용) - PROPERTY 방식으로 변경하여 더 안전하게 처리
         objectMapper.activateDefaultTyping(
             LaissezFaireSubTypeValidator.instance,
             ObjectMapper.DefaultTyping.NON_FINAL,
-            JsonTypeInfo.As.WRAPPER_ARRAY  // WRAPPER_ARRAY 방식으로 변경하여 더 안전하게 처리
+            JsonTypeInfo.As.PROPERTY  // PROPERTY 방식으로 변경하여 LinkedHashMap 문제 해결
         );
         
         // Java 8 시간 모듈 등록
@@ -189,6 +189,14 @@ public class RedisConfig {
                         .serializeValuesWith(RedisSerializationContext.SerializationPair
                                 .fromSerializer(jsonSerializer)))
                 .withCacheConfiguration("paymentMethodsByBook", 
+                    RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(30))
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(jsonSerializer)))
+                // Payment DTO 캐시 (30분 TTL)
+                .withCacheConfiguration("paymentMethodsByBookDto", 
                     RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofMinutes(30))
                         .serializeKeysWith(RedisSerializationContext.SerializationPair

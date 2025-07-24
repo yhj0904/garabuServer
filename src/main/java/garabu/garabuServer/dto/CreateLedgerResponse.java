@@ -24,7 +24,7 @@ public class CreateLedgerResponse {
     private LocalDate date;
     
     @Schema(description = "금액(원)", example = "3000000")
-    private Integer amount;
+    private Long amount;
     
     @Schema(description = "상세 내용", example = "7월 월급")
     private String description;

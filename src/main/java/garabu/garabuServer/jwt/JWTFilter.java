@@ -29,6 +29,19 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
+        
+        // 인증이 필요없는 엔드포인트들은 JWT 검증을 건너뜀
+        if (requestUri.equals("/reissue") || 
+            requestUri.equals("/login") || 
+            requestUri.equals("/join") ||
+            requestUri.equals("/api/v2/join") ||
+            requestUri.startsWith("/api/v2/mobile-oauth/") ||
+            requestUri.startsWith("/swagger-ui/") ||
+            requestUri.startsWith("/v3/api-docs/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String accessToken = null;
         
         // SSE 연결인 경우 쿼리 파라미터에서 토큰 추출

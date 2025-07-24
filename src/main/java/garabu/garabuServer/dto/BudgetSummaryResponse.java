@@ -26,10 +26,10 @@ public class BudgetSummaryResponse {
     private Integer expenseBudget;
 
     @Schema(description = "실제 수입", example = "4500000")
-    private Integer actualIncome;
+    private Long actualIncome;
 
     @Schema(description = "실제 지출", example = "2800000")
-    private Integer actualExpense;
+    private Long actualExpense;
 
     @Schema(description = "수입 달성률", example = "90.0")
     private Double incomeAchievementRate;
@@ -38,10 +38,10 @@ public class BudgetSummaryResponse {
     private Double expenseAchievementRate;
 
     @Schema(description = "수입 예산 대비 초과/미달", example = "-500000")
-    private Integer incomeDifference;
+    private Long incomeDifference;
 
     @Schema(description = "지출 예산 대비 초과/미달", example = "-200000")
-    private Integer expenseDifference;
+    private Long expenseDifference;
 
     @Schema(description = "예산 메모", example = "1월 예산")
     private String memo;

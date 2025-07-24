@@ -53,7 +53,7 @@ public class LedgerDTO implements Serializable {
     private LocalDate date;
     
     @Schema(description = "금액", example = "50000")
-    private Integer amount;
+    private Long amount;
     
     @Schema(description = "상세 내용", example = "월급")
     private String description;
@@ -192,7 +192,7 @@ public class LedgerDTO implements Serializable {
     // 기존 생성자 유지 (호환성)
     public LedgerDTO(LocalDate date, BigDecimal amount, String description, String memo, String category, String book, String paymentMethod) {
         this.date = date;
-        this.amount = amount != null ? amount.intValue() : null;
+        this.amount = amount != null ? amount.longValue() : null;
         this.description = description;
         this.memo = memo;
         this.category = SimpleCategoryDTO.builder().category(category).build();

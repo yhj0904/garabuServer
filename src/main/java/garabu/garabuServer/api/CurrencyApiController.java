@@ -79,6 +79,20 @@ public class CurrencyApiController {
         return ResponseEntity.ok(response);
     }
     
+    @GetMapping("/books/{bookId}/currency")
+    @Operation(summary = "가계부 통화 설정 조회", description = "가계부의 현재 통화 설정을 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "403", description = "권한 없음"),
+        @ApiResponse(responseCode = "404", description = "가계부를 찾을 수 없거나 통화 설정이 없음")
+    })
+    public ResponseEntity<BookCurrencyResponse> getBookCurrency(
+            @Parameter(description = "가계부 ID") @PathVariable Long bookId) {
+        
+        BookCurrencyResponse response = currencyService.getBookCurrency(bookId);
+        return ResponseEntity.ok(response);
+    }
+    
     @PutMapping("/books/{bookId}/currency")
     @Operation(summary = "가계부 기본 통화 설정", description = "가계부의 기본 통화와 다중 통화 사용 여부를 설정합니다.")
     @ApiResponses({

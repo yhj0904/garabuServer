@@ -5,6 +5,10 @@ import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.domain.Book;
 import garabu.garabuServer.domain.Asset;
 import garabu.garabuServer.domain.AmountType;
+import garabu.garabuServer.domain.PaymentMethod;
+import garabu.garabuServer.domain.Category;
+import garabu.garabuServer.domain.UserBook;
+import garabu.garabuServer.domain.BookRole;
 import garabu.garabuServer.dto.LedgerDTO;
 import garabu.garabuServer.dto.LedgerSearchConditionDTO;
 import garabu.garabuServer.dto.request.CreateTransferRequest;
@@ -41,6 +45,8 @@ public class LedgerService {
     private final LedgerMapper ledgerMapper;
     private final UserBookService userBookService;
     private final AssetJpaRepository assetJpaRepository;
+    private final PaymentService paymentService;
+    private final CategoryService categoryService;
 
     /**
      * 가계부별 기본 목록 조회 (JPA 사용)
@@ -108,10 +114,91 @@ public class LedgerService {
      * @param ledger 등록할 가계부 기록 정보
      * @return 등록된 가계부 기록의 ID
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class, timeout = 30)
     public Long registLedger (Ledger ledger){
+        // 자산 잔액 업데이트
+        if (ledger.getPaymentMethod() != null && ledger.getPaymentMethod().getAsset() != null) {
+            Asset asset = ledger.getPaymentMethod().getAsset();
+            if (ledger.getAmountType() == AmountType.INCOME) {
+                // 수입: 자산에 금액 추가
+                asset.updateBalance(ledger.getAmount(), "ADD");
+            } else if (ledger.getAmountType() == AmountType.EXPENSE) {
+                // 지출: 자산에서 금액 차감
+                asset.updateBalance(ledger.getAmount(), "SUBTRACT");
+            }
+            assetJpaRepository.save(asset);
+        }
+        
         ledgerJpaRepository.save(ledger);
         return ledger.getId();
+    }
+
+    /**
+     * 가계부 기록을 생성합니다 (권한 검사, 결제수단/카테고리 자동 생성, 중복 검사 포함)
+     *
+     * @param request 가계부 기록 생성 요청
+     * @param currentMember 현재 로그인한 사용자
+     * @param book 대상 가계부
+     * @param paymentService 결제수단 서비스
+     * @param categoryService 카테고리 서비스
+     * @return 생성된 가계부 기록
+     */
+    @Transactional(rollbackFor = Exception.class, timeout = 30)
+    public Ledger createLedgerWithValidation(garabu.garabuServer.dto.CreateLedgerRequest request, 
+                                           Member currentMember, Book book,
+                                           PaymentService paymentService, 
+                                           CategoryService categoryService) {
+        // 1. 엔티티 매핑
+        Ledger ledger = new Ledger();
+        ledger.setDate(request.getDate());
+        ledger.setAmount(request.getAmount());
+        ledger.setDescription(request.getDescription());
+        ledger.setMemo(request.getMemo());
+        ledger.setAmountType(request.getAmountType());
+        ledger.setMember(currentMember);
+        ledger.setSpender(request.getSpender());
+        ledger.setBook(book);
+        
+        // 2. 결제수단 조회 및 자동 생성
+        PaymentMethod paymentMethod = paymentService.findByBookAndPayment(book, request.getPayment());
+        if (paymentMethod == null) {
+            Long paymentId = paymentService.createPaymentForBook(book, request.getPayment());
+            paymentMethod = paymentService.findById(paymentId);
+        }
+        ledger.setPaymentMethod(paymentMethod);
+        
+        // 3. 카테고리 조회
+        Category category = categoryService.findByBookAndCategory(book, request.getCategory());
+        if (category == null) {
+            throw new RuntimeException("해당 가계부에 존재하지 않는 카테고리입니다: " + request.getCategory());
+        }
+        ledger.setCategory(category);
+        
+        // 4. 중복 검사
+        boolean isDuplicate = existsRecentDuplicate(
+            ledger.getDate(), ledger.getAmount(), ledger.getDescription(), 
+            currentMember.getId(), book.getId()
+        );
+        
+        if (isDuplicate) {
+            throw new RuntimeException("동일한 내용의 기록이 최근에 추가되었습니다. 중복 등록을 확인해주세요.");
+        }
+        
+        // 5. 자산 잔액 업데이트
+        if (paymentMethod != null && paymentMethod.getAsset() != null) {
+            Asset asset = paymentMethod.getAsset();
+            if (ledger.getAmountType() == AmountType.INCOME) {
+                // 수입: 자산에 금액 추가
+                asset.updateBalance(ledger.getAmount(), "ADD");
+            } else if (ledger.getAmountType() == AmountType.EXPENSE) {
+                // 지출: 자산에서 금액 차감
+                asset.updateBalance(ledger.getAmount(), "SUBTRACT");
+            }
+            assetJpaRepository.save(asset);
+        }
+        
+        // 6. 저장
+        return ledgerJpaRepository.save(ledger);
     }
 
     /**
@@ -168,7 +255,7 @@ public class LedgerService {
      * @param bookId 가계부 ID
      * @return 중복 존재 여부
      */
-    public boolean existsRecentDuplicate(LocalDate date, Integer amount, String description, 
+    public boolean existsRecentDuplicate(LocalDate date, Long amount, String description, 
                                        Long memberId, Long bookId) {
         // 중복 기록 확인 (시간 기준 없이 단순 중복 확인)
         return ledgerJpaRepository.existsByDateAndAmountAndDescriptionAndMemberIdAndBookId(
@@ -184,7 +271,7 @@ public class LedgerService {
      * @param member 요청한 사용자
      * @return 생성된 이체 기록 목록 (출금, 입금 2개)
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class, timeout = 30)
     public List<LedgerDTO> createTransfer(CreateTransferRequest request, Member member) {
         // 자산 유효성 검사
         Asset fromAsset = assetJpaRepository.findById(request.getFromAssetId())
@@ -216,7 +303,7 @@ public class LedgerService {
         // 이체 기록 생성 (출금 기록)
         Ledger withdrawalLedger = new Ledger();
         withdrawalLedger.setDate(request.getDate());
-        withdrawalLedger.setAmount(request.getAmount().intValue());
+        withdrawalLedger.setAmount(request.getAmount().longValue());
         withdrawalLedger.setDescription(request.getDescription() + " (출금)");
         withdrawalLedger.setMemo(request.getMemo());
         withdrawalLedger.setAmountType(AmountType.TRANSFER);
@@ -227,7 +314,7 @@ public class LedgerService {
         // 이체 기록 생성 (입금 기록)
         Ledger depositLedger = new Ledger();
         depositLedger.setDate(request.getDate());
-        depositLedger.setAmount(request.getAmount().intValue());
+        depositLedger.setAmount(request.getAmount().longValue());
         depositLedger.setDescription(request.getDescription() + " (입금)");
         depositLedger.setMemo(request.getMemo());
         depositLedger.setAmountType(AmountType.TRANSFER);
@@ -248,5 +335,99 @@ public class LedgerService {
         result.add(LedgerDTO.from(savedDeposit));
 
         return result;
+    }
+    
+    /**
+     * 가계부 기록을 삭제합니다.
+     * 
+     * @param ledgerId 삭제할 가계부 기록 ID
+     * @param currentMember 현재 로그인한 사용자
+     * @throws RuntimeException 권한이 없거나 기록을 찾을 수 없는 경우
+     */
+    @Transactional(rollbackFor = Exception.class, timeout = 15)
+    public void deleteLedger(Long ledgerId, Member currentMember) {
+        // 기록 조회
+        Ledger ledger = ledgerJpaRepository.findById(ledgerId)
+            .orElseThrow(() -> new RuntimeException("가계부 기록을 찾을 수 없습니다: " + ledgerId));
+        
+        // 권한 확인 - 기록 작성자 또는 가계부 소유자만 삭제 가능
+        boolean canDelete = false;
+        
+        // 1. 기록 작성자인지 확인
+        if (ledger.getMember().getId().equals(currentMember.getId())) {
+            canDelete = true;
+        } else {
+            // 2. 가계부 소유자/편집자인지 확인
+            try {
+                UserBook userBook = userBookService.findByBookIdAndMemberId(
+                    ledger.getBook().getId(), currentMember.getId()
+                ).orElse(null);
+                
+                if (userBook != null && 
+                    (userBook.getBookRole() == BookRole.OWNER || userBook.getBookRole() == BookRole.EDITOR)) {
+                    canDelete = true;
+                }
+            } catch (Exception e) {
+                // 권한 확인 실패
+            }
+        }
+        
+        if (!canDelete) {
+            throw new RuntimeException("해당 기록을 삭제할 권한이 없습니다.");
+        }
+        
+        // 자산 업데이트 (삭제 전에 처리)
+        if (ledger.getPaymentMethod() != null && ledger.getPaymentMethod().getAsset() != null) {
+            Asset asset = ledger.getPaymentMethod().getAsset();
+            if (ledger.getAmountType() == AmountType.INCOME) {
+                // 수입 삭제: 자산에서 금액 차감
+                asset.updateBalance(ledger.getAmount(), "SUBTRACT");
+            } else if (ledger.getAmountType() == AmountType.EXPENSE) {
+                // 지출 삭제: 자산에 금액 추가
+                asset.updateBalance(ledger.getAmount(), "ADD");
+            }
+            assetJpaRepository.save(asset);
+        }
+        
+        // 삭제 수행
+        ledgerJpaRepository.delete(ledger);
+    }
+    
+    /**
+     * 가계부 기록을 ID로 삭제합니다 (권한 확인 포함).
+     * 
+     * @param ledgerId 삭제할 가계부 기록 ID
+     * @param bookId 가계부 ID (권한 확인용)
+     * @param currentMember 현재 로그인한 사용자
+     * @throws RuntimeException 권한이 없거나 기록을 찾을 수 없는 경우
+     */
+    @Transactional(rollbackFor = Exception.class, timeout = 15)
+    public void deleteLedgerById(Long ledgerId, Long bookId, Member currentMember) {
+        // 기록 조회
+        Ledger ledger = ledgerJpaRepository.findById(ledgerId)
+            .orElseThrow(() -> new RuntimeException("가계부 기록을 찾을 수 없습니다: " + ledgerId));
+        
+        // 가계부 일치 확인
+        if (!ledger.getBook().getId().equals(bookId)) {
+            throw new RuntimeException("해당 가계부의 기록이 아닙니다.");
+        }
+        
+        // 가계부 접근 권한 확인
+        UserBook userBook = userBookService.findByBookIdAndMemberId(bookId, currentMember.getId())
+            .orElseThrow(() -> new RuntimeException("해당 가계부에 접근 권한이 없습니다."));
+        
+        // VIEWER는 삭제 불가
+        if (userBook.getBookRole() == BookRole.VIEWER) {
+            throw new RuntimeException("조회 권한만 있습니다. 기록을 삭제할 수 없습니다.");
+        }
+        
+        // EDITOR는 본인이 작성한 기록만 삭제 가능
+        if (userBook.getBookRole() == BookRole.EDITOR && 
+            !ledger.getMember().getId().equals(currentMember.getId())) {
+            throw new RuntimeException("편집자는 본인이 작성한 기록만 삭제할 수 있습니다.");
+        }
+        
+        // 삭제 수행
+        ledgerJpaRepository.delete(ledger);
     }
 }

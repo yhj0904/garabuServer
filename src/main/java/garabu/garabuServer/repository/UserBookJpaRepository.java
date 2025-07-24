@@ -46,4 +46,9 @@ public interface UserBookJpaRepository extends JpaRepository<UserBook, Long> {
      */
     @EntityGraph(attributePaths = {"book", "book.owner"})
     List<UserBook> findAllByMember(garabu.garabuServer.domain.Member member);
+    
+    /**
+     * 특정 멤버가 소유자인 가계부 개수를 조회
+     */
+    long countByMemberAndBookRole(garabu.garabuServer.domain.Member member, BookRole bookRole);
 }

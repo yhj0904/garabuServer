@@ -4,6 +4,7 @@ import garabu.garabuServer.domain.Friendship;
 import garabu.garabuServer.domain.Member;
 import garabu.garabuServer.service.FriendshipService;
 import garabu.garabuServer.service.MemberService;
+import garabu.garabuServer.service.InviteCodeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,6 +43,7 @@ public class FriendshipApiController {
     
     private final FriendshipService friendshipService;
     private final MemberService memberService;
+    private final InviteCodeService inviteCodeService;
     
     /**
      * 친구 요청 보내기
@@ -305,6 +307,63 @@ public class FriendshipApiController {
         return ResponseEntity.ok(new FriendStatusDto(friendCount, pendingCount));
     }
     
+    /**
+     * 친구 초대 코드 생성
+     */
+    @PostMapping("/invite-code")
+    @Operation(summary = "친구 초대 코드 생성", description = "친구 초대를 위한 8자리 코드를 생성합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "코드 생성 성공"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<FriendInviteCodeResponse> createFriendInviteCode() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member currentUser = memberService.findMemberByUsername(auth.getName());
+        
+        String code = inviteCodeService.generateFriendInviteCode(currentUser.getId());
+        long ttlSeconds = inviteCodeService.getCodeTTL(code, "FRIEND");
+        
+        return ResponseEntity.ok(new FriendInviteCodeResponse(code, ttlSeconds));
+    }
+    
+    /**
+     * 친구 초대 코드로 친구 요청 보내기
+     */
+    @PostMapping("/request-by-code")
+    @Operation(summary = "초대 코드로 친구 요청", description = "친구 초대 코드를 사용하여 친구 요청을 보냅니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "친구 요청 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 코드"),
+        @ApiResponse(responseCode = "401", description = "인증 실패"),
+        @ApiResponse(responseCode = "409", description = "이미 친구 요청 존재")
+    })
+    public ResponseEntity<FriendRequestResponse> sendFriendRequestByCode(
+            @Valid @RequestBody FriendRequestByCodeDto request) {
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member currentUser = memberService.findMemberByUsername(auth.getName());
+        
+        // 초대 코드로 사용자 ID 조회
+        Long addresseeId = inviteCodeService.getUserIdByFriendInviteCode(request.getInviteCode());
+        if (addresseeId == null) {
+            throw new IllegalArgumentException("유효하지 않거나 만료된 초대 코드입니다.");
+        }
+        
+        // 자기 자신에게 친구 요청을 보내는 것 방지
+        if (addresseeId.equals(currentUser.getId())) {
+            throw new IllegalArgumentException("자기 자신에게는 친구 요청을 보낼 수 없습니다.");
+        }
+        
+        Friendship friendship = friendshipService.sendFriendRequest(
+            currentUser.getId(), addresseeId, request.getAlias());
+        
+        return ResponseEntity.ok(new FriendRequestResponse(
+            "친구 요청이 성공적으로 전송되었습니다.",
+            friendship.getId(),
+            LocalDateTime.now()
+        ));
+    }
+    
     // Helper methods
     private FriendDto convertToFriendDto(Friendship friendship, Member currentUser) {
         Member friend = friendship.getOtherMember(currentUser);
@@ -419,6 +478,29 @@ public class FriendshipApiController {
         
         @Schema(description = "친구 별칭", example = "아빠")
         private String alias;
+    }
+    
+    @Data
+    @Schema(description = "초대 코드로 친구 요청 DTO")
+    public static class FriendRequestByCodeDto {
+        @NotBlank(message = "초대 코드는 필수입니다.")
+        @Schema(description = "친구 초대 코드", example = "12345678")
+        private String inviteCode;
+        
+        @Schema(description = "친구 별칭", example = "친구")
+        private String alias;
+    }
+    
+    @Data
+    @Schema(description = "친구 초대 코드 응답 DTO")
+    public static class FriendInviteCodeResponse {
+        private String code;
+        private long ttlSeconds;
+        
+        public FriendInviteCodeResponse(String code, long ttlSeconds) {
+            this.code = code;
+            this.ttlSeconds = ttlSeconds;
+        }
     }
     
     

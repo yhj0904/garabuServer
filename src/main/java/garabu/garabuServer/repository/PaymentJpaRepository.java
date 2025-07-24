@@ -13,4 +13,7 @@ public interface PaymentJpaRepository  extends JpaRepository<PaymentMethod, Long
     
     // 가계부별 결제수단명으로 조회
     PaymentMethod findByBookAndPayment(Book book, String payment);
+    
+    // 가계부별 결제수단 삭제
+    void deleteByBook(Book book);
 }

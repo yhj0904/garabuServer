@@ -114,7 +114,15 @@ public class MobileOAuthService {
                 return new NaverResponse(userInfo);
                 
             case "kakao":
-                userInfo = getKakaoUserInfo(accessToken);
+                // 클라이언트에서 프로필 정보를 보낸 경우 우선 사용
+                if (request.getProfile() != null) {
+                    log.info("카카오 로그인 - 클라이언트 프로필 정보 사용: id={}, email={}", 
+                        request.getProfile().getId(), request.getProfile().getEmail());
+                    userInfo = convertProfileToUserInfo(request.getProfile());
+                } else {
+                    // 기존 방식: 서버에서 카카오 API 호출
+                    userInfo = getKakaoUserInfo(accessToken);
+                }
                 return new KakaoResponse(userInfo);
                 
             default:
@@ -204,6 +212,28 @@ public class MobileOAuthService {
             log.error("Kakao 사용자 정보 조회 실패: {}", e.getMessage(), e);
             throw new RuntimeException("Kakao 토큰 검증 실패", e);
         }
+    }
+
+    /**
+     * 클라이언트에서 보낸 프로필 정보를 카카오 API 응답 형태로 변환
+     */
+    private Map<String, Object> convertProfileToUserInfo(MobileOAuthRequest.ProfileInfo profile) {
+        Map<String, Object> userInfo = new HashMap<>();
+        
+        // 카카오 API 응답 형태로 변환
+        userInfo.put("id", Long.parseLong(profile.getId()));
+        
+        Map<String, Object> kakaoAccount = new HashMap<>();
+        kakaoAccount.put("email", profile.getEmail());
+        
+        Map<String, Object> profileMap = new HashMap<>();
+        profileMap.put("nickname", profile.getNickname());
+        profileMap.put("profile_image_url", profile.getProfileImageUrl());
+        
+        kakaoAccount.put("profile", profileMap);
+        userInfo.put("kakao_account", kakaoAccount);
+        
+        return userInfo;
     }
 
     /**

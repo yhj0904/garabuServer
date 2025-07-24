@@ -84,7 +84,7 @@ public class RecurringTransactionScheduler {
             // Ledger 엔티티 생성
             Ledger ledger = new Ledger();
             ledger.setDate(LocalDate.now());
-            ledger.setAmount(transaction.getAmount().intValue());
+            ledger.setAmount(transaction.getAmount().longValue());
             ledger.setDescription(transaction.getName());
             ledger.setMemo("반복거래 자동 실행");
             ledger.setAmountType(transaction.getAmountType());

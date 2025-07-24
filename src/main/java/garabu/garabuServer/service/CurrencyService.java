@@ -75,6 +75,17 @@ public class CurrencyService {
         return response;
     }
     
+    public BookCurrencyResponse getBookCurrency(Long bookId) {
+        Member currentMember = memberService.getCurrentMember();
+        
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException("가계부를 찾을 수 없습니다."));
+        
+        checkBookAccess(book, currentMember);
+        
+        return convertToBookCurrencyResponse(book);
+    }
+    
     @Transactional
     public BookCurrencyResponse updateBookCurrency(Long bookId, UpdateBookCurrencyRequest request) {
         Member currentMember = memberService.getCurrentMember();
@@ -93,12 +104,7 @@ public class CurrencyService {
         
         Book updatedBook = bookRepository.save(book);
         
-        BookCurrencyResponse response = new BookCurrencyResponse();
-        response.setBookId(updatedBook.getId());
-        response.setDefaultCurrency(updatedBook.getDefaultCurrency());
-        response.setUseMultiCurrency(updatedBook.getUseMultiCurrency());
-        
-        return response;
+        return convertToBookCurrencyResponse(updatedBook);
     }
     
     @Transactional
@@ -208,6 +214,23 @@ public class CurrencyService {
         response.setRate(rate.getRate());
         response.setRateDate(rate.getRateDate());
         response.setSource(rate.getSource());
+        
+        return response;
+    }
+    
+    private BookCurrencyResponse convertToBookCurrencyResponse(Book book) {
+        BookCurrencyResponse response = new BookCurrencyResponse();
+        response.setBookId(book.getId());
+        
+        // 기본 통화가 설정되지 않은 경우 KRW를 기본값으로 사용
+        String defaultCurrency = book.getDefaultCurrency();
+        if (defaultCurrency == null || defaultCurrency.isEmpty()) {
+            defaultCurrency = "KRW";
+        }
+        response.setDefaultCurrency(defaultCurrency);
+        
+        // 다중 통화 사용 여부가 null인 경우 false로 설정
+        response.setUseMultiCurrency(book.getUseMultiCurrency() != null ? book.getUseMultiCurrency() : false);
         
         return response;
     }

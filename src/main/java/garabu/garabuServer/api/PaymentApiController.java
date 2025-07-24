@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,8 @@ import java.util.stream.Collectors;
 @SecurityRequirement(name = "bearerAuth")   // Swagger UI Authorize 버튼
 public class PaymentApiController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PaymentApiController.class);
+    
     private final PaymentService paymentService;
     private final BookService bookService;
     private final UserBookService userBookService;
@@ -137,19 +141,40 @@ public class PaymentApiController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     public ResponseEntity<ListPaymentResponse> listPaymentsByBook(@PathVariable Long bookId) {
-        Book book = bookService.findById(bookId);
-        
-        // 사용자가 해당 가계부에 접근 권한이 있는지 확인
-        userBookService.validateBookAccess(book);
-        
-        // DTO 기반 캐싱된 결과 사용
-        List<PaymentMethodDto> payments = paymentService.findByBookDto(book);
+        try {
+            Book book = bookService.findById(bookId);
+            
+            // 사용자가 해당 가계부에 접근 권한이 있는지 확인
+            userBookService.validateBookAccess(book);
+            
+            // DTO 기반 캐싱된 결과 사용
+            List<PaymentMethodDto> payments = paymentService.findByBookDto(book);
 
-        List<ListPaymentDto> dtoList = payments.stream()
-                .map(p -> new ListPaymentDto(p.getId(), p.getPayment()))
-                .collect(Collectors.toList());
+            List<ListPaymentDto> dtoList = payments.stream()
+                    .map(p -> new ListPaymentDto(p.getId(), p.getPayment()))
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ListPaymentResponse(dtoList));
+            return ResponseEntity.ok(new ListPaymentResponse(dtoList));
+        } catch (ClassCastException e) {
+            logger.error("Redis 캐시 직렬화 오류 발생: {}", e.getMessage());
+            // 캐시 초기화 후 재시도
+            paymentService.clearAllPaymentCaches();
+            
+            Book book = bookService.findById(bookId);
+            userBookService.validateBookAccess(book);
+            
+            List<PaymentMethodDto> payments = paymentService.findByBookDto(book);
+
+            List<ListPaymentDto> dtoList = payments.stream()
+                    .map(p -> new ListPaymentDto(p.getId(), p.getPayment()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new ListPaymentResponse(dtoList));
+        } catch (Exception e) {
+            // 로그 출력 후 예외 재던짐
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /* ───────────────────────── 가계부별 결제 수단 생성 ───────────────────────── */

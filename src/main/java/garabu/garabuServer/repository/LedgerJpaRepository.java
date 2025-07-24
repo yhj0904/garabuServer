@@ -48,7 +48,7 @@ public interface LedgerJpaRepository extends JpaRepository<Ledger, Long> {
     List<Ledger> findByIdsWithFetch(@Param("ids") List<Long> ids);
     
     boolean existsByDateAndAmountAndDescriptionAndMemberIdAndBookId(
-        LocalDate date, Integer amount, String description, Long memberId, Long bookId);
+        LocalDate date, Long amount, String description, Long memberId, Long bookId);
     
     // 테스트 데이터 관련 메서드
     long countByBook(Book book);

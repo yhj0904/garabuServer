@@ -90,6 +90,7 @@ public class MemberService{
         LoginUserDTO userDto = new LoginUserDTO();
         userDto.setId(member.getId());
         userDto.setUsername(member.getUsername());
+        userDto.setName(member.getName());
         userDto.setEmail(member.getEmail());
         userDto.setRole(member.getRole()); // getRole()은 SystemRole을 String으로 변환
         

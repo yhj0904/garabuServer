@@ -30,6 +30,15 @@ public class PaymentMethodDto implements Serializable {
     @Schema(description = "소속 가계부 ID", example = "5")
     private Long bookId;
     
+    @Schema(description = "연결된 자산 ID", example = "10")
+    private Long assetId;
+    
+    @Schema(description = "연결된 자산명", example = "현금")
+    private String assetName;
+    
+    @Schema(description = "자산 잔액", example = "50000")
+    private Long assetBalance;
+    
     /**
      * JPA 엔티티로부터 DTO 생성
      */
@@ -37,6 +46,11 @@ public class PaymentMethodDto implements Serializable {
         this.id = entity.getId();
         this.payment = entity.getPayment();
         this.bookId = entity.getBook() != null ? entity.getBook().getId() : null;
+        if (entity.getAsset() != null) {
+            this.assetId = entity.getAsset().getId();
+            this.assetName = entity.getAsset().getName();
+            this.assetBalance = entity.getAsset().getBalance();
+        }
     }
     
     /**

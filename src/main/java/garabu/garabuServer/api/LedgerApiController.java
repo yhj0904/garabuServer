@@ -101,7 +101,6 @@ public class LedgerApiController {
      * @return 생성된 Ledger ID
      */
     @PostMapping("/ledgers")
-    @Transactional
     @Operation(
             summary     = "가계부 기록 생성",
             description = "새로운 수입/지출 기록을 추가합니다."
@@ -160,11 +159,12 @@ public class LedgerApiController {
 
             ledger.setBook(book);
 
-            // 가계부별 결제수단 조회
+            // 가계부별 결제수단 조회 및 자동 생성
             PaymentMethod paymentMethod = paymentService.findByBookAndPayment(book, request.getPayment());
             if (paymentMethod == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "해당 가계부에 존재하지 않는 결제수단입니다: " + request.getPayment());
+                // 결제수단이 없으면 자동으로 생성
+                Long paymentId = paymentService.createPaymentForBook(book, request.getPayment());
+                paymentMethod = paymentService.findById(paymentId);
             }
             ledger.setPaymentMethod(paymentMethod);
 
@@ -384,7 +384,6 @@ public class LedgerApiController {
      * @return 생성된 이체 기록 목록 (출금, 입금)
      */
     @PostMapping("/transfers")
-    @Transactional
     @Operation(
             summary = "이체 기록 생성",
             description = "출금 자산과 입금 자산 간의 이체 기록을 생성합니다."
@@ -492,7 +491,7 @@ public class LedgerApiController {
         private LocalDate date;
 
         @Schema(description = "금액(원)", example = "3000000")
-        private Integer amount;
+        private Long amount;
 
         @Schema(description = "상세 내용", example = "7월 월급")
         private String description;
@@ -548,6 +547,81 @@ public class LedgerApiController {
             dto.categoryId = ledgerDTO.getCategory() != null ? ledgerDTO.getCategory().getId() : null;
             dto.paymentId  = ledgerDTO.getPaymentMethod() != null ? ledgerDTO.getPaymentMethod().getId() : null;
             return dto;
+        }
+    }
+    
+    // ───────────────────────── 기록 삭제 ─────────────────────────
+    /**
+     * 가계부 기록을 삭제합니다.
+     * 
+     * @param bookId 가계부 ID
+     * @param ledgerId 삭제할 기록 ID
+     * @return 삭제 완료 메시지
+     */
+    @DeleteMapping("/ledgers/{ledgerId}")
+    @Operation(
+            summary = "가계부 기록 삭제",
+            description = "가계부 기록을 삭제합니다. OWNER는 모든 기록 삭제 가능, EDITOR는 본인 작성 기록만 삭제 가능, VIEWER는 삭제 불가능합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "기록을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<Map<String, Object>> deleteLedger(
+            @Parameter(description = "삭제할 기록 ID", example = "123")
+            @PathVariable String ledgerId
+    ) {
+        logger.info("=== 가계부 기록 삭제 요청 수신 ===");
+        logger.info("LedgerId: {}", ledgerId);
+        
+        // undefined 또는 잘못된 ID 체크
+        if ("undefined".equals(ledgerId) || ledgerId == null || ledgerId.trim().isEmpty()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "유효하지 않은 기록 ID입니다.");
+            errorResponse.put("error", "Invalid ledger ID");
+            errorResponse.put("timestamp", LocalDateTime.now());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+        
+        Long ledgerIdLong;
+        try {
+            ledgerIdLong = Long.parseLong(ledgerId);
+        } catch (NumberFormatException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "기록 ID는 숫자여야 합니다.");
+            errorResponse.put("error", "Invalid ledger ID format");
+            errorResponse.put("timestamp", LocalDateTime.now());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        try {
+            // 1. 로그인 사용자 확인
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Member currentMember = memberService.findMemberByUsername(auth.getName());
+
+            // 2. 가계부 기록 삭제 (권한 확인 포함)
+            ledgerService.deleteLedger(ledgerIdLong, currentMember);
+            
+            logger.info("가계부 기록 삭제 완료 - LedgerId: {}, User: {}", 
+                       ledgerIdLong, currentMember.getUsername());
+            
+            // 3. 응답 데이터 구성
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "가계부 기록이 성공적으로 삭제되었습니다.");
+            response.put("deletedLedgerId", ledgerIdLong);
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            logger.error("가계부 기록 삭제 실패: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            logger.error("가계부 기록 삭제 중 오류 발생", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "가계부 기록 삭제 중 오류가 발생했습니다.", e);
         }
     }
 

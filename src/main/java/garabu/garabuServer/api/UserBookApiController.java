@@ -79,12 +79,13 @@ public class UserBookApiController {
         /* 1) 서비스 호출 → UserBook 엔티티 목록 */
         List<UserBook> userBooks = userBookService.findOwnersByBookId(bookId);
 
-        /* 2) DTO 변환 (회원 ID·이름·이메일만 노출) */
+        /* 2) DTO 변환 (회원 ID·이름·이메일·역할 포함) */
         List<OwnerDto> owners = userBooks.stream()
                 .map(ub -> new OwnerDto(
                         ub.getMember().getId(),
                         ub.getMember().getUsername(),
-                        ub.getMember().getEmail()))
+                        ub.getMember().getEmail(),
+                        ub.getBookRole()))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(new ListOwnerResponse(owners));
@@ -278,10 +279,14 @@ public class UserBookApiController {
         @Schema(description = "회원 이메일", example = "user@example.com")
         private String email;
 
-        public OwnerDto(Long memberId, String username, String email) {
+        @Schema(description = "가계부 내 역할", example = "OWNER")
+        private BookRole role;
+
+        public OwnerDto(Long memberId, String username, String email, BookRole role) {
             this.memberId = memberId;
             this.username = username;
             this.email = email;
+            this.role = role;
         }
     }
 

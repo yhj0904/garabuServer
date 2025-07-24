@@ -18,6 +18,9 @@ public class LoginUserDTO {
     @Schema(description = "사용자명", example = "hong123")
     private String username;
     
+    @Schema(description = "실제 이름", example = "홍길동")
+    private String name;
+    
     @Schema(description = "이메일", example = "hong@example.com")
     private String email;
     

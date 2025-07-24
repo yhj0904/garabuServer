@@ -20,4 +20,16 @@ public class MobileOAuthRequest {
     private String refreshToken; // 선택사항 (Apple의 경우 authorizationCode)
     
     private String idToken; // Google의 ID Token 또는 Apple의 Identity Token
+    
+    // 클라이언트에서 직접 전송하는 프로필 정보 (선택사항)
+    private ProfileInfo profile;
+    
+    @Data
+    public static class ProfileInfo {
+        private String id;        // providerId
+        private String email;
+        private String name;
+        private String nickname;
+        private String profileImageUrl;
+    }
 }

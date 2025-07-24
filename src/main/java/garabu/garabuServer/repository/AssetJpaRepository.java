@@ -56,4 +56,9 @@ public interface AssetJpaRepository extends JpaRepository<Asset, Long> {
      * 특정 자산이 해당 가계부에 속하는지 확인
      */
     boolean existsByIdAndBook(Long assetId, Book book);
+    
+    /**
+     * 가계부별 자산 삭제
+     */
+    void deleteByBook(Book book);
 }

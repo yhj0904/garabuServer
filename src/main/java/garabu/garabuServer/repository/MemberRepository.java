@@ -33,4 +33,11 @@ public class MemberRepository {
                 .getResultList();
         return results.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(results.get(0));
     }
+    
+    public Member findByUsername(String username) {
+        List<Member> results = em.createQuery("select m from Member m where m.username = :username", Member.class)
+                .setParameter("username", username)
+                .getResultList();
+        return results.isEmpty() ? null : results.get(0);
+    }
 }

@@ -56,7 +56,7 @@ public class BookInviteApiController {
             @RequestBody @Valid CreateInviteCodeRequest request) {
         
         String code = bookInviteService.createBookInviteCode(bookId, request.getRole());
-        long ttl = inviteCodeService.getCodeTTL(code, true);
+        long ttl = inviteCodeService.getCodeTTL(code, "BOOK");
         
         return ResponseEntity.ok(new InviteCodeResponse(code, ttl));
     }
@@ -71,7 +71,7 @@ public class BookInviteApiController {
     })
     public ResponseEntity<InviteCodeResponse> createUserIdCode() {
         String code = bookInviteService.createUserIdCode();
-        long ttl = inviteCodeService.getCodeTTL(code, false);
+        long ttl = inviteCodeService.getCodeTTL(code, "USER");
         
         return ResponseEntity.ok(new InviteCodeResponse(code, ttl));
     }
