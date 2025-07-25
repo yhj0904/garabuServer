@@ -140,6 +140,31 @@ public class MemberApiController {
         return ResponseEntity.ok(currentUser);
     }
 
+    /* ───────────────────────── 회원 탈퇴 ───────────────────────── */
+    /**
+     * 현재 로그인한 사용자의 계정을 삭제합니다.
+     *
+     * @return 삭제 성공 메시지
+     */
+    @DeleteMapping("/user/me")
+    @Operation(
+        summary = "회원 탈퇴",
+        description = "현재 로그인한 사용자의 계정을 영구적으로 삭제합니다. 이 작업은 되돌릴 수 없습니다."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", 
+            description = "회원 탈퇴 성공",
+            content = @Content(schema = @Schema(implementation = DeleteAccountResponse.class))),
+        @ApiResponse(responseCode = "401", description = "인증 실패"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<DeleteAccountResponse> deleteAccount() {
+        memberService.deleteCurrentMember();
+        return ResponseEntity.ok(new DeleteAccountResponse("회원 탈퇴가 성공적으로 처리되었습니다."));
+    }
+
 
 
 
@@ -198,5 +223,14 @@ public class MemberApiController {
         public CreateMemberResponse(Long id) {
             this.id = id;
         }
+    }
+
+    /** 회원 탈퇴 응답 DTO */
+    @Data
+    @AllArgsConstructor
+    @Schema(description = "회원 탈퇴 응답 DTO")
+    static class DeleteAccountResponse {
+        @Schema(description = "처리 결과 메시지", example = "회원 탈퇴가 성공적으로 처리되었습니다.")
+        private String message;
     }
 }

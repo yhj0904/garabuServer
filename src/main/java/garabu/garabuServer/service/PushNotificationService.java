@@ -68,7 +68,7 @@ public class PushNotificationService {
                 .appId(APP_ID)
                 .noticeTitle(title)
                 .noticeBody(body)
-                .noticeAction("open_transaction_detail")
+                .noticeAction(String.format("transaction:%d:%d", ledger.getBook().getId(), ledger.getId()))
                 .userId(String.valueOf(author.getId()))
                 .userNm(author.getName())
                 .pushUse("Y")

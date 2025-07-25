@@ -200,4 +200,36 @@ public class MemberService{
         return memberJPARepository.findById(memberId)
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + memberId));
     }
+
+    /**
+     * 회원 탈퇴를 처리합니다.
+     * 사용자의 모든 관련 데이터를 삭제하고 계정을 비활성화합니다.
+     * 
+     * @param memberId 탈퇴할 회원의 ID
+     * @throws UsernameNotFoundException 사용자를 찾을 수 없는 경우
+     * @throws IllegalStateException 탈퇴 처리 중 오류가 발생한 경우
+     */
+    @Transactional
+    public void deleteMember(Long memberId) {
+        Member member = memberJPARepository.findById(memberId)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + memberId));
+        
+        // 알림 설정 삭제
+        notificationPreferenceRepository.findByMember(member)
+            .ifPresent(notificationPreferenceRepository::delete);
+        
+        // 회원 삭제 (CASCADE 설정에 따라 관련 데이터도 삭제됨)
+        memberJPARepository.delete(member);
+    }
+
+    /**
+     * 현재 로그인한 사용자의 계정을 삭제합니다.
+     * 
+     * @throws UsernameNotFoundException 사용자를 찾을 수 없는 경우
+     */
+    @Transactional
+    public void deleteCurrentMember() {
+        Member currentMember = getCurrentMember();
+        deleteMember(currentMember.getId());
+    }
 }

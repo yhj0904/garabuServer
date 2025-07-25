@@ -186,27 +186,51 @@ public class FcmSendServiceImpl implements FcmSendService {
         log.info("발송 처리 로그 저장 완료");
     }
     private void sendFcmToTargets(FcmSendRequestDTO request, NotiSend pushSend) {
+        log.info("=== FCM 발송 시작 - NoticeNo: {}, Title: {} ===", pushSend.getNoticeNo(), request.getNoticeTitle());
+        
         List<NotiSendList> targetList = notiSendListRepository.findByAppIdAndNoticeNo(
                 request.getAppId(), pushSend.getNoticeNo());
+        
+        log.info("FCM 발송 대상자 수: {}", targetList.size());
 
         for (NotiSendList target : targetList) {
             try {
+                log.debug("사용자 {} FCM 토큰 조회 시작", target.getUserId());
+                
                 Optional<FcmUserToken> tokenOpt = fcmTokenRepository
                         .findTopByAppIdAndUserIdAndUseAtOrderByTokenIdDesc(target.getAppId(), target.getUserId(), "Y");
 
                 if (tokenOpt.isEmpty()) {
+                    log.warn("사용자 {}의 FCM 토큰이 없습니다. AppId: {}", target.getUserId(), target.getAppId());
                     target.setSuccessYn("N");
                     target.setFailMsg("FCM 토큰 없음");
                     continue;
                 }
 
-                String token = tokenOpt.get().getFcmToken();
+                FcmUserToken fcmToken = tokenOpt.get();
+                String token = fcmToken.getFcmToken();
+                log.info("사용자 {} FCM 토큰 찾음 - DeviceId: {}, TokenId: {}", 
+                    target.getUserId(), fcmToken.getDeviceId(), fcmToken.getTokenId());
 
-                fcmService.sendTo(token, request.getNoticeTitle(), request.getNoticeBody());
+                // data 필드 추가하여 FCM 메시지 전송
+                java.util.Map<String, String> data = new java.util.HashMap<>();
+                data.put("type", "notification");
+                data.put("action", request.getNoticeAction() != null ? request.getNoticeAction() : "");
+                data.put("sendId", String.valueOf(pushSend.getNoticeNo()));
+                data.put("userId", target.getUserId());
+                data.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                
+                log.info("FCM 발송 시도 - UserId: {}, Title: {}, Body: {}", 
+                    target.getUserId(), request.getNoticeTitle(), request.getNoticeBody());
+                
+                fcmService.sendTo(token, request.getNoticeTitle(), request.getNoticeBody(), data);
 
                 target.setSuccessYn("Y");
                 target.setSendDt(String.valueOf(LocalDateTime.now()));
+                log.info("사용자 {} FCM 발송 성공", target.getUserId());
+                
             } catch (Exception e) {
+                log.error("사용자 {} FCM 발송 실패: {}", target.getUserId(), e.getMessage(), e);
                 target.setSuccessYn("N");
                 target.setFailMsg(e.getMessage());
             }
@@ -223,6 +247,6 @@ public class FcmSendServiceImpl implements FcmSendService {
         pushSend.setPushFailCnt(failCnt);
         notiSendRepository.save(pushSend);
 
-        log.info("푸시 성공 수: {}, 실패 수: {} → PushSend 통계 반영 완료", successCnt, failCnt);
+        log.info("=== FCM 발송 완료 - 성공: {}, 실패: {} ===", successCnt, failCnt);
     }
 }

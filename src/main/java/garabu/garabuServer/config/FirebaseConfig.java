@@ -18,19 +18,30 @@ public class FirebaseConfig {
 
     @PostConstruct
     public void init() throws IOException {
-        if (!FirebaseApp.getApps().isEmpty()) {
-            log.info("Firebase 이미 초기화됨");
-            return;
+        try {
+            if (!FirebaseApp.getApps().isEmpty()) {
+                log.info("Firebase 이미 초기화됨 - App Name: {}", FirebaseApp.getInstance().getName());
+                return;
+            }
+
+            log.info("Firebase 초기화 시작...");
+            GoogleCredentials credentials = getCredentials();
+            
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(credentials)
+                    .build();
+
+            FirebaseApp app = FirebaseApp.initializeApp(options);
+            log.info("Firebase Admin SDK 초기화 완료 - App Name: {}", app.getName());
+            
+            // 초기화 확인
+            log.info("Firebase Project ID: {}", app.getOptions().getProjectId());
+            log.info("Firebase Service Account: {}", app.getOptions().getServiceAccountId());
+            
+        } catch (Exception e) {
+            log.error("Firebase 초기화 실패: {}", e.getMessage(), e);
+            throw e;
         }
-
-        GoogleCredentials credentials = getCredentials();
-        
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(credentials)
-                .build();
-
-        FirebaseApp.initializeApp(options);
-        log.info("Firebase Admin SDK 초기화 완료");
     }
     
     private GoogleCredentials getCredentials() throws IOException {
